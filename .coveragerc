@@ -1,0 +1,3 @@
+[run]
+source = loi_pyramid
+omit = loi_pyramid/test*
