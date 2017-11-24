@@ -8,11 +8,12 @@ from sqlalchemy.orm.exc import NoResultFound
 from . import BaseView
 
 from ..models import Character
+from ..decorators import set_authorized
 
+@set_authorized
 @view_defaults(route_name='character', renderer='json')
 class CharacterViews(BaseView):
 
-    #@authorized
     @view_config(request_method='GET')
     def get(self):
         try:
