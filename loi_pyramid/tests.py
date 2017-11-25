@@ -3,10 +3,10 @@ import transaction
 
 from pyramid import testing
 
-
-def dummy_request(dbsession):
-    return testing.DummyRequest(dbsession=dbsession)
-
+def dummy_request(dbsession, url):
+    req = testing.DummyRequest(dbsession=dbsession)
+    req.path_url = url
+    return req
 
 class BaseTest(unittest.TestCase):
     def setUp(self):
@@ -39,27 +39,41 @@ class BaseTest(unittest.TestCase):
         Base.metadata.drop_all(self.engine)
 
 
-class TestMyViewSuccessCondition(BaseTest):
+class TestSingleCharacter(BaseTest):
 
     def setUp(self):
-        super(TestMyViewSuccessCondition, self).setUp()
+        super(TestSingleCharacter, self).setUp()
         self.init_database()
 
-        from .models import MyModel
+        from .models import Character
 
-        model = MyModel(name='one', value=55)
-        self.session.add(model)
+        self.host = 'http://localhost:6543'
 
-    def test_passing_view(self):
-        from .views.default import my_view
-        info = my_view(dummy_request(self.session))
-        self.assertEqual(info['one'].name, 'one')
-        self.assertEqual(info['project'], 'loi_pyramid')
+        self.accountId      = 'Tweek'
+        self.name           = 'Siobhan Faulkner'
+        self.factionName    = 'what'
+        self.lastLogin      = 'never'
+        self.created        = '23/11/2017'
 
+        character = Character(
+                accountId=self.accountId,
+                name=self.name,
+                factionName=self.factionName,
+                lastLogin=self.lastLogin,
+                created=self.created
+            )
+        self.session.add(character)
 
-class TestMyViewFailureCondition(BaseTest):
+    def test_get(self):
+        from .views.character import CharacterViews
 
-    def test_failing_view(self):
-        from .views.default import my_view
-        info = my_view(dummy_request(self.session))
-        self.assertEqual(info.status_int, 500)
+        resource = '/character/1'
+        url_params = {'id': 1}
+
+        cv = CharacterViews(testing.DummyResource(),
+                dummy_request(self.session, (self.host+resource)))
+        cv.url = url_params
+
+        character_get = cv.get()
+
+        self.assertEqual(character_get['accountId'], self.accountId)
