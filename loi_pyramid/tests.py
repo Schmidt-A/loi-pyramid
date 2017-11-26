@@ -77,3 +77,7 @@ class TestSingleCharacter(BaseTest):
         character_get = cv.get()
 
         self.assertEqual(character_get['accountId'], self.accountId)
+        self.assertEqual(character_get['name'], self.name)
+        self.assertEqual(character_get['factionName'], self.factionName)
+        self.assertEqual(character_get['lastLogin'], self.lastLogin)
+        self.assertEqual(character_get['created'], self.created)

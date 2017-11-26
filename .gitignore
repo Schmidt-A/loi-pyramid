@@ -5,6 +5,7 @@
 *$py.class
 *~
 .coverage
+.cache
 coverage.xml
 build/
 dist/
