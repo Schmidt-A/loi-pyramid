@@ -9,6 +9,11 @@ def dummy_request(dbsession, url):
     req.path_url = url
     return req
 
+def dummy_post_request(dbsession, url, post):
+    req = testing.DummyRequest(dbsession=dbsession, post=post)
+    req.path_url = url
+    return req
+
 
 class BaseTest(unittest.TestCase):
     def setUp(self):
@@ -41,54 +46,10 @@ class BaseTest(unittest.TestCase):
         Base.metadata.drop_all(self.engine)
 
 
-class TestSingleCharacter(BaseTest):
+class TestCharacterViews(BaseTest):
 
     def setUp(self):
-        super(TestSingleCharacter, self).setUp()
-        self.init_database()
-
-        from .models import Character
-
-        self.host = 'http://localhost:6543'
-
-        self.accountId      = 'Tweek'
-        self.name           = 'Siobhan Faulkner'
-        self.factionName    = 'what'
-        self.lastLogin      = 'never'
-        self.created        = '23/11/2017'
-
-        character = Character(
-                accountId=self.accountId,
-                name=self.name,
-                factionName=self.factionName,
-                lastLogin=self.lastLogin,
-                created=self.created
-            )
-        self.session.add(character)
-
-    def test_get(self):
-        from .views.character import CharacterViews
-
-        resource = '/character/1'
-        url_params = {'id': 1}
-        request = dummy_request(self.session, (self.host+resource))
-
-        cv = CharacterViews(testing.DummyResource(), request)
-        cv.url = url_params
-
-        character_get = cv.get().__json__(request)
-
-        self.assertEqual(character_get['accountId'], self.accountId)
-        self.assertEqual(character_get['name'], self.name)
-        self.assertEqual(character_get['factionName'], self.factionName)
-        self.assertEqual(character_get['lastLogin'], self.lastLogin)
-        self.assertEqual(character_get['created'], self.created)
-
-
-class TestMultiCharacters(BaseTest):
-
-    def setUp(self):
-        super(TestMultiCharacters, self).setUp()
+        super(TestCharacterViews, self).setUp()
         self.init_database()
 
         from .models import Character
@@ -124,7 +85,41 @@ class TestMultiCharacters(BaseTest):
         self.session.add(siobhan)
         self.session.add(alrunden)
 
-    def test_get(self):
+    def test_character_get(self):
+        from .views.character import CharacterViews
+
+        resource = '/character/1'
+        url_params = {'id': 1}
+        request = dummy_request(self.session, (self.host+resource))
+
+        cv = CharacterViews(testing.DummyResource(), request)
+        cv.url = url_params
+
+        character_get = cv.get().__json__(request)
+
+        self.assertEqual(character_get['accountId'], self.accountId)
+        self.assertEqual(character_get['name'], self.name)
+        self.assertEqual(character_get['factionName'], self.factionName)
+        self.assertEqual(character_get['lastLogin'], self.lastLogin)
+        self.assertEqual(character_get['created'], self.created)
+
+    def test_character_update(self):
+        from .views.character import CharacterViews
+
+        resource = '/character/1'
+        url_params = {'id': 1}
+        test_name = 'Seth Notteel'
+        request = dummy_post_request(self.session, (self.host+resource),
+                {'name': test_name})
+
+        cv = CharacterViews(testing.DummyResource(), request)
+        cv.url = url_params
+
+        character = cv.update().__json__(request)
+
+        self.assertEqual(character['name'], test_name)
+
+    def test_characters_get(self):
         from .views.character import CharactersViews
 
         resource = '/characters'

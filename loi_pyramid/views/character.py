@@ -9,6 +9,7 @@ from . import BaseView
 
 from ..models import Character
 from ..decorators import set_authorized
+from ..schemas import CharacterUpdateSchema, Invalid
 
 
 @set_authorized
@@ -23,6 +24,26 @@ class CharacterViews(BaseView):
         except NoResultFound:
             raise HTTPNotFound
 
+        return character
+
+    @view_config(request_method='POST')
+    def update(self):
+        try:
+            query = self.request.dbsession.query(Character)
+            character = query.filter(Character.id == self.url['id']).one()
+        except NoResultFound:
+            raise HTTPNotFound
+
+        schema = CharacterUpdateSchema()
+
+        try:
+            post_data = schema.deserialize(self.request.POST)
+        except Invalid as e:
+            raise HTTPClientError
+
+        #TODO: update this when we know what parts we want people to be able
+        # to update
+        character.name = post_data['name']
         return character
 
 

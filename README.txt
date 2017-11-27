@@ -20,6 +20,10 @@ Getting Started
 
     env/bin/pip install -e ".[testing]"
 
+- Install setup.py requirements
+
+    python setup.py develop
+
 - Configure the database.
 
     env/bin/initialize_loi_pyramid_db development.ini
