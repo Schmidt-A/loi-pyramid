@@ -3,10 +3,12 @@ import transaction
 
 from pyramid import testing
 
+
 def dummy_request(dbsession, url):
     req = testing.DummyRequest(dbsession=dbsession)
     req.path_url = url
     return req
+
 
 class BaseTest(unittest.TestCase):
     def setUp(self):

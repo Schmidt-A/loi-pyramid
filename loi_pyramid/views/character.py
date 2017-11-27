@@ -10,6 +10,7 @@ from . import BaseView
 from ..models import Character
 from ..decorators import set_authorized
 
+
 @set_authorized
 @view_defaults(route_name='character', renderer='json')
 class CharacterViews(BaseView):
@@ -22,4 +23,19 @@ class CharacterViews(BaseView):
         except NoResultFound:
             raise HTTPNotFound
 
-        return character.as_dict()
+        return character
+
+
+@set_authorized
+@view_defaults(route_name='characters', renderer='json')
+class CharactersViews(BaseView):
+
+    @view_config(request_method='GET')
+    def get(self):
+        try:
+            query = self.request.dbsession.query(Character)
+            characters = query.all()
+        except NoResultFound:
+            raise HTTPNotFound
+
+        return characters

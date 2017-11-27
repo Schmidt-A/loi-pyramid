@@ -9,7 +9,7 @@ def unauthed(func):
 
 def authorized(view_func):
     def wrapped(*args, **kw):
-        # todo: auth checks
+        # TODO: auth checks
         print('I would require authorization in order to be called nicely')
         return view_func(*args, **kw)
     return wrapped
@@ -23,4 +23,5 @@ def set_authorized(cls):
 
     for (attr, val) in auth_funcs:
         setattr(cls, attr, authorized(val))
+
     return cls
