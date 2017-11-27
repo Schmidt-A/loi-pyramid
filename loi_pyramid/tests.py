@@ -71,15 +71,81 @@ class TestSingleCharacter(BaseTest):
 
         resource = '/character/1'
         url_params = {'id': 1}
+        request = dummy_request(self.session, (self.host+resource))
 
-        cv = CharacterViews(testing.DummyResource(),
-                dummy_request(self.session, (self.host+resource)))
+        cv = CharacterViews(testing.DummyResource(), request)
         cv.url = url_params
 
-        character_get = cv.get()
+        character_get = cv.get().__json__(request)
 
         self.assertEqual(character_get['accountId'], self.accountId)
         self.assertEqual(character_get['name'], self.name)
         self.assertEqual(character_get['factionName'], self.factionName)
         self.assertEqual(character_get['lastLogin'], self.lastLogin)
         self.assertEqual(character_get['created'], self.created)
+
+
+class TestMultiCharacters(BaseTest):
+
+    def setUp(self):
+        super(TestMultiCharacters, self).setUp()
+        self.init_database()
+
+        from .models import Character
+
+        self.host = 'http://localhost:6543'
+
+        self.accountId      = 'Tweek'
+        self.name           = 'Siobhan Faulkner'
+        self.factionName    = 'what'
+        self.lastLogin      = 'never'
+        self.created        = '23/11/2017'
+
+        self.accountIdAl    = 'Aez'
+        self.nameAl         = 'Alrunden Peralt'
+        self.factionNameAl  = 'Kelemvorites'
+        self.lastLoginAl    = 'never'
+        self.createdAl      = '26/11/2017'
+
+        siobhan = Character(
+                accountId=self.accountId,
+                name=self.name,
+                factionName=self.factionName,
+                lastLogin=self.lastLogin,
+                created=self.created
+            )
+        alrunden = Character(
+                accountId=self.accountIdAl,
+                name=self.nameAl,
+                factionName=self.factionNameAl,
+                lastLogin=self.lastLoginAl,
+                created=self.createdAl
+            )
+        self.session.add(siobhan)
+        self.session.add(alrunden)
+
+    def test_get(self):
+        from .views.character import CharactersViews
+
+        resource = '/characters'
+        request = dummy_request(self.session, (self.host+resource))
+
+        cv = CharactersViews(testing.DummyResource(), request)
+
+        characters_get = cv.get()
+
+        self.assertGreater(len(characters_get), 1)
+        siobhan = characters_get[0].__json__(request)
+        alrunden = characters_get[1].__json__(request)
+
+        self.assertEqual(siobhan['accountId'], self.accountId)
+        self.assertEqual(siobhan['name'], self.name)
+        self.assertEqual(siobhan['factionName'], self.factionName)
+        self.assertEqual(siobhan['lastLogin'], self.lastLogin)
+        self.assertEqual(siobhan['created'], self.created)
+
+        self.assertEqual(alrunden['accountId'], self.accountIdAl)
+        self.assertEqual(alrunden['name'], self.nameAl)
+        self.assertEqual(alrunden['factionName'], self.factionNameAl)
+        self.assertEqual(alrunden['lastLogin'], self.lastLoginAl)
+        self.assertEqual(alrunden['created'], self.createdAl)
