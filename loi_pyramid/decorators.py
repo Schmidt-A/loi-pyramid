@@ -12,7 +12,6 @@ def unauthed(func):
 def authorized(view_func):
     def wrapped(*args, **kw):
         # TODO: auth checks
-        print('I would require authorization in order to be called nicely')
         return view_func(*args, **kw)
     return wrapped
 
