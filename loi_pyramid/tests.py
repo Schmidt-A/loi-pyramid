@@ -1,3 +1,4 @@
+# flake8: noqa
 import unittest
 import transaction
 
@@ -8,6 +9,7 @@ def dummy_request(dbsession, url):
     req = testing.DummyRequest(dbsession=dbsession)
     req.path_url = url
     return req
+
 
 def dummy_post_request(dbsession, url, post):
     req = testing.DummyRequest(dbsession=dbsession, post=post)
@@ -109,7 +111,9 @@ class TestCharacterViews(BaseTest):
         resource = '/character/1'
         url_params = {'id': 1}
         test_name = 'Seth Notteel'
-        request = dummy_post_request(self.session, (self.host+resource),
+        request = dummy_post_request(
+                self.session,
+                (self.host+resource),
                 {'name': test_name})
 
         cv = CharacterViews(testing.DummyResource(), request)

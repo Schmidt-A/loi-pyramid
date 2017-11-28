@@ -41,10 +41,17 @@ def main(argv=sys.argv):
     with transaction.manager:
         dbsession = get_tm_session(session_factory, transaction.manager)
 
-        character = Character(accountId='Tweek', name='Siobhan Faulkner', \
-                factionName='what', lastLogin='never', created='23/11/2017')
-        alrunden = Character(accountId='Aez', name='Alrunden Peralt', \
-                factionName='Kelemvorites', lastLogin='never', \
+        character = Character(
+                accountId='Tweek',
+                name='Siobhan Faulkner',
+                factionName='what',
+                lastLogin='never',
+                created='23/11/2017')
+        alrunden = Character(
+                accountId='Aez',
+                name='Alrunden Peralt',
+                factionName='Kelemvorites',
+                lastLogin='never',
                 created='26/11/2017')
         dbsession.add(character)
         dbsession.add(alrunden)

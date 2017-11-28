@@ -1,8 +1,7 @@
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPNotFound, HTTPClientError
 
 from pyramid.view import view_config, view_defaults
 
-from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm.exc import NoResultFound
 
 from . import BaseView
@@ -41,7 +40,7 @@ class CharacterViews(BaseView):
         except Invalid as e:
             raise HTTPClientError
 
-        #TODO: update this when we know what parts we want people to be able
+        # TODO: update this when we know what parts we want people to be able
         # to update
         character.name = post_data['name']
         return character

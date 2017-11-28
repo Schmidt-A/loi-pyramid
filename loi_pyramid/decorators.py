@@ -3,9 +3,11 @@ def _needs_auth(val, attr):
         return False
     return True
 
+
 def unauthed(func):
     func._ignore_auth = True
     return func
+
 
 def authorized(view_func):
     def wrapped(*args, **kw):
@@ -13,6 +15,7 @@ def authorized(view_func):
         print('I would require authorization in order to be called nicely')
         return view_func(*args, **kw)
     return wrapped
+
 
 def set_authorized(cls):
     auth_funcs = []
