@@ -70,7 +70,12 @@ class CharacterViews(BaseView):
                 'update: could not deserialize {}'.format(self.request.body))
             raise HTTPClientError
 
-        return character
+        # TODO: update this when we know what parts we want people to be able
+        # to update
+        log.info(
+            'update: character/id {}/{} with new data {}'.format(
+                character.name, character.id, post_data['name']))
+        character.name = post_data['name']
 
     #This method will almost certainly be locked down since we should not allow any of this to be editable
     #Only admin server or nwn (via db) should be able to delete characters
