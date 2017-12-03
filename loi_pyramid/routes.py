@@ -3,6 +3,7 @@ def includeme(config):
 
     config.add_route('login', '/login')
     config.add_route('logout', '/logout')
+    config.add_route('login_stub', '/login_stub')
 
     config.add_route('characters', '/characters')
     config.add_route('character', '/character/{id}')
