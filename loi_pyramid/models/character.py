@@ -14,6 +14,5 @@ class Character(Base):
     id = Column(Integer, primary_key=True)
     accountId   = Column(Integer)
     name        = Column(String)
-    factionName = Column(String)
     lastLogin   = Column(String)
     created     = Column(String)

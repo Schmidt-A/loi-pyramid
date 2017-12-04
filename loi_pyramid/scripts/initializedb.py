@@ -44,13 +44,11 @@ def main(argv=sys.argv):
         character = Character(
                 accountId='Tweek',
                 name='Siobhan Faulkner',
-                factionName='what',
                 lastLogin='never',
                 created='23/11/2017')
         alrunden = Character(
                 accountId='Aez',
                 name='Alrunden Peralt',
-                factionName='Kelemvorites',
                 lastLogin='never',
                 created='26/11/2017')
         dbsession.add(character)
