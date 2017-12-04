@@ -53,10 +53,10 @@ class CharacterViews(BaseView):
 
         # TODO: update this when we know what parts we want people to be able
         # to update
-        log.info(
-            'update: character/id {}/{} with new data {}'.format(
-                character.name, character.id, post_data['name'])
-        character.name = post_data['name']
+        #log.info(
+        #    'update: character/id {}/{} with new data {}'.format(
+        #        character.name, character.id, post_data['name'])
+        #character.name = post_data['name']
         return character
 
 

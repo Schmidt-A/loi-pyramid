@@ -4,7 +4,7 @@ import transaction
 
 from pyramid import testing
 
-from .tests import BaseTest
+from .base_test import BaseTest
 
 class TestCharacterViews(BaseTest):
 
@@ -12,7 +12,7 @@ class TestCharacterViews(BaseTest):
         super(TestCharacterViews, self).setUp()
         self.init_database()
 
-        from .models import Character
+        from ..models import Character
 
         self.host = 'http://localhost:6543'
 
@@ -42,7 +42,7 @@ class TestCharacterViews(BaseTest):
         self.session.add(alrunden)
 
     def test_character_get(self):
-        from .views.character import CharacterViews
+        from ..views.character import CharacterViews
 
         resource = '/character/1'
         url_params = {'id': 1}
@@ -59,7 +59,7 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(character_get['created'], self.created)
 
     def test_character_update(self):
-        from .views.character import CharacterViews
+        from ..views.character import CharacterViews
 
         resource = '/character/1'
         url_params = {'id': 1}
@@ -77,7 +77,7 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(character['name'], test_name)
 
     def test_characters_get(self):
-        from .views.character import CharactersViews
+        from ..views.character import CharactersViews
 
         resource = '/characters'
         request = self.dummy_request(self.session, (self.host+resource))

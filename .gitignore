@@ -12,6 +12,7 @@ dist/
 .tox/
 nosetests.xml
 env*/
+loi/
 tmp/
 Data.fs*
 *.sublime-project
@@ -21,3 +22,5 @@ Data.fs*
 .DS_Store
 coverage
 test
+CHANGES.txt
+.*
