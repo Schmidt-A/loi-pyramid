@@ -1,10 +1,8 @@
 # flake8: noqa
-import unittest
-import transaction
-
 from pyramid import testing
 
 from .base_test import BaseTest
+
 
 class TestCharacterViews(BaseTest):
 
@@ -71,7 +69,6 @@ class TestCharacterViews(BaseTest):
 
         cv = CharacterViews(testing.DummyResource(), request)
         cv.url = url_params
-
         character = cv.update().__json__(request)
 
         self.assertEqual(character['name'], test_name)

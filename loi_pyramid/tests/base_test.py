@@ -4,6 +4,7 @@ import transaction
 
 from pyramid import testing
 
+
 class BaseTest(unittest.TestCase):
     def setUp(self):
         self.config = testing.setUp(settings={
@@ -34,12 +35,12 @@ class BaseTest(unittest.TestCase):
         transaction.abort()
         Base.metadata.drop_all(self.engine)
 
-    def dummy_request(dbsession, url):
+    def dummy_request(self, dbsession, url):
         req = testing.DummyRequest(dbsession=dbsession)
         req.path_url = url
         return req
 
-    def dummy_post_request(dbsession, url, post):
+    def dummy_post_request(self, dbsession, url, post):
         req = testing.DummyRequest(dbsession=dbsession, post=post)
         req.path_url = url
         return req
