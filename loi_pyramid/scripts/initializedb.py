@@ -44,25 +44,6 @@ def main(argv=sys.argv):
     with transaction.manager:
         dbsession = get_tm_session(session_factory, transaction.manager)
 
-        #TODO: move this shit to the tests -AM
-        #TODO: Fix flask rules for indentation
-        siobhian = Character(
-                accountId   = 'Tweek',
-                name        = 'Siobhan Faulkner',
-                lastLogin   = '29/11/2017',
-                created     = '23/11/2017')
-        alrunden = Character(
-                accountId   = 'Aez',
-                name        = 'Alrunden Peralt',
-                lastLogin   = '29/11/2017',
-                created     = '26/6/2017')
-        arthen = Character(
-                accountId   = None,
-                name        = 'Arthen Relindar',
-                lastLogin   = None,
-                created     = None)
-        dbsession.add_all([siobhian, alrunden, arthen])
-
         smugglers = Faction(
                 name        = 'Smugglers',
                 factionId   = None)
