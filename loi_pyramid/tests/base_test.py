@@ -44,3 +44,16 @@ class BaseTest(unittest.TestCase):
         req = testing.DummyRequest(dbsession=dbsession, post=post)
         req.path_url = url
         return req
+
+    def dummy_put_request(self, dbsession, url, body):
+        req = testing.DummyRequest(dbsession=dbsession)
+        req.path_url = url
+        req.method = 'PUT'
+        req.body = body
+        return req
+
+    def dummy_delete_request(self, dbsession, url):
+        req = testing.DummyRequest(dbsession=dbsession)
+        req.path_url = url
+        req.method = 'DELETE'
+        return req

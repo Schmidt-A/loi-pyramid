@@ -15,7 +15,7 @@ class TestCharacterViews(BaseTest):
         self.host = 'http://localhost:6543'
 
         #TODO: Fix flask rules for indentation
-        self.siobhian = Character(
+        self.siobhan = Character(
                 accountId   = 'Tweek',
                 name        = 'Siobhan Faulkner',
                 lastLogin   = '29/11/2017',
@@ -30,24 +30,31 @@ class TestCharacterViews(BaseTest):
                 name        = 'Arthen Relindar',
                 lastLogin   = None,
                 created     = None)
-        self.session.add_all([self.siobhian, self.alrunden, self.arthen])
+        self.session.add_all([self.siobhan, self.alrunden, self.arthen])
+        self.session.flush()
 
-    def test_character_get(self):
+    def character_get(self, character):
         from ..views.character import CharacterViews
 
-        resource = '/character/1'
-        url_params = {'id': 1}
+        resource = '/character/{}'.format(character.id)
+        url_params = {'id': character.id}
         request = self.dummy_request(self.session, (self.host+resource))
 
         cv = CharacterViews(testing.DummyResource(), request)
         cv.url = url_params
 
-        character_get = cv.get().__json__(request)
+        character_result = cv.get().__json__(request)
+        return character_result
 
-        self.assertEqual(character_get['accountId'], self.siobhian.accountId)
-        self.assertEqual(character_get['name'], self.siobhian.name)
-        self.assertEqual(character_get['lastLogin'], self.siobhian.lastLogin)
-        self.assertEqual(character_get['created'], self.siobhian.created)
+    def test_siobhan_get(self):
+        print(self.siobhan.id)
+        character_result = self.character_get(self.siobhan)
+
+        self.assertEqual(character_result['id'], self.siobhan.id)
+        self.assertEqual(character_result['accountId'], self.siobhan.accountId)
+        self.assertEqual(character_result['name'], self.siobhan.name)
+        self.assertEqual(character_result['lastLogin'], self.siobhan.lastLogin)
+        self.assertEqual(character_result['created'], self.siobhan.created)
 
     def test_characters_get(self):
         from ..views.character import CharactersViews
@@ -64,10 +71,10 @@ class TestCharacterViews(BaseTest):
         alrunden = characters_get[1].__json__(request)
         arthen = characters_get[2].__json__(request)
 
-        self.assertEqual(siobhan['accountId'], self.siobhian.accountId)
-        self.assertEqual(siobhan['name'], self.siobhian.name)
-        self.assertEqual(siobhan['lastLogin'], self.siobhian.lastLogin)
-        self.assertEqual(siobhan['created'], self.siobhian.created)
+        self.assertEqual(siobhan['accountId'], self.siobhan.accountId)
+        self.assertEqual(siobhan['name'], self.siobhan.name)
+        self.assertEqual(siobhan['lastLogin'], self.siobhan.lastLogin)
+        self.assertEqual(siobhan['created'], self.siobhan.created)
 
         self.assertEqual(alrunden['accountId'], self.alrunden.accountId)
         self.assertEqual(alrunden['name'], self.alrunden.name)
@@ -85,7 +92,7 @@ class TestCharacterViews(BaseTest):
         resource = '/character/1'
         url_params = {'id': 1}
         test_name = 'A SPY'
-        request = self.dummy_post_request(
+        request = self.dummy_put_request(
                 self.session,
                 (self.host+resource),
                 {'name': test_name})
@@ -99,13 +106,11 @@ class TestCharacterViews(BaseTest):
     def test_character_delete(self):
         from ..views.character import CharacterViews
 
-        resources = '/character/3'
+        resource = '/character/3'
         url_params = {'id': 3}
-        request = self.dummy_request(self.session, (self.host = resource))
+        request = self.dummy_delete_request(self.session, (self.host+resource))
 
-        cv = CharactersViews(testing.DummyResource(), request)
+        cv = CharacterViews(testing.DummyResource(), request)
         cv.url = url_params
 
         characters_delete = cv.delete()
-
-        

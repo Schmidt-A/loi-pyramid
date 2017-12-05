@@ -55,8 +55,8 @@ def main(argv=sys.argv):
                 factionId   = relindars.id)
         dbsession.add_all([smugglers, relindars, cousins])
 
-        siobhian_spy = Member(
-                characterId = siobhian.id,
+        siobhan_spy = Member(
+                characterId = siobhan.id,
                 factionId   = smugglers.id,
                 role        = 'member',
                 active      = 1,
@@ -87,19 +87,19 @@ def main(argv=sys.argv):
                 secret      = 1,
                 dateJoined  = None,
                 dateLeft    = None)
-        dbsession.add_all([siobhian_spy, al_left, al_now, arthen_fam])
+        dbsession.add_all([siobhan_spy, al_left, al_now, arthen_fam])
 
         rel_sio = Reputation(
                 characterId = None,
                 factionId   = cousins.id,
                 amount      = -5,
-                atCharId    = siobhian.id,
+                atCharId    = siobhan.id,
                 atFactionId = None)
         smug_sio = Reputation(
                 characterId = None,
                 factionId   = smugglers.id,
                 amount      = 80,
-                atCharId    = siobhian.id,
+                atCharId    = siobhan.id,
                 atFactionId = None)
         rel_al = Reputation(
                 characterId = None,

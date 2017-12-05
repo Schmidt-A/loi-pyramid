@@ -32,21 +32,22 @@ class CharacterViews(BaseView):
 
         return character
 
-    @view_config(request_method='POST')
+    @view_config(request_method='PUT')
     def update(self):
         try:
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['id']).one()
 
             schema = CharacterUpdateSchema()
-            post_data = schema.deserialize(self.request.POST)
+            print(self.request.body)
+            put_data = schema.deserialize(self.request.body)
 
             # TODO: update this when we know what parts we want people to be able
             # to update
             log.info(
                 'update: character/id {}/{} with new data {}'.format(
-                    character.name, character.id, post_data['name']))
-            character.name = post_data['name']
+                    character.name, character.id, put_data['name']))
+            character.name = put_data['name']
 
         except NoResultFound:
             log.error(
@@ -55,10 +56,23 @@ class CharacterViews(BaseView):
 
         except Invalid:
             log.error(
-                'update: could not deserialize {}'.format(self.request.POST))
+                'update: could not deserialize {}'.format(self.request.body))
             raise HTTPClientError
 
         return character
+
+    @view_config(request_method='DELETE')
+    def delete(self):
+        try:
+            query = self.request.dbsession.query(Character)
+            query.filter(Character.id == self.url['id'])
+            log.info(
+                'delete: character/id {}'.format(self.url['id']))
+        except NoResultFound:
+            log.error(
+                'get: character id \'{}\' not found'.format(self.url['id']))
+            raise HTTPNotFound
+
 
 
 @set_authorized
