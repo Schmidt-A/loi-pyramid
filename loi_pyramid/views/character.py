@@ -37,26 +37,27 @@ class CharacterViews(BaseView):
         try:
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['id']).one()
+
+            schema = CharacterUpdateSchema()
+            post_data = schema.deserialize(self.request.POST)
+
+            # TODO: update this when we know what parts we want people to be able
+            # to update
+            log.info(
+                'update: character/id {}/{} with new data {}'.format(
+                    character.name, character.id, post_data['name']))
+            character.name = post_data['name']
+
         except NoResultFound:
             log.error(
                 'update: character id \'{}\' not found'.format(self.url['id']))
             raise HTTPNotFound
 
-        schema = CharacterUpdateSchema()
-
-        try:
-            post_data = schema.deserialize(self.request.POST)
-        except Invalid as e:
+        except Invalid:
             log.error(
                 'update: could not deserialize {}'.format(self.request.POST))
             raise HTTPClientError
 
-        # TODO: update this when we know what parts we want people to be able
-        # to update
-        log.info(
-            'update: character/id {}/{} with new data {}'.format(
-                character.name, character.id, post_data['name'])
-        character.name = post_data['name']
         return character
 
 

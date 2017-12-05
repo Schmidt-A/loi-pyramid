@@ -1,4 +1,4 @@
 import colander
 
-class CharacterUpdateSchema(colander.MappingSchema):
+class FactionUpdateSchema(colander.MappingSchema):
     name = colander.SchemaNode(colander.String())
