@@ -1,5 +1,7 @@
 # flake8: noqa
+from pyramid.httpexceptions import HTTPNotFound
 from pyramid import testing
+import copy
 
 from .base_test import BaseTest
 
@@ -46,8 +48,57 @@ class TestCharacterViews(BaseTest):
         character_result = cv.get().__json__(request)
         return character_result
 
+    def character_delete(self, character):
+        from ..views.character import CharacterViews
+
+        resource = '/character/{}'.format(character.id)
+        url_params = {'id': character.id}
+        request = self.dummy_delete_request(self.session, (self.host+resource))
+
+        cv = CharacterViews(testing.DummyResource(), request)
+        cv.url = url_params
+
+        cv.delete()
+
+    def characters_get(self):
+        from ..views.character import CharactersViews
+
+        resource = '/characters'
+        request = self.dummy_request(self.session, (self.host+resource))
+
+        cv = CharactersViews(testing.DummyResource(), request)
+
+        characters_get = []
+        for character in cv.get():
+            characters_get.append(character.__json__(request))
+
+        return characters_get
+
+    def character_update(self, character):
+        from ..views.character import CharacterViews
+
+        resource = '/character/{}'.format(character.id)
+        url_params = {'id': character.id}
+
+        character_payload = {
+            'accountId' : character.accountId,
+            'name'      : character.name,
+            'lastLogin' : character.lastLogin,
+            'created'   : character.created
+        }
+
+        request = self.dummy_put_request(
+                self.session,
+                (self.host+resource),
+                character_payload)
+
+        cv = CharacterViews(testing.DummyResource(), request)
+        cv.url = url_params
+        character = cv.update().__json__(request)
+
+        return character
+
     def test_siobhan_get(self):
-        print(self.siobhan.id)
         character_result = self.character_get(self.siobhan)
 
         self.assertEqual(character_result['id'], self.siobhan.id)
@@ -56,20 +107,13 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(character_result['lastLogin'], self.siobhan.lastLogin)
         self.assertEqual(character_result['created'], self.siobhan.created)
 
-    def test_characters_get(self):
-        from ..views.character import CharactersViews
+    def test_siobhan_al_arthen_get(self):
+        characters_result = self.characters_get()
 
-        resource = '/characters'
-        request = self.dummy_request(self.session, (self.host+resource))
-
-        cv = CharactersViews(testing.DummyResource(), request)
-
-        characters_get = cv.get()
-
-        self.assertGreater(len(characters_get), 2)
-        siobhan = characters_get[0].__json__(request)
-        alrunden = characters_get[1].__json__(request)
-        arthen = characters_get[2].__json__(request)
+        self.assertGreater(len(characters_result), 2)
+        siobhan = characters_result[0]
+        alrunden = characters_result[1]
+        arthen = characters_result[2]
 
         self.assertEqual(siobhan['accountId'], self.siobhan.accountId)
         self.assertEqual(siobhan['name'], self.siobhan.name)
@@ -86,31 +130,16 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(arthen['lastLogin'], self.arthen.lastLogin)
         self.assertEqual(arthen['created'], self.arthen.created)
 
-    def test_character_update(self):
+    def test_spy_update(self):
         from ..views.character import CharacterViews
 
-        resource = '/character/1'
-        url_params = {'id': 1}
-        test_name = 'A SPY'
-        request = self.dummy_put_request(
-                self.session,
-                (self.host+resource),
-                {'name': test_name})
+        test_spy = copy.copy(self.siobhan)
+        test_spy.name = 'A SPY'
+        character_result = self.character_update(test_spy)
 
-        cv = CharacterViews(testing.DummyResource(), request)
-        cv.url = url_params
-        character = cv.update().__json__(request)
+        self.assertEqual(character_result['name'], test_spy.name)
 
-        self.assertEqual(character['name'], test_name)
-
-    def test_character_delete(self):
-        from ..views.character import CharacterViews
-
-        resource = '/character/3'
-        url_params = {'id': 3}
-        request = self.dummy_delete_request(self.session, (self.host+resource))
-
-        cv = CharacterViews(testing.DummyResource(), request)
-        cv.url = url_params
-
-        characters_delete = cv.delete()
+    def test_arthen_delete(self):
+        self.character_delete(self.arthen)
+        with self.assertRaises(HTTPNotFound):
+            self.character_get(self.arthen)

@@ -32,6 +32,8 @@ class CharacterViews(BaseView):
 
         return character
 
+    #This method will almost certainly be locked down since we should not allow any of this to be editable
+    #Only admins or nwn (via db) should be able to create new characters or edit new characters
     @view_config(request_method='PUT')
     def update(self):
         try:
@@ -39,15 +41,24 @@ class CharacterViews(BaseView):
             character = query.filter(Character.id == self.url['id']).one()
 
             schema = CharacterUpdateSchema()
-            print(self.request.body)
             put_data = schema.deserialize(self.request.body)
+            accountId = put_data.get('accountId')
+            name = put_data.get('name')
+            lastLogin = put_data.get('lastLogin')
+            created = put_data.get('created')
 
-            # TODO: update this when we know what parts we want people to be able
-            # to update
             log.info(
                 'update: character/id {}/{} with new data {}'.format(
                     character.name, character.id, put_data['name']))
-            character.name = put_data['name']
+
+            if accountId:
+                character.accountId = accountId
+            if name:
+                character.name      = name
+            if lastLogin:
+                character.lastLogin = lastLogin
+            if created:
+                character.created   = created
 
         except NoResultFound:
             log.error(
@@ -61,18 +72,20 @@ class CharacterViews(BaseView):
 
         return character
 
+    #This method will almost certainly be locked down since we should not allow any of this to be editable
+    #Only admin server or nwn (via db) should be able to delete characters
     @view_config(request_method='DELETE')
     def delete(self):
         try:
             query = self.request.dbsession.query(Character)
-            query.filter(Character.id == self.url['id'])
+            character = query.filter(Character.id == self.url['id']).delete()
+
             log.info(
                 'delete: character/id {}'.format(self.url['id']))
         except NoResultFound:
             log.error(
                 'get: character id \'{}\' not found'.format(self.url['id']))
             raise HTTPNotFound
-
 
 
 @set_authorized
