@@ -8,7 +8,7 @@ from sqlalchemy import (
 from .meta import Base
 
 class Recipe(Base):
-    __tablename__ = 'recipe'
+    __tablename__ = 'recipes'
     id          = Column(Integer, primary_key=True)
     blueprintId = Column(Integer)
     actions     = Column(Integer)

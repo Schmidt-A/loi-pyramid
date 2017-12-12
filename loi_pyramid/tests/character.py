@@ -4,6 +4,9 @@ from pyramid import testing
 import copy
 
 from .base_test import BaseTest
+from ..views.character import CharacterViews
+from ..views.character import CharactersViews
+from ..views.character import CharacterInventoryViews
 
 
 class TestCharacterViews(BaseTest):
@@ -12,7 +15,7 @@ class TestCharacterViews(BaseTest):
         super(TestCharacterViews, self).setUp()
         self.init_database()
 
-        from ..models import Character
+        from ..models import Character, Inventory
 
         self.host = 'http://localhost:6543'
 
@@ -32,11 +35,16 @@ class TestCharacterViews(BaseTest):
                 name        = 'Arthen Relindar',
                 lastLogin   = None,
                 created     = None)
-        self.session.add_all([self.siobhan, self.alrunden, self.arthen])
+        self.alFarm = Inventory(
+                characterId = 2,
+                blueprintId = 'grain',
+                amount      = 10,
+                created     = None,
+                updated     = None)
+        self.session.add_all([self.siobhan, self.alrunden, self.arthen, self.alFarm])
         self.session.flush()
 
     def character_get(self, character):
-        from ..views.character import CharacterViews
 
         resource = '/character/{}'.format(character.id)
         url_params = {'id': character.id}
@@ -49,7 +57,6 @@ class TestCharacterViews(BaseTest):
         return character_result
 
     def character_delete(self, character):
-        from ..views.character import CharacterViews
 
         resource = '/character/{}'.format(character.id)
         url_params = {'id': character.id}
@@ -61,7 +68,6 @@ class TestCharacterViews(BaseTest):
         cv.delete()
 
     def characters_get(self):
-        from ..views.character import CharactersViews
 
         resource = '/characters'
         request = self.dummy_request(self.session, (self.host+resource))
@@ -75,7 +81,6 @@ class TestCharacterViews(BaseTest):
         return characters_get
 
     def character_update(self, character):
-        from ..views.character import CharacterViews
 
         resource = '/character/{}'.format(character.id)
         url_params = {'id': character.id}
@@ -97,6 +102,22 @@ class TestCharacterViews(BaseTest):
         character = cv.update().__json__(request)
 
         return character
+
+    def inventory_get(self, character):
+
+        resource = '/character/{}/inventory'.format(character.id)
+        url_params = {'id': character.id}
+
+        request = self.dummy_request(self.session, (self.host+resource))
+
+        cv = CharacterInventoryViews(testing.DummyResource(), request)
+        cv.url = url_params
+
+        inventory_get = []
+        for inventory in cv.get():
+            inventory_get.append(inventory.__json__(request))
+
+        return inventory_get
 
     def test_siobhan_get(self):
         character_result = self.character_get(self.siobhan)
@@ -142,3 +163,13 @@ class TestCharacterViews(BaseTest):
         self.character_delete(self.arthen)
         with self.assertRaises(HTTPNotFound):
             self.character_get(self.arthen)
+
+    def test_al_items(self):
+        inventory_result = self.inventory_get(self.alrunden)
+
+        self.assertEqual(len(inventory_result), 1)
+        grain = inventory_result[0]
+
+        self.assertEqual(grain['characterId'], self.alrunden.id)
+        self.assertEqual(grain['blueprintId'], self.alFarm.blueprintId)
+        self.assertEqual(grain['amount'], self.alFarm.amount)
