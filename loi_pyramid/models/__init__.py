@@ -6,6 +6,9 @@ import zope.sqlalchemy
 # import or define all models here to ensure they are attached to the
 # Base.metadata prior to any initialization routines
 from .character import Character # flake8: noqa
+from .member import Member # flake8: noqa
+from .faction import Faction # flake8: noqa
+from .reputation import Reputation # flake8: noqa
 
 # run configure_mappers after defining all of the models to ensure
 # all relationships can be setup
