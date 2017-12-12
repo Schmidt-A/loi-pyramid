@@ -7,10 +7,13 @@ from sqlalchemy import (
 
 from .meta import Base
 
-class Faction(Base):
-    __tablename__ = 'factions'
+class Action(Base):
+    __tablename__ = 'action'
     id          = Column(Integer, primary_key=True)
-    name        = Column(String)
-    factionId   = Column(String)
+    characterId = Column(Integer)
+    type        = Column(String)
+    amount      = Column(Integer)
+    recipeId    = Column(Integer)
+    completed   = Column(String)
     created     = Column(String)
     updated     = Column(String)

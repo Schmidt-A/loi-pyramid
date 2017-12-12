@@ -16,5 +16,6 @@ class Member(Base):
     role        = Column(String)
     active      = Column(Integer)
     secret      = Column(Integer)
-    dateJoined  = Column(String)
     dateLeft    = Column(String)
+    created     = Column(String)
+    updated     = Column(String)

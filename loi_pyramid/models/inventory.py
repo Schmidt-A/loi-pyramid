@@ -7,10 +7,11 @@ from sqlalchemy import (
 
 from .meta import Base
 
-class Faction(Base):
-    __tablename__ = 'factions'
+class Inventory(Base):
+    __tablename__ = 'inventory'
     id          = Column(Integer, primary_key=True)
-    name        = Column(String)
-    factionId   = Column(String)
+    characterId = Column(Integer)
+    blueprintId = Column(Integer)
+    amount      = Column(Integer)
     created     = Column(String)
     updated     = Column(String)

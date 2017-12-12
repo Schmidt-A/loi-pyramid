@@ -131,7 +131,6 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(arthen['created'], self.arthen.created)
 
     def test_spy_update(self):
-        from ..views.character import CharacterViews
 
         test_spy = copy.copy(self.siobhan)
         test_spy.name = 'A SPY'

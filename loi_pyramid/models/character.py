@@ -15,3 +15,4 @@ class Character(Base):
     name        = Column(String)
     lastLogin   = Column(String)
     created     = Column(String)
+    updated     = Column(String)
