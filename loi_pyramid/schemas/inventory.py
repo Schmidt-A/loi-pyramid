@@ -1,4 +1,5 @@
 import colander
 
 class InventoryUpdateSchema(colander.MappingSchema):
-    name = colander.SchemaNode(colander.String())
+    blueprintId = colander.SchemaNode(colander.String())
+    amount = colander.SchemaNode(colander.Integer())
