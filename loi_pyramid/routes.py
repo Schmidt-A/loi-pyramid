@@ -5,3 +5,4 @@ def includeme(config):
     config.add_route('character', '/character/{id}')
     config.add_route('character_reputation', '/character/{id}/reputations')
     config.add_route('character_inventory', '/character/{id}/inventory')
+    config.add_route('character_item', '/character/{charId}/inventory/{itemId}')

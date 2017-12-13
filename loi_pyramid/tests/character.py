@@ -7,6 +7,7 @@ from .base_test import BaseTest
 from ..views.character import CharacterViews
 from ..views.character import CharactersViews
 from ..views.character import CharacterInventoryViews
+from ..views.character import CharacterItemViews
 
 
 class TestCharacterViews(BaseTest):
@@ -114,10 +115,24 @@ class TestCharacterViews(BaseTest):
         cv.url = url_params
 
         inventory_get = []
-        for inventory in cv.get():
-            inventory_get.append(inventory.__json__(request))
+        for item in cv.get():
+            inventory_get.append(item.__json__(request))
 
         return inventory_get
+
+    def item_get(self, character, item):
+
+        resource = '/character/{}/inventory/{}'.format(character.id,item.id)
+        url_params = {'charId': character.id, 'itemId': item.id}
+
+        request = self.dummy_request(self.session, (self.host+resource))
+
+        cv = CharacterItemViews(testing.DummyResource(), request)
+        cv.url = url_params
+
+        item_result = cv.get().__json__(request)
+
+        return item_result
 
     def test_siobhan_get(self):
         character_result = self.character_get(self.siobhan)
@@ -169,6 +184,13 @@ class TestCharacterViews(BaseTest):
 
         self.assertEqual(len(inventory_result), 1)
         grain = inventory_result[0]
+
+        self.assertEqual(grain['characterId'], self.alrunden.id)
+        self.assertEqual(grain['blueprintId'], self.alFarm.blueprintId)
+        self.assertEqual(grain['amount'], self.alFarm.amount)
+
+    def test_al_grain(self):
+        grain = self.item_get(self.alrunden, self.alFarm)
 
         self.assertEqual(grain['characterId'], self.alrunden.id)
         self.assertEqual(grain['blueprintId'], self.alFarm.blueprintId)

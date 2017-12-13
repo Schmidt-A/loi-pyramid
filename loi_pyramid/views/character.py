@@ -6,7 +6,7 @@ from pyramid.view import view_config, view_defaults
 from sqlalchemy.orm.exc import NoResultFound
 
 from . import BaseView
-from ..models import Character,Inventory
+from ..models import Character, Inventory
 from ..decorators import set_authorized
 from ..schemas import CharacterUpdateSchema, Invalid
 
@@ -126,3 +126,26 @@ class CharacterInventoryViews(BaseView):
             raise HTTPNotFound
 
         return inventory
+
+
+@set_authorized
+@view_defaults(route_name='character_item', renderer='json')
+class CharacterItemViews(BaseView):
+
+    @view_config(request_method='GET')
+    def get(self):
+        try:
+            #Maybe remove the char lookup?
+            query = self.request.dbsession.query(Character)
+            character = query.filter(Character.id == self.url['charId']).one()
+
+            item_query = self.request.dbsession.query(Inventory)
+            item = item_query.filter(Inventory.id == self.url['itemId']).one()
+            log.info(
+                'get: item {}/{} of character/id {}/{}'.format(item.blueprintId, item.id, character.name, character.id))
+        except NoResultFound:
+            log.error(
+                'get: character id \'{}\' not found'.format(self.url['id']))
+            raise HTTPNotFound
+
+        return item
