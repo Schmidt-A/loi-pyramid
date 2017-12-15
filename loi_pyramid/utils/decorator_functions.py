@@ -23,9 +23,6 @@ def needs_auth(val, attr):
 
 
 def _valid_auth_args(args):
-    print(args)
-    print(len(args))
-    print(re.match(VIEW_MODULE_REGEX, args[0].__module__))
     if len(args) < 1:
         return False
     if not re.match(VIEW_MODULE_REGEX, args[0].__module__):

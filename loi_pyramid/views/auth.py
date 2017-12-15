@@ -34,7 +34,10 @@ class AuthViews(BaseView):
 
         if hashed_pw and check_password(pw, hashed_pw):
             headers = remember(self.request, user)
-            return Response(headers=headers)
+            print(self.request)
+            response = Response(headers=headers)
+            print(response)
+            return response
 
         raise HTTPUnauthorized
 
