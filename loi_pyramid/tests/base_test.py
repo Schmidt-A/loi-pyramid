@@ -8,7 +8,8 @@ from pyramid import testing
 class BaseTest(unittest.TestCase):
     def setUp(self):
         self.config = testing.setUp(settings={
-            'sqlalchemy.url': 'sqlite:///:memory:'
+            'sqlalchemy.url': 'sqlite:///:memory:',
+            'loi.auth_enabled': 0
         })
         self.config.include('..models')
         settings = self.config.get_settings()

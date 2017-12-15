@@ -42,6 +42,7 @@ class CharacterViews(BaseView):
 
             schema = CharacterUpdateSchema()
             put_data = schema.deserialize(self.request.body)
+
             accountId = put_data.get('accountId')
             name = put_data.get('name')
             lastLogin = put_data.get('lastLogin')
@@ -54,11 +55,11 @@ class CharacterViews(BaseView):
             if accountId:
                 character.accountId = accountId
             if name:
-                character.name      = name
+                character.name = name
             if lastLogin:
                 character.lastLogin = lastLogin
             if created:
-                character.created   = created
+                character.created = created
 
         except NoResultFound:
             log.error(
@@ -70,12 +71,8 @@ class CharacterViews(BaseView):
                 'update: could not deserialize {}'.format(self.request.body))
             raise HTTPClientError
 
-        # TODO: update this when we know what parts we want people to be able
-        # to update
-        log.info(
-            'update: character/id {}/{} with new data {}'.format(
-                character.name, character.id, post_data['name']))
-        character.name = post_data['name']
+        return character
+
 
     #This method will almost certainly be locked down since we should not allow any of this to be editable
     #Only admin server or nwn (via db) should be able to delete characters
@@ -91,6 +88,8 @@ class CharacterViews(BaseView):
             log.error(
                 'get: character id \'{}\' not found'.format(self.url['id']))
             raise HTTPNotFound
+
+        return character
 
 
 @set_authorized

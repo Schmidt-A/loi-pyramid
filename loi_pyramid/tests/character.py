@@ -1,7 +1,8 @@
 # flake8: noqa
+import copy
+
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid import testing
-import copy
 
 from .base_test import BaseTest
 
