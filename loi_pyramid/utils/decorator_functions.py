@@ -10,8 +10,9 @@ def authorized(view_func):
         if not _valid_auth_args(args):
             raise HTTPInternalServerError
 
-        if not args[0].request.authenticated_userid:
-            raise HTTPUnauthorized
+        if int(args[0].request.registry.settings['loi.auth_enabled']) > 0:
+            if not args[0].request.authenticated_userid:
+                raise HTTPUnauthorized
 
         return view_func(*args, **kw)
     return wrapped

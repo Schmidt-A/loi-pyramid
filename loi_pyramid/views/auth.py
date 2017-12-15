@@ -39,7 +39,7 @@ class AuthViews(BaseView):
             print(response)
             return response
 
-        raise HTTPUnauthorized
+        return HTTPUnauthorized()
 
     # TODO: this should be a POST but for facilitating testing, GET for now
     @view_config(route_name='logout', request_method='GET')
