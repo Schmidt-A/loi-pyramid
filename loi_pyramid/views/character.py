@@ -13,7 +13,7 @@ from ..schemas import CharacterUpdateSchema, InventoryUpdateSchema, Invalid
 
 log = logging.getLogger(__name__)
 
-
+#Govern calls to a single character object /character/{id}
 @set_authorized
 @view_defaults(route_name='character', renderer='json')
 class CharacterViews(BaseView):
@@ -91,7 +91,6 @@ class CharacterViews(BaseView):
 
             #we should return the full list of characters for a delete attempt
             characters = self.request.dbsession.query(Character).all()
-            print(characters)
 
         except NoResultFound:
             log.error(
@@ -100,7 +99,7 @@ class CharacterViews(BaseView):
 
         return characters
 
-
+#Govern calls to all character objects /characters
 @set_authorized
 @view_defaults(route_name='characters', renderer='json')
 class CharactersViews(BaseView):
@@ -117,7 +116,110 @@ class CharactersViews(BaseView):
 
         return characters
 
+#Govern calls to an item on a character /character/{id}/item/{id}
+@set_authorized
+@view_defaults(route_name='character_item', renderer='json')
+class CharacterItemViews(BaseView):
 
+    @view_config(request_method='GET')
+    def get(self):
+        try:
+            #Maybe remove the char lookup?
+            query = self.request.dbsession.query(Character)
+            character = query.filter(Character.id == self.url['charId']).one()
+
+            item_query = self.request.dbsession.query(Inventory)
+            item = item_query.filter(Inventory.id == self.url['itemId']).one()
+
+            if character.id == item.characterId:
+                log.info(
+                    'get: item {}/{} of character/id {}/{}'.format(item.blueprintId, item.id, character.name, character.id))
+            else:
+                log.error(
+                    'update: item id \'{}\' not associated with char id \'{}\''.format(self.url['itemId'],self.url['charId']))
+                raise HTTPForbidden
+
+        except NoResultFound:
+            log.error(
+                'get: character id \'{}\' not found'.format(self.url['charId']))
+            raise HTTPNotFound
+
+        return item
+
+    #This method will almost certainly be locked down since we should not allow any of this to be editable
+    #Only admins or nwn (via db) should be able to create new characters or edit new characters
+    @view_config(request_method='PUT')
+    def update(self):
+        try:
+            #Maybe remove the char lookup?
+            query = self.request.dbsession.query(Character)
+            character = query.filter(Character.id == self.url['charId']).one()
+
+            item_query = self.request.dbsession.query(Inventory)
+            item = item_query.filter(Inventory.id == self.url['itemId']).one()
+
+            schema = InventoryUpdateSchema()
+            put_data = schema.deserialize(self.request.body)
+            amount = put_data.get('amount')
+
+            if character.id == item.characterId:
+                log.info(
+                    'update: item/amount {}/{} from character/id {}/{} with new data {}'.format(item.blueprintId, item.amount,
+                        character.name, character.id, put_data['amount']))
+
+                if amount:
+                    item.amount = amount
+            else:
+                log.error(
+                    'update: item id \'{}\' not associated with char id \'{}\''.format(self.url['itemId'],self.url['charId']))
+                raise HTTPForbidden
+
+        except NoResultFound:
+            log.error(
+                'update: item id \'{}\' or char id \'{}\' not found'.format(self.url['itemId'],self.url['charId']))
+            raise HTTPNotFound
+
+        except Invalid:
+            log.error(
+                'update: could not deserialize {}'.format(self.request.body))
+            raise HTTPClientError
+
+        return item
+
+    #This method will almost certainly be locked down since we should not allow any of this to be editable
+    #Only admin server or nwn (via db) should be able to delete characters
+    @view_config(request_method='DELETE')
+    def delete(self):
+        try:
+            #Maybe remove the char lookup?
+            query = self.request.dbsession.query(Character)
+            character = query.filter(Character.id == self.url['charId']).one()
+
+            item_query = self.request.dbsession.query(Inventory)
+            item = item_query.filter(Inventory.id == self.url['itemId']).one()
+
+            if character.id == item.characterId:
+                item_query.filter(Inventory.id == self.url['itemId']).delete()
+                log.info(
+                    'delete: item/amount {}/{} from character/id {}/{}'.format(item.blueprintId, item.amount, character.name, character.id))
+
+                #we should return the full list of characters for a delete attempt
+                inv_query = self.request.dbsession.query(Inventory)
+                inventory = inv_query.filter(Inventory.characterId == self.url['charId']).all()
+
+            else:
+                log.error(
+                    'update: item id \'{}\' not associated with char id \'{}\''.format(self.url['itemId'],self.url['charId']))
+                raise HTTPForbidden
+
+        except NoResultFound:
+            log.error(
+                'get: item id \'{}\' or char id \'{}\' not found'.format(self.url['itemId'],self.url['charId']))
+            raise HTTPNotFound
+
+        return inventory
+
+#Govern calls to a character's inventory /character/{id}/inventory
 @set_authorized
 @view_defaults(route_name='character_inventory', renderer='json')
 class CharacterInventoryViews(BaseView):
@@ -175,97 +277,3 @@ class CharacterInventoryViews(BaseView):
             raise HTTPClientError
 
         return newItem
-
-
-@set_authorized
-@view_defaults(route_name='character_item', renderer='json')
-class CharacterItemViews(BaseView):
-
-    @view_config(request_method='GET')
-    def get(self):
-        try:
-            #Maybe remove the char lookup?
-            query = self.request.dbsession.query(Character)
-            character = query.filter(Character.id == self.url['charId']).one()
-
-            item_query = self.request.dbsession.query(Inventory)
-            item = item_query.filter(Inventory.id == self.url['itemId']).one()
-
-            if character.id == item.characterId:
-                log.info(
-                    'get: item {}/{} of character/id {}/{}'.format(item.blueprintId, item.id, character.name, character.id))
-
-        except NoResultFound:
-            log.error(
-                'get: character id \'{}\' not found'.format(self.url['charId']))
-            raise HTTPNotFound
-
-        return item
-
-    #This method will almost certainly be locked down since we should not allow any of this to be editable
-    #Only admins or nwn (via db) should be able to create new characters or edit new characters
-    @view_config(request_method='PUT')
-    def update(self):
-        try:
-            #Maybe remove the char lookup?
-            query = self.request.dbsession.query(Character)
-            character = query.filter(Character.id == self.url['charId']).one()
-
-            item_query = self.request.dbsession.query(Inventory)
-            item = item_query.filter(Inventory.id == self.url['itemId']).one()
-
-            schema = InventoryUpdateSchema()
-            put_data = schema.deserialize(self.request.body)
-            amount = put_data.get('amount')
-
-            if character.id == item.characterId:
-                log.info(
-                    'update: item/amount {}/{} from character/id {}/{} with new data {}'.format(item.blueprintId, item.amount,
-                        character.name, character.id, put_data['amount']))
-
-                if amount:
-                    item.amount = amount
-            else:
-                log.error(
-                    'update: item id \'{}\' or char id \'{}\' not found'.format(self.url['itemId'],self.url['charId']))
-                raise HTTPForbidden
-
-        except NoResultFound:
-            log.error(
-                'update: item id \'{}\' or char id \'{}\' not found'.format(self.url['itemId'],self.url['charId']))
-            raise HTTPNotFound
-
-        except Invalid:
-            log.error(
-                'update: could not deserialize {}'.format(self.request.body))
-            raise HTTPClientError
-
-        return item
-
-    #This method will almost certainly be locked down since we should not allow any of this to be editable
-    #Only admin server or nwn (via db) should be able to delete characters
-    @view_config(request_method='DELETE')
-    def delete(self):
-        try:
-            #Maybe remove the char lookup?
-            query = self.request.dbsession.query(Character)
-            character = query.filter(Character.id == self.url['charId']).one()
-
-            item_query = self.request.dbsession.query(Inventory)
-            item = item_query.filter(Inventory.id == self.url['itemId']).one()
-
-            if character.id == item.characterId:
-                item_query.filter(Inventory.id == self.url['itemId']).delete()
-                log.info(
-                    'delete: item/amount {}/{} from character/id {}/{}'.format(item.blueprintId, item.amount, character.name, character.id))
-
-                #we should return the full list of characters for a delete attempt
-                inv_query = self.request.dbsession.query(Inventory)
-                inventory = inv_query.filter(Inventory.characterId == self.url['charId']).all()
-
-        except NoResultFound:
-            log.error(
-                'get: item id \'{}\' or char id \'{}\' not found'.format(self.url['itemId'],self.url['charId']))
-            raise HTTPNotFound
-
-        return inventory

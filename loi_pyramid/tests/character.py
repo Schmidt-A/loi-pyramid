@@ -1,7 +1,7 @@
 # flake8: noqa
 import copy
 
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid import testing
 
 from .base_test import BaseTest
@@ -343,6 +343,12 @@ class TestCharacterViews(BaseTest):
         with self.assertRaises(HTTPNotFound):
             self.item_get(self.alrunden, self.al_zombie)
 
+    #Test that we cannot get Al's cows with Siobhan's id via get call
+    #Because those are owned by Al's character, not Siobhan's
+    def test_sio_get_al_cows(self):
+        with self.assertRaises(HTTPForbidden):
+            self.item_get(self.siobhan, self.al_cow)
+
     #Test that we can decrease Siobhan's money via put call
     #Because Siobhan's poor and spends her money on necessities
     def test_sio_poor(self):
@@ -354,6 +360,15 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(item_result['blueprintId'], test_money.blueprintId)
         self.assertEqual(item_result['amount'], test_money.amount)
 
+    #Test that we cannot update Al's cows with Siobhan's id via put call
+    #Because those are owned by Al's character, not Siobhan's
+    def test_sio_update_al_cows(self):
+        test_cow = copy.copy(self.al_cow)
+        test_cow.amount = 9
+
+        with self.assertRaises(HTTPForbidden):
+            self.item_update(self.siobhan, test_cow)
+
     #Test that we cannot update Al's Zombie count via put call
     #Because it ain't created, because Sigmund won't let him have zombies
     def test_al_zombie_update_not_found(self):
@@ -362,6 +377,12 @@ class TestCharacterViews(BaseTest):
 
         with self.assertRaises(HTTPNotFound):
             self.item_update(self.alrunden, test_zombie)
+
+    #Test that we cannot delete Al's cows with Siobhan's id via get call
+    #Because those are owned by Al's character, not Siobhan's
+    def test_sio_delete_al_cows(self):
+        with self.assertRaises(HTTPForbidden):
+            self.item_delete(self.siobhan, self.al_cow)
 
     #Test that we can remove cows and sheep from Al's inventory via delete call
     #Test that Cows and Sheeps are not accessible via get call
