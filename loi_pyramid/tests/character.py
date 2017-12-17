@@ -28,20 +28,20 @@ class TestCharacterViews(BaseTest):
         self.siobhan = Character(
                 accountId   = 1,
                 name        = 'Siobhan Faulkner',
-                lastLogin   = '29/11/2017',
-                created     = '23/11/2017')
+                created     = '23/11/2017',
+                updated     = '29/11/2017')
         fixture.append(self.siobhan)
         self.alrunden = Character(
                 accountId   = 2,
                 name        = 'Alrunden Peralt',
-                lastLogin   = '29/11/2017',
-                created     = '26/6/2017')
+                created     = '26/6/2017',
+                updated     = '29/11/2017')
         fixture.append(self.alrunden)
         self.arthen = Character(
                 accountId   = None,
                 name        = 'Arthen Relindar',
-                lastLogin   = None,
-                created     = None)
+                created     = None,
+                updated     = None)
         fixture.append(self.arthen)
         self.al_grain = Inventory(
                 characterId = 2,
@@ -86,8 +86,8 @@ class TestCharacterViews(BaseTest):
                 id          = 20,
                 accountId   = 2,
                 name        = 'Meero Isesi',
-                lastLogin   = None,
-                created     = None)
+                created     = None,
+                updated     = None)
 
         #not yet added, to be used for create
         self.op_armor = Inventory(
@@ -134,10 +134,7 @@ class TestCharacterViews(BaseTest):
         url_params = {'id': character.id}
 
         character_payload = {
-            'accountId' : character.accountId,
-            'name'      : character.name,
-            'lastLogin' : character.lastLogin,
-            'created'   : character.created
+            'name': character.name,
         }
 
         request = self.dummy_put_request(
@@ -262,7 +259,6 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(character_result['id'], self.siobhan.id)
         self.assertEqual(character_result['accountId'], self.siobhan.accountId)
         self.assertEqual(character_result['name'], self.siobhan.name)
-        self.assertEqual(character_result['lastLogin'], self.siobhan.lastLogin)
         self.assertEqual(character_result['created'], self.siobhan.created)
 
     #Test that we cannot get Meero via get call
@@ -316,17 +312,14 @@ class TestCharacterViews(BaseTest):
 
         self.assertEqual(siobhan['accountId'], self.siobhan.accountId)
         self.assertEqual(siobhan['name'], self.siobhan.name)
-        self.assertEqual(siobhan['lastLogin'], self.siobhan.lastLogin)
         self.assertEqual(siobhan['created'], self.siobhan.created)
 
         self.assertEqual(alrunden['accountId'], self.alrunden.accountId)
         self.assertEqual(alrunden['name'], self.alrunden.name)
-        self.assertEqual(alrunden['lastLogin'], self.alrunden.lastLogin)
         self.assertEqual(alrunden['created'], self.alrunden.created)
 
         self.assertEqual(arthen['accountId'], self.arthen.accountId)
         self.assertEqual(arthen['name'], self.arthen.name)
-        self.assertEqual(arthen['lastLogin'], self.arthen.lastLogin)
         self.assertEqual(arthen['created'], self.arthen.created)
 
     #Test that we can get Siobhan's money via get call

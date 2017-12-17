@@ -1,4 +1,4 @@
 import colander
 
 class ReputationUpdateSchema(colander.MappingSchema):
-    name = colander.SchemaNode(colander.String())
+    amount      = colander.SchemaNode(colander.Integer())

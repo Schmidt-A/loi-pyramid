@@ -43,24 +43,14 @@ class CharacterViews(BaseView):
 
             schema = CharacterUpdateSchema()
             put_data = schema.deserialize(self.request.body)
-
-            accountId = put_data.get('accountId')
             name = put_data.get('name')
-            lastLogin = put_data.get('lastLogin')
-            created = put_data.get('created')
 
             log.info(
                 'update: character/id {}/{} with new data {}'.format(
                     character.name, character.id, put_data['name']))
 
-            if accountId:
-                character.accountId = accountId
             if name:
                 character.name = name
-            if lastLogin:
-                character.lastLogin = lastLogin
-            if created:
-                character.created = created
 
         except NoResultFound:
             log.error(
@@ -259,8 +249,8 @@ class CharacterInventoryViews(BaseView):
             amount = post_data.get('amount')
 
             newItem = Inventory(
-                characterId = characterId, 
-                blueprintId = blueprintId, 
+                characterId = characterId,
+                blueprintId = blueprintId,
                 amount      = amount)
             self.request.dbsession.add(newItem)
 

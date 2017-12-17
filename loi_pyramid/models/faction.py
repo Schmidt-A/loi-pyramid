@@ -2,11 +2,12 @@
 from sqlalchemy import (
     Column,
     Integer,
-    String,
+    String
 )
 
 from .meta import Base
 
+# TODO: change updated+created to datetimes. sqlite doesn't support.
 class Faction(Base):
     __tablename__ = 'factions'
     id          = Column(Integer, primary_key=True)
