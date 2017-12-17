@@ -19,6 +19,7 @@ from ..models import Character
 from ..models import Member
 from ..models import Faction
 from ..models import Reputation
+from ..models import Inventory
 
 
 def usage(argv):
@@ -44,6 +45,58 @@ def main(argv=sys.argv):
     with transaction.manager:
         dbsession = get_tm_session(session_factory, transaction.manager)
 
+        siobhan = Character(
+                accountId   = 'Tweek',
+                name        = 'Siobhan Faulkner',
+                lastLogin   = '29/11/2017',
+                created     = '23/11/2017',
+                updated     = '29/11/2017')
+        alrunden = Character(
+                accountId   = 'Aez',
+                name        = 'Alrunden Peralt',
+                lastLogin   = '29/11/2017',
+                created     = '26/6/2017',
+                updated     = '29/11/2017')
+        arthen = Character(
+                accountId   = None,
+                name        = 'Arthen Relindar',
+                lastLogin   = None,
+                created     = None,
+                updated     = '29/11/2017')
+        dbsession.add_all([siobhan, alrunden, arthen])
+
+        alGrain = Inventory(
+                characterId = alrunden.id,
+                blueprintId = 'grain',
+                amount      = 10,
+                created     = None,
+                updated     = None)
+        alCow = Inventory(
+                characterId = alrunden.id,
+                blueprintId = 'cow',
+                amount      = 5,
+                created     = None,
+                updated     = None)
+        alSheep = Inventory(
+                characterId = alrunden.id,
+                blueprintId = 'sheep',
+                amount      = 20,
+                created     = None,
+                updated     = None)
+        alMoney = Inventory(
+                characterId = alrunden.id,
+                blueprintId = 'gp',
+                amount      = 400,
+                created     = None,
+                updated     = None)
+        sioMoney = Inventory(
+                characterId = siobhan.id,
+                blueprintId = 'gp',
+                amount      = 50,
+                created     = None,
+                updated     = None)
+        dbsession.add_all([sioMoney, alGrain, alCow, alSheep, alMoney])
+
         smugglers = Faction(
                 name        = 'Smugglers',
                 factionId   = None)
@@ -61,7 +114,7 @@ def main(argv=sys.argv):
                 role        = 'member',
                 active      = 1,
                 secret      = 1,
-                dateJoined  = '23/11/2017',
+                created     = '23/11/2017',
                 dateLeft    = None)
         al_left = Member(
                 characterId = alrunden.id,
@@ -69,7 +122,7 @@ def main(argv=sys.argv):
                 role        = 'member',
                 active      = 0,
                 secret      = 0,
-                dateJoined  = '20/7/2017',
+                created     = '20/7/2017',
                 dateLeft    = '1/10/2017')
         al_now = Member(
                 characterId = alrunden.id,
@@ -77,7 +130,7 @@ def main(argv=sys.argv):
                 role        = 'member',
                 active      = 1,
                 secret      = 0,
-                dateJoined  = '4/11/2017',
+                created     = '4/11/2017',
                 dateLeft    = None)
         arthen_fam = Member(
                 characterId = arthen.id,
@@ -85,7 +138,7 @@ def main(argv=sys.argv):
                 role        = 'family',
                 active      = 1,
                 secret      = 1,
-                dateJoined  = None,
+                created     = None,
                 dateLeft    = None)
         dbsession.add_all([siobhan_spy, al_left, al_now, arthen_fam])
 

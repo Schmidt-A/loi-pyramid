@@ -1,6 +1,6 @@
 import logging
 
-from pyramid.httpexceptions import HTTPNotFound, HTTPClientError
+from pyramid.httpexceptions import HTTPNotFound, HTTPClientError, HTTPForbidden, HTTPCreated
 from pyramid.view import view_config, view_defaults
 
 from sqlalchemy.orm.exc import NoResultFound
@@ -34,7 +34,7 @@ class CharacterViews(BaseView):
 
     #This method will almost certainly be locked down since we should not allow any of this to be editable
     #Only admins or nwn (via db) should be able to create new characters or edit new characters
-    #lel making new characters won't work, just editting them
+    #I'm not going to expose a new api for making new characters, that should be done by NWN only
     @view_config(request_method='PUT')
     def update(self):
         try:
@@ -81,16 +81,24 @@ class CharacterViews(BaseView):
     def delete(self):
         try:
             query = self.request.dbsession.query(Character)
-            character = query.filter(Character.id == self.url['id']).delete()
 
+            #This dumb shit is only needed because we don't throw a not found error if it's not there
+            query.filter(Character.id == self.url['id']).one()
+
+            query.filter(Character.id == self.url['id']).delete()
             log.info(
                 'delete: character/id {}'.format(self.url['id']))
+
+            #we should return the full list of characters for a delete attempt
+            characters = self.request.dbsession.query(Character).all()
+            print(characters)
+
         except NoResultFound:
             log.error(
                 'get: character id \'{}\' not found'.format(self.url['id']))
             raise HTTPNotFound
 
-        return character
+        return characters
 
 
 @set_authorized
@@ -125,6 +133,7 @@ class CharacterInventoryViews(BaseView):
             inventory = inv_query.filter(Inventory.characterId == self.url['id']).all()
             log.info(
                 'get: inventory of character/id {}/{}'.format(character.name, character.id))
+
         except NoResultFound:
             log.error(
                 'get: character id \'{}\' not found'.format(self.url['id']))
@@ -150,6 +159,10 @@ class CharacterInventoryViews(BaseView):
                 blueprintId = blueprintId, 
                 amount      = amount)
             self.request.dbsession.add(newItem)
+
+            log.info(
+            'create: item/amount {}/{} from character/id {}/{}'.format(newItem.blueprintId, newItem.amount,
+                character.name, character.id))
 
         except NoResultFound:
             log.error(
@@ -181,6 +194,7 @@ class CharacterItemViews(BaseView):
             if character.id == item.characterId:
                 log.info(
                     'get: item {}/{} of character/id {}/{}'.format(item.blueprintId, item.id, character.name, character.id))
+
         except NoResultFound:
             log.error(
                 'get: character id \'{}\' not found'.format(self.url['charId']))
@@ -190,7 +204,6 @@ class CharacterItemViews(BaseView):
 
     #This method will almost certainly be locked down since we should not allow any of this to be editable
     #Only admins or nwn (via db) should be able to create new characters or edit new characters
-    #lel making new characters won't work, just editting them
     @view_config(request_method='PUT')
     def update(self):
         try:
@@ -212,6 +225,10 @@ class CharacterItemViews(BaseView):
 
                 if amount:
                     item.amount = amount
+            else:
+                log.error(
+                    'update: item id \'{}\' or char id \'{}\' not found'.format(self.url['itemId'],self.url['charId']))
+                raise HTTPForbidden
 
         except NoResultFound:
             log.error(
@@ -241,7 +258,14 @@ class CharacterItemViews(BaseView):
                 item_query.filter(Inventory.id == self.url['itemId']).delete()
                 log.info(
                     'delete: item/amount {}/{} from character/id {}/{}'.format(item.blueprintId, item.amount, character.name, character.id))
+
+                #we should return the full list of characters for a delete attempt
+                inv_query = self.request.dbsession.query(Inventory)
+                inventory = inv_query.filter(Inventory.characterId == self.url['charId']).all()
+
         except NoResultFound:
             log.error(
                 'get: item id \'{}\' or char id \'{}\' not found'.format(self.url['itemId'],self.url['charId']))
             raise HTTPNotFound
+
+        return inventory
