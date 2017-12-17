@@ -65,37 +65,37 @@ def main(argv=sys.argv):
                 updated     = '29/11/2017')
         dbsession.add_all([siobhan, alrunden, arthen])
 
-        alGrain = Inventory(
+        al_grain = Inventory(
                 characterId = alrunden.id,
                 blueprintId = 'grain',
                 amount      = 10,
                 created     = None,
                 updated     = None)
-        alCow = Inventory(
+        al_cow = Inventory(
                 characterId = alrunden.id,
                 blueprintId = 'cow',
                 amount      = 5,
                 created     = None,
                 updated     = None)
-        alSheep = Inventory(
+        al_sheep = Inventory(
                 characterId = alrunden.id,
                 blueprintId = 'sheep',
                 amount      = 20,
                 created     = None,
                 updated     = None)
-        alMoney = Inventory(
+        al_money = Inventory(
                 characterId = alrunden.id,
                 blueprintId = 'gp',
                 amount      = 400,
                 created     = None,
                 updated     = None)
-        sioMoney = Inventory(
+        sio_money = Inventory(
                 characterId = siobhan.id,
                 blueprintId = 'gp',
                 amount      = 50,
                 created     = None,
                 updated     = None)
-        dbsession.add_all([sioMoney, alGrain, alCow, alSheep, alMoney])
+        dbsession.add_all([sio_money, al_grain, al_cow, al_sheep, al_money])
 
         smugglers = Faction(
                 name        = 'Smugglers',

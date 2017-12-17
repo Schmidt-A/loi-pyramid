@@ -243,6 +243,8 @@ class CharacterInventoryViews(BaseView):
 
         return inventory
 
+    #This method will almost certainly be locked down since we should not allow any of this to be editable
+    #Only admin server or nwn (via db) should be able to create items
     @view_config(request_method='POST')
     def create(self):
         try:
