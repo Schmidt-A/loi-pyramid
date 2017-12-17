@@ -5,6 +5,10 @@ from pyramid.httpexceptions import HTTPNotFound
 from pyramid import testing
 
 from .base_test import BaseTest
+from ..views.character import CharacterViews
+from ..views.character import CharactersViews
+from ..views.character import CharacterInventoryViews
+from ..views.character import CharacterItemViews
 
 
 class TestCharacterViews(BaseTest):
@@ -13,31 +17,77 @@ class TestCharacterViews(BaseTest):
         super(TestCharacterViews, self).setUp()
         self.init_database()
 
-        from ..models import Character
+        from ..models import Character, Inventory
 
         self.host = 'http://localhost:6543'
 
         #TODO: Fix flask rules for indentation
+        fixture = []
         self.siobhan = Character(
                 accountId   = 'Tweek',
                 name        = 'Siobhan Faulkner',
                 lastLogin   = '29/11/2017',
                 created     = '23/11/2017')
+        fixture.append(self.siobhan)
         self.alrunden = Character(
                 accountId   = 'Aez',
                 name        = 'Alrunden Peralt',
                 lastLogin   = '29/11/2017',
                 created     = '26/6/2017')
+        fixture.append(self.alrunden)
         self.arthen = Character(
                 accountId   = None,
                 name        = 'Arthen Relindar',
                 lastLogin   = None,
                 created     = None)
-        self.session.add_all([self.siobhan, self.alrunden, self.arthen])
+        fixture.append(self.arthen)
+        self.alGrain = Inventory(
+                characterId = 2,
+                blueprintId = 'grain',
+                amount      = 10,
+                created     = None,
+                updated     = None)
+        fixture.append(self.alGrain)
+        self.alCow = Inventory(
+                characterId = 2,
+                blueprintId = 'cow',
+                amount      = 5,
+                created     = None,
+                updated     = None)
+        fixture.append(self.alCow)
+        self.alSheep = Inventory(
+                characterId = 2,
+                blueprintId = 'sheep',
+                amount      = 20,
+                created     = None,
+                updated     = None)
+        fixture.append(self.alSheep)
+        self.alMoney = Inventory(
+                characterId = 2,
+                blueprintId = 'gp',
+                amount      = 400,
+                created     = None,
+                updated     = None)
+        fixture.append(self.alMoney)
+        self.sioMoney = Inventory(
+                characterId = 1,
+                blueprintId = 'gp',
+                amount      = 50,
+                created     = None,
+                updated     = None)
+        fixture.append(self.sioMoney)
+        self.session.add_all(fixture)
         self.session.flush()
 
+        #not yet added
+        self.op_armor = Inventory(
+                characterId = 2,
+                blueprintId = 'op_armor',
+                amount      = 1,
+                created     = None,
+                updated     = None)
+
     def character_get(self, character):
-        from ..views.character import CharacterViews
 
         resource = '/character/{}'.format(character.id)
         url_params = {'id': character.id}
@@ -50,7 +100,6 @@ class TestCharacterViews(BaseTest):
         return character_result
 
     def character_delete(self, character):
-        from ..views.character import CharacterViews
 
         resource = '/character/{}'.format(character.id)
         url_params = {'id': character.id}
@@ -62,7 +111,6 @@ class TestCharacterViews(BaseTest):
         cv.delete()
 
     def characters_get(self):
-        from ..views.character import CharactersViews
 
         resource = '/characters'
         request = self.dummy_request(self.session, (self.host+resource))
@@ -76,7 +124,6 @@ class TestCharacterViews(BaseTest):
         return characters_get
 
     def character_update(self, character):
-        from ..views.character import CharacterViews
 
         resource = '/character/{}'.format(character.id)
         url_params = {'id': character.id}
@@ -99,6 +146,91 @@ class TestCharacterViews(BaseTest):
 
         return character
 
+    def inventory_get(self, character):
+
+        resource = '/character/{}/inventory'.format(character.id)
+        url_params = {'id': character.id}
+
+        request = self.dummy_request(self.session, (self.host+resource))
+
+        cv = CharacterInventoryViews(testing.DummyResource(), request)
+        cv.url = url_params
+
+        inventory_get = []
+        for item in cv.get():
+            inventory_get.append(item.__json__(request))
+
+        return inventory_get
+
+    def item_get(self, character, item):
+
+        resource = '/character/{}/inventory/{}'.format(character.id, item.id)
+        url_params = {'charId': character.id, 'itemId': item.id}
+
+        request = self.dummy_request(self.session, (self.host+resource))
+
+        cv = CharacterItemViews(testing.DummyResource(), request)
+        cv.url = url_params
+
+        item_result = cv.get().__json__(request)
+
+        return item_result
+
+    def inventory_create(self, character, item):
+
+        resource = '/character/{}'.format(character.id)
+        url_params = {'id': character.id}
+
+        item_payload = {
+            'characterId' : item.characterId,
+            'blueprintId' : item.blueprintId,
+            'amount'      : item.amount
+        }
+
+        request = self.dummy_post_request(
+                self.session,
+                (self.host+resource),
+                item_payload)
+
+        cv = CharacterInventoryViews(testing.DummyResource(), request)
+        cv.url = url_params
+        item_result = cv.create().__json__(request)
+
+        return item_result
+
+    def item_update(self, character, item):
+
+        resource = '/character/{}/inventory/{}'.format(character.id,item.id)
+        url_params = {'charId': character.id, 'itemId': item.id}
+
+        item_payload = {
+            'characterId' : item.characterId,
+            'blueprintId' : item.blueprintId,
+            'amount'      : item.amount
+        }
+
+        request = self.dummy_put_request(
+                self.session,
+                (self.host+resource),
+                item_payload)
+
+        cv = CharacterItemViews(testing.DummyResource(), request)
+        cv.url = url_params
+        character = cv.update().__json__(request)
+
+        return character
+
+    def item_delete(self, character, item):
+
+        resource = '/character/{}/inventory/{}'.format(character.id,item.id)
+        url_params = {'charId': character.id, 'itemId': item.id}
+        request = self.dummy_delete_request(self.session, (self.host+resource))
+
+        cv = CharacterItemViews(testing.DummyResource(), request)
+        cv.url = url_params
+
+        cv.delete()
+
     def test_siobhan_get(self):
         character_result = self.character_get(self.siobhan)
 
@@ -111,7 +243,7 @@ class TestCharacterViews(BaseTest):
     def test_siobhan_al_arthen_get(self):
         characters_result = self.characters_get()
 
-        self.assertGreater(len(characters_result), 2)
+        self.assertEqual(len(characters_result), 3)
         siobhan = characters_result[0]
         alrunden = characters_result[1]
         arthen = characters_result[2]
@@ -132,8 +264,6 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(arthen['created'], self.arthen.created)
 
     def test_spy_update(self):
-        from ..views.character import CharacterViews
-
         test_spy = copy.copy(self.siobhan)
         test_spy.name = 'A SPY'
         character_result = self.character_update(test_spy)
@@ -144,3 +274,59 @@ class TestCharacterViews(BaseTest):
         self.character_delete(self.arthen)
         with self.assertRaises(HTTPNotFound):
             self.character_get(self.arthen)
+
+    def test_al_farm(self):
+        inventory_result = self.inventory_get(self.alrunden)
+
+        self.assertEqual(len(inventory_result), 4)
+        grain = inventory_result[0]
+        cow = inventory_result[1]
+        sheep = inventory_result[2]
+        gp = inventory_result[3]
+
+        self.assertEqual(grain['characterId'], self.alrunden.id)
+        self.assertEqual(grain['blueprintId'], self.alGrain.blueprintId)
+        self.assertEqual(grain['amount'], self.alGrain.amount)
+
+        self.assertEqual(cow['characterId'], self.alrunden.id)
+        self.assertEqual(cow['blueprintId'], self.alCow.blueprintId)
+        self.assertEqual(cow['amount'], self.alCow.amount)
+
+        self.assertEqual(sheep['characterId'], self.alrunden.id)
+        self.assertEqual(sheep['blueprintId'], self.alSheep.blueprintId)
+        self.assertEqual(sheep['amount'], self.alSheep.amount)
+
+        self.assertEqual(gp['characterId'], self.alrunden.id)
+        self.assertEqual(gp['blueprintId'], self.alMoney.blueprintId)
+        self.assertEqual(gp['amount'], self.alMoney.amount)
+
+    def test_sio_money(self):
+        money = self.item_get(self.siobhan, self.sioMoney)
+
+        self.assertEqual(money['characterId'], self.siobhan.id)
+        self.assertEqual(money['blueprintId'], self.sioMoney.blueprintId)
+        self.assertEqual(money['amount'], self.sioMoney.amount)
+
+    def test_sio_poor(self):
+        test_money = copy.copy(self.sioMoney)
+        test_money.amount = 1
+        item_result = self.item_update(self.siobhan, test_money)
+
+        self.assertEqual(item_result['characterId'], test_money.characterId)
+        self.assertEqual(item_result['blueprintId'], test_money.blueprintId)
+        self.assertEqual(item_result['amount'], test_money.amount)
+
+    def test_al_stolen(self):
+        self.item_delete(self.alrunden, self.alCow)
+        with self.assertRaises(HTTPNotFound):
+            self.item_get(self.alrunden, self.alCow)
+        self.item_delete(self.alrunden, self.alSheep)
+        with self.assertRaises(HTTPNotFound):
+            self.item_get(self.alrunden, self.alSheep)
+
+    def test_al_is_in_a_viti_campaign(self):
+        item_result = self.inventory_create(self.alrunden, self.op_armor)
+
+        self.assertEqual(item_result['characterId'], self.op_armor.characterId)
+        self.assertEqual(item_result['blueprintId'], self.op_armor.blueprintId)
+        self.assertEqual(item_result['amount'], self.op_armor.amount)
