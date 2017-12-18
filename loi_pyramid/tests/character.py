@@ -43,6 +43,7 @@ class TestCharacterViews(BaseTest):
                 created     = None,
                 updated     = None)
         fixture.append(self.arthen)
+
         self.al_grain = Inventory(
                 characterId = 2,
                 blueprintId = 'grain',
@@ -78,6 +79,7 @@ class TestCharacterViews(BaseTest):
                 created     = None,
                 updated     = None)
         fixture.append(self.sio_money)
+
         self.session.add_all(fixture)
         self.session.flush()
 
@@ -111,10 +113,10 @@ class TestCharacterViews(BaseTest):
         url_params = {'id': character.id}
         request = self.dummy_request(self.session, (self.host+resource))
 
-        cv = CharacterViews(testing.DummyResource(), request)
-        cv.url = url_params
+        char_view = CharacterViews(testing.DummyResource(), request)
+        char_view.url = url_params
 
-        character_result = cv.get().__json__(request)
+        character_result = char_view.get().__json__(request)
         return character_result
 
     #Helper method for delete calls to /character/{id}
@@ -123,10 +125,10 @@ class TestCharacterViews(BaseTest):
         url_params = {'id': character.id}
         request = self.dummy_delete_request(self.session, (self.host+resource))
 
-        cv = CharacterViews(testing.DummyResource(), request)
-        cv.url = url_params
+        char_view = CharacterViews(testing.DummyResource(), request)
+        char_view.url = url_params
 
-        cv.delete()
+        char_view.delete()
 
     #Helper method for update calls to /character/{id}
     def character_update(self, character):
@@ -142,9 +144,9 @@ class TestCharacterViews(BaseTest):
                 (self.host+resource),
                 character_payload)
 
-        cv = CharacterViews(testing.DummyResource(), request)
-        cv.url = url_params
-        character = cv.update().__json__(request)
+        char_view = CharacterViews(testing.DummyResource(), request)
+        char_view.url = url_params
+        character = char_view.update().__json__(request)
 
         return character
 
@@ -153,10 +155,10 @@ class TestCharacterViews(BaseTest):
         resource = '/characters'
         request = self.dummy_request(self.session, (self.host+resource))
 
-        cv = CharactersViews(testing.DummyResource(), request)
+        char_view = CharactersViews(testing.DummyResource(), request)
 
         characters_get = []
-        for character in cv.get():
+        for character in char_view.get():
             characters_get.append(character.__json__(request))
 
         return characters_get
@@ -168,10 +170,10 @@ class TestCharacterViews(BaseTest):
 
         request = self.dummy_request(self.session, (self.host+resource))
 
-        cv = CharacterItemViews(testing.DummyResource(), request)
-        cv.url = url_params
+        char_view = CharacterItemViews(testing.DummyResource(), request)
+        char_view.url = url_params
 
-        item_result = cv.get().__json__(request)
+        item_result = char_view.get().__json__(request)
 
         return item_result
 
@@ -191,9 +193,9 @@ class TestCharacterViews(BaseTest):
                 (self.host+resource),
                 item_payload)
 
-        cv = CharacterItemViews(testing.DummyResource(), request)
-        cv.url = url_params
-        character = cv.update().__json__(request)
+        char_view = CharacterItemViews(testing.DummyResource(), request)
+        char_view.url = url_params
+        character = char_view.update().__json__(request)
 
         return character
 
@@ -203,9 +205,9 @@ class TestCharacterViews(BaseTest):
         url_params = {'charId': character.id, 'itemId': item.id}
         request = self.dummy_delete_request(self.session, (self.host+resource))
 
-        cv = CharacterItemViews(testing.DummyResource(), request)
-        cv.url = url_params
-        response = cv.delete()
+        char_view = CharacterItemViews(testing.DummyResource(), request)
+        char_view.url = url_params
+        response = char_view.delete()
 
         inventory_get = []
         for item in response:
@@ -220,9 +222,9 @@ class TestCharacterViews(BaseTest):
 
         request = self.dummy_request(self.session, (self.host+resource))
 
-        cv = CharacterInventoryViews(testing.DummyResource(), request)
-        cv.url = url_params
-        response = cv.get()
+        char_view = CharacterInventoryViews(testing.DummyResource(), request)
+        char_view.url = url_params
+        response = char_view.get()
 
         inventory_get = []
         for item in response:
@@ -246,9 +248,9 @@ class TestCharacterViews(BaseTest):
                 (self.host+resource),
                 item_payload)
 
-        cv = CharacterInventoryViews(testing.DummyResource(), request)
-        cv.url = url_params
-        item_result = cv.create().__json__(request)
+        char_view = CharacterInventoryViews(testing.DummyResource(), request)
+        char_view.url = url_params
+        item_result = char_view.create().__json__(request)
 
         return item_result
 

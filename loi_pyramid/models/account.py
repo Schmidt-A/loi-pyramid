@@ -9,6 +9,7 @@ from .meta import Base
 
 # TODO: change updated+created to datetimes. sqlite doesn't support.
 # TODO: change ip to CLOB so we can just throw a bunch of ips in there
+# TOOD: Change ints to booleans where appropriate, cuz I was getting weird errors with them with sqlite
 class Account(Base):
     __tablename__   = 'accounts'
     username    = Column(String, primary_key=True)

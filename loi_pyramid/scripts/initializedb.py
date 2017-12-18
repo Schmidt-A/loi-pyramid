@@ -20,6 +20,7 @@ from ..models import Member
 from ..models import Faction
 from ..models import Reputation
 from ..models import Inventory
+from ..models import Account
 
 
 def usage(argv):
@@ -44,6 +45,22 @@ def main(argv=sys.argv):
 
     with transaction.manager:
         dbsession = get_tm_session(session_factory, transaction.manager)
+
+        tweek = Account(
+                username    = 'Tweek',
+                password    = 'dragon4ever',
+                cdkey       = 'efgh5678',
+                role        = 3,
+                approved    = 1,
+                banned      = 0)
+        aez = Account(
+                username    = 'Aez',
+                password    = 'eldath4ever',
+                cdkey       = 'abcd1234',
+                role        = 3,
+                approved    = 1,
+                banned      = 0)
+        dbsession.add_all([tweek, aez])
 
         siobhan = Character(
                 accountId   = 'Tweek',

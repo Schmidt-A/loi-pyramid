@@ -1,6 +1,6 @@
 import logging
 
-from pyramid.httpexceptions import HTTPNotFound, HTTPClientError, HTTPForbidden, HTTPCreated
+from pyramid.httpexceptions import HTTPNotFound, HTTPClientError, HTTPForbidden
 from pyramid.view import view_config, view_defaults
 
 from sqlalchemy.orm.exc import NoResultFound
@@ -25,6 +25,7 @@ class CharacterViews(BaseView):
             character = query.filter(Character.id == self.url['id']).one()
             log.info(
                 'get: character/id {}/{}'.format(character.name, character.id))
+
         except NoResultFound:
             log.error(
                 'get: character id \'{}\' not found'.format(self.url['id']))
@@ -100,6 +101,7 @@ class CharactersViews(BaseView):
             query = self.request.dbsession.query(Character)
             characters = query.all()
             log.info('get: all characters')
+
         except NoResultFound:
             log.error('get: could not retrieve any characters')
             raise HTTPNotFound
