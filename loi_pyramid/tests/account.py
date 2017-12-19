@@ -7,6 +7,7 @@ from pyramid import testing
 from .base_test import BaseTest
 from ..views.account import AccountViews
 from ..views.account import AccountsViews
+from ..security import hash_password
 
 
 class TestAccountViews(BaseTest):
@@ -24,52 +25,12 @@ class TestAccountViews(BaseTest):
         fixture = []
         self.tweek = Account(
                 username    = 'Tweek',
-                password    = 'dragon4ever',
+                password    = hash_password('dragon4ever').encode('utf8'),
                 cdkey       = 'efgh5678',
                 role        = 3,
                 approved    = 1,
                 banned      = 0)
         fixture.append(self.tweek)
-        self.aez = Account(
-                username    = 'Aez',
-                password    = 'eldath4ever',
-                cdkey       = 'abcd1234',
-                role        = 3,
-                approved    = 1,
-                banned      = 0)
-        fixture.append(self.aez)
-        self.naia = Account(
-                username    = 'Naiatis',
-                password    = 'faggot4ever',
-                cdkey       = 'mnop6969',
-                role        = 2,
-                approved    = 1,
-                banned      = 0)
-        fixture.append(self.naia)
-        self.noob = Account(
-                username    = 'DrizztFan',
-                password    = 'sinfar4ever',
-                cdkey       = 'ijkl0000',
-                role        = 1,
-                approved    = 0,
-                banned      = 0)
-        fixture.append(self.noob)
-        self.maka = Account(
-                username    = 'Makazasky',
-                password    = 'maka4ever',
-                cdkey       = 'qrst8888',
-                role        = 1,
-                approved    = 1,
-                banned      = 1)
-        fixture.append(self.maka)
-        self.abiscuit = Account(
-                username    = 'abiscuit',
-                password    = 'ville4ever',
-                cdkey       = 'uvwx4321',
-                role        = 1,
-                approved    = 1,
-                banned      = 0)
-        fixture.append(self.abiscuit)
 
         self.session.add_all(fixture)
         self.session.flush()
@@ -77,12 +38,11 @@ class TestAccountViews(BaseTest):
         #non existent account, to be used for negative testing
         self.tam = Account(
                 username    = 'TamTamTamTam',
-                password    = 'dicks4ever',
+                password    = hash_password('dicks4ever').encode('utf8'),
                 cdkey       = 'yzyz8008',
                 role        = 1,
                 approved    = 0,
                 banned      = 0)
-        fixture.append(self.abiscuit)
 
     #Helper method for get calls to /account/{username}
     def account_get(self, account):
@@ -126,18 +86,13 @@ class TestAccountViews(BaseTest):
         with self.assertRaises(HTTPNotFound):
             self.account_get(self.tam)
 
-    #Test that we can get all six accounts via get all call
-    #As those are the only created accounts
+    #Test that we can get all one account via get all call
+    #As those are the only one created account
     def test_all_six_accounts_get(self):
         accounts_result = self.accounts_get_all()
 
-        self.assertEqual(len(accounts_result), 6)
+        self.assertEqual(len(accounts_result), 1)
         tweek = accounts_result[0]
-        aez = accounts_result[1]
-        naia = accounts_result[2]
-        noob = accounts_result[3]
-        maka = accounts_result[4]
-        abiscuit = accounts_result[5]
 
         self.assertEqual(tweek['username'], self.tweek.username)
         self.assertEqual(tweek['password'], self.tweek.password)
@@ -145,38 +100,3 @@ class TestAccountViews(BaseTest):
         self.assertEqual(tweek['role'], self.tweek.role)
         self.assertEqual(tweek['approved'], self.tweek.approved)
         self.assertEqual(tweek['banned'], self.tweek.banned)
-
-        self.assertEqual(aez['username'], self.aez.username)
-        self.assertEqual(aez['password'], self.aez.password)
-        self.assertEqual(aez['cdkey'], self.aez.cdkey)
-        self.assertEqual(aez['role'], self.aez.role)
-        self.assertEqual(aez['approved'], self.aez.approved)
-        self.assertEqual(aez['banned'], self.aez.banned)
-
-        self.assertEqual(naia['username'], self.naia.username)
-        self.assertEqual(naia['password'], self.naia.password)
-        self.assertEqual(naia['cdkey'], self.naia.cdkey)
-        self.assertEqual(naia['role'], self.naia.role)
-        self.assertEqual(naia['approved'], self.naia.approved)
-        self.assertEqual(naia['banned'], self.naia.banned)
-
-        self.assertEqual(noob['username'], self.noob.username)
-        self.assertEqual(noob['password'], self.noob.password)
-        self.assertEqual(noob['cdkey'], self.noob.cdkey)
-        self.assertEqual(noob['role'], self.noob.role)
-        self.assertEqual(noob['approved'], self.noob.approved)
-        self.assertEqual(noob['banned'], self.noob.banned)
-
-        self.assertEqual(maka['username'], self.maka.username)
-        self.assertEqual(maka['password'], self.maka.password)
-        self.assertEqual(maka['cdkey'], self.maka.cdkey)
-        self.assertEqual(maka['role'], self.maka.role)
-        self.assertEqual(maka['approved'], self.maka.approved)
-        self.assertEqual(maka['banned'], self.maka.banned)
-
-        self.assertEqual(abiscuit['username'], self.abiscuit.username)
-        self.assertEqual(abiscuit['password'], self.abiscuit.password)
-        self.assertEqual(abiscuit['cdkey'], self.abiscuit.cdkey)
-        self.assertEqual(abiscuit['role'], self.abiscuit.role)
-        self.assertEqual(abiscuit['approved'], self.abiscuit.approved)
-        self.assertEqual(abiscuit['banned'], self.abiscuit.banned)

@@ -2,18 +2,19 @@
 from sqlalchemy import (
     Column,
     Integer,
-    String
+    String,
+    LargeBinary,
+    Boolean
 )
 
 from .meta import Base
 
 # TODO: change updated+created to datetimes. sqlite doesn't support.
-# TODO: change ip to CLOB so we can just throw a bunch of ips in there
-# TOOD: Change ints to booleans where appropriate, cuz I was getting weird errors with them with sqlite
+# TODO: Change password to binary because sqlite doesn't support
 class Account(Base):
     __tablename__   = 'accounts'
     username    = Column(String, primary_key=True)
-    password    = Column(String)
+    password    = Column(LargeBinary)
     cdkey       = Column(String)
     ip          = Column(String)
     role        = Column(Integer)

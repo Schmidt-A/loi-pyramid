@@ -23,7 +23,7 @@ class TestAuthViews(BaseTest):
         fixture = []
         self.tweek = Account(
                 username    = 'Tweek',
-                password    = hash_password('dragon4ever'),
+                password    = hash_password('dragon4ever').encode('utf8'),
                 cdkey       = 'efgh5678',
                 role        = 3,
                 approved    = 1,
@@ -36,7 +36,7 @@ class TestAuthViews(BaseTest):
         #non existent account, to be used for negative testing
         self.tam = Account(
                 username    = 'TamTamTamTam',
-                password    = hash_password('dicks4ever'),
+                password    = hash_password('dicks4ever').encode('utf8'),
                 cdkey       = 'yzyz8008',
                 role        = 1,
                 approved    = 0,

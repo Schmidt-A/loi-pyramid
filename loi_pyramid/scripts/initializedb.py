@@ -21,6 +21,7 @@ from ..models import Faction
 from ..models import Reputation
 from ..models import Inventory
 from ..models import Account
+from ..security import hash_password
 
 
 def usage(argv):
@@ -48,14 +49,14 @@ def main(argv=sys.argv):
 
         tweek = Account(
                 username    = 'Tweek',
-                password    = 'dragon4ever',
+                password    = hash_password('dragon4ever').encode('utf8'),
                 cdkey       = 'efgh5678',
                 role        = 3,
                 approved    = 1,
                 banned      = 0)
         aez = Account(
                 username    = 'Aez',
-                password    = 'eldath4ever',
+                password    = hash_password('eldath4ever').encode('utf8'),
                 cdkey       = 'abcd1234',
                 role        = 3,
                 approved    = 1,

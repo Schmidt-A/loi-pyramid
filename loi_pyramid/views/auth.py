@@ -9,7 +9,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from . import BaseView
 from ..decorators import set_authorized, no_auth
-from ..security import USERS, check_password
+from ..security import check_password
 from ..schemas import LoginSchema, AccountUpdateSchema, Invalid
 from ..models import Account
 
@@ -37,7 +37,7 @@ class AuthViews(BaseView):
         try:
             query = self.request.dbsession.query(Account)
             account = query.filter(Account.username == user).one()
-            hashed_pw = account.password
+            hashed_pw = account.password.decode('utf8')
 
             if hashed_pw and check_password(pw, hashed_pw):
                 headers = remember(self.request, user)
