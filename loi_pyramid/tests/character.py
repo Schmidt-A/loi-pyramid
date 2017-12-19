@@ -1,8 +1,7 @@
 # flake8: noqa
-import copy
-
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid import testing
+import copy
 
 from .base_test import BaseTest
 from ..views.character import CharacterViews
