@@ -1,6 +1,9 @@
 import colander
 
-#Find a way to remove the stupid blueprintId since colander wants to have the same schemas for create and update
-class InventoryUpdateSchema(colander.MappingSchema):
+class InventoryCreateSchema(colander.MappingSchema):
+    characterId = colander.SchemaNode(colander.Integer())
     blueprintId = colander.SchemaNode(colander.String())
+    amount      = colander.SchemaNode(colander.Integer())
+
+class InventoryUpdateSchema(colander.MappingSchema):
     amount      = colander.SchemaNode(colander.Integer())

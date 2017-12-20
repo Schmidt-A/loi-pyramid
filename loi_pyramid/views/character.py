@@ -8,7 +8,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from . import BaseView
 from ..models import Character, Inventory
 from ..decorators import set_authorized
-from ..schemas import CharacterUpdateSchema, InventoryUpdateSchema, Invalid
+from ..schemas import CharacterUpdateSchema, InventoryUpdateSchema, InventoryCreateSchema, Invalid
 
 
 log = logging.getLogger(__name__)
@@ -243,7 +243,7 @@ class CharacterInventoryViews(BaseView):
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['id']).one()
 
-            schema = InventoryUpdateSchema()
+            schema = InventoryCreateSchema()
             post_data = schema.deserialize(self.request.POST)
 
             characterId = character.id

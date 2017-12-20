@@ -1,0 +1,127 @@
+call schema
+
+LOGIN
+
+POST /login
+{
+    username: tweek
+    password: meh
+    ip:       12232
+}
+response
+{
+    role: 3,
+    approved: true,
+    banned: false,
+    actions: 5
+}
+
+Display the overview page displaying information about the players' characters and actions available
+
+GET /account/tweek/characters
+response
+{[
+    {
+        id: 2
+        name: Siobhan
+        exp: 10000
+        position: x, y
+        professionSkills: 2 trader
+    }
+]}
+
+They can select a character to go to spend an action on them.
+
+GET /character/2/inventory
+response
+{[
+    {
+        blueprintId: 'money'
+        amount: 20
+    },
+    {
+        blueprintId: 'cotton_fabric'
+        amount: 17
+    }
+]}
+
+//Do we want a data driven way of displaying the available econo actions (recipes?)
+{
+    id: 2
+    blueprintId: cotton_shirt
+    actions: 1
+    time: 10 minutes
+    cost: 5 cotton_fabric
+    requirement: weaver 0
+}
+
+They can select a recipe to do an econo action on
+
+POST /character/2/action
+{
+    amount: 2
+    recipeId: 2
+}
+response
+{
+    type: weaver
+    amount: 2
+    blueprintId: cotton_shirt
+    completed: 10 minutes from now
+    cost: 10 cotton_fabric
+    skillGrowth: 1
+    exp: 10
+}
+
+They can check if the action is done yet 6 minute later
+
+GET /character/2/actions
+{[
+    {
+        type: weaver
+        amount: 2
+        blueprintId: cotton_shirt
+        completed: 4 minutes from now
+    }    
+]}
+
+After it's done, they go to their inventory
+
+GET /character/2/inventory
+response
+{[
+    {
+        blueprintId: 'money'
+        amount: 20
+    },
+    {
+        blueprintId: 'cotton_fabric'
+        amount: 7
+    },
+    {
+        blueprintId: 'cotton_shirt'
+        amount: 2
+    }
+]}
+
+They can also see their character and account stats updated
+
+GET /character/2
+response
+{[
+    {
+        id: 2
+        name: Siobhan
+        exp: 10010
+        position: x, y
+        professionSkills: 2 trader 1 weaver
+    }
+]}
+
+GET /account/tweek
+{
+    role: 3,
+    approved: true,
+    banned: false,
+    actions: 3
+}
