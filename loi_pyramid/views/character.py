@@ -1,6 +1,6 @@
 import logging
 
-from pyramid.httpexceptions import HTTPNotFound, HTTPClientError, HTTPForbidden, HTTPCreated
+from pyramid.httpexceptions import HTTPNotFound, HTTPClientError, HTTPForbidden
 from pyramid.view import view_config, view_defaults
 
 from sqlalchemy.orm.exc import NoResultFound
@@ -8,7 +8,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from . import BaseView
 from ..models import Character, Inventory
 from ..decorators import set_authorized
-from ..schemas import CharacterUpdateSchema, InventoryUpdateSchema, Invalid
+from ..schemas import CharacterUpdateSchema, InventoryUpdateSchema, InventoryCreateSchema, Invalid
 
 
 log = logging.getLogger(__name__)
@@ -25,6 +25,7 @@ class CharacterViews(BaseView):
             character = query.filter(Character.id == self.url['id']).one()
             log.info(
                 'get: character/id {}/{}'.format(character.name, character.id))
+
         except NoResultFound:
             log.error(
                 'get: character id \'{}\' not found'.format(self.url['id']))
@@ -43,24 +44,14 @@ class CharacterViews(BaseView):
 
             schema = CharacterUpdateSchema()
             put_data = schema.deserialize(self.request.body)
-
-            accountId = put_data.get('accountId')
             name = put_data.get('name')
-            lastLogin = put_data.get('lastLogin')
-            created = put_data.get('created')
 
             log.info(
                 'update: character/id {}/{} with new data {}'.format(
                     character.name, character.id, put_data['name']))
 
-            if accountId:
-                character.accountId = accountId
             if name:
                 character.name = name
-            if lastLogin:
-                character.lastLogin = lastLogin
-            if created:
-                character.created = created
 
         except NoResultFound:
             log.error(
@@ -110,6 +101,7 @@ class CharactersViews(BaseView):
             query = self.request.dbsession.query(Character)
             characters = query.all()
             log.info('get: all characters')
+
         except NoResultFound:
             log.error('get: could not retrieve any characters')
             raise HTTPNotFound
@@ -243,13 +235,15 @@ class CharacterInventoryViews(BaseView):
 
         return inventory
 
+    #This method will almost certainly be locked down since we should not allow any of this to be editable
+    #Only admin server or nwn (via db) should be able to create items
     @view_config(request_method='POST')
     def create(self):
         try:
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['id']).one()
 
-            schema = InventoryUpdateSchema()
+            schema = InventoryCreateSchema()
             post_data = schema.deserialize(self.request.POST)
 
             characterId = character.id
@@ -257,8 +251,8 @@ class CharacterInventoryViews(BaseView):
             amount = post_data.get('amount')
 
             newItem = Inventory(
-                characterId = characterId, 
-                blueprintId = blueprintId, 
+                characterId = characterId,
+                blueprintId = blueprintId,
                 amount      = amount)
             self.request.dbsession.add(newItem)
 

@@ -1,4 +1,5 @@
 import colander
 
 class MemberUpdateSchema(colander.MappingSchema):
-    name = colander.SchemaNode(colander.String())
+    role        = colander.SchemaNode(colander.String())
+    active      = colander.SchemaNode(colander.Boolean())

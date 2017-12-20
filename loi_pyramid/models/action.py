@@ -2,13 +2,14 @@
 from sqlalchemy import (
     Column,
     Integer,
-    String,
+    String
 )
 
 from .meta import Base
 
+# TODO: change updated+created to datetimes. sqlite doesn't support.
 class Action(Base):
-    __tablename__ = 'action'
+    __tablename__ = 'actions'
     id          = Column(Integer, primary_key=True)
     characterId = Column(Integer)
     type        = Column(String)
