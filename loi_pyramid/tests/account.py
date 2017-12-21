@@ -25,7 +25,7 @@ class TestAccountViews(BaseTest):
         fixture = []
         self.tweek = Account(
                 username    = 'Tweek',
-                password    = hash_password('dragon4ever').encode('utf8'),
+                password    = '$2b$12$rHfWWZ0quR5x48479dwPBekHeiuhdBtT8A4IQKTC32ifOxhG0FKxK'.encode('utf8'),
                 cdkey       = 'efgh5678',
                 role        = 3,
                 approved    = 1,
@@ -38,7 +38,7 @@ class TestAccountViews(BaseTest):
         #non existent account, to be used for negative testing
         self.tam = Account(
                 username    = 'TamTamTamTam',
-                password    = hash_password('dicks4ever').encode('utf8'),
+                password    = '$2b$12$aVzX7hfREVbVNy/UsAIUCu86tw23661kTl8iED8d1TbzreEWp9P0C'.encode('utf8'),
                 cdkey       = 'yzyz8008',
                 role        = 1,
                 approved    = 0,

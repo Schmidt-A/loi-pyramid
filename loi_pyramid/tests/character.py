@@ -3,11 +3,14 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid import testing
 import copy
 
+from ..security import hash_password
 from .base_test import BaseTest
 from ..views.character import CharacterViews
 from ..views.character import CharactersViews
 from ..views.character import CharacterInventoryViews
 from ..views.character import CharacterItemViews
+from ..views.auth import AuthViews
+from ..schemas import CharacterOwnerSchema
 
 
 class TestCharacterViews(BaseTest):
@@ -18,27 +21,50 @@ class TestCharacterViews(BaseTest):
         super(TestCharacterViews, self).setUp()
         self.init_database()
 
-        from ..models import Character, Inventory
+        from ..models import Character, Inventory, Account
 
         self.host = 'http://localhost:6543'
 
         #TODO: Fix flask rules for indentation
         fixture = []
+        self.tweek = Account(
+                username    = 'Tweek',
+                password    = '$2b$12$rHfWWZ0quR5x48479dwPBekHeiuhdBtT8A4IQKTC32ifOxhG0FKxK'.encode('utf8'),
+                cdkey       = 'efgh5678',
+                role        = 3,
+                approved    = 1,
+                banned      = 0)
+        fixture.append(self.tweek)
+        self.tam = Account(
+                username    = 'TamTamTamTam',
+                password    = '$2b$12$aVzX7hfREVbVNy/UsAIUCu86tw23661kTl8iED8d1TbzreEWp9P0C'.encode('utf8'),
+                cdkey       = 'yzyz8008',
+                role        = 1,
+                approved    = 0,
+                banned      = 0)
+        fixture.append(self.tam)
+
         self.siobhan = Character(
-                accountId   = 1,
+                accountId   = 'Tweek',
                 name        = 'Siobhan Faulkner',
+                exp         = 10000,
+                area        = 'Hlammach Docks',
                 created     = '23/11/2017',
                 updated     = '29/11/2017')
         fixture.append(self.siobhan)
         self.alrunden = Character(
-                accountId   = 2,
+                accountId   = 'Aez',
                 name        = 'Alrunden Peralt',
+                exp         = 12000,
+                area        = 'Dreyen Inn',
                 created     = '26/6/2017',
                 updated     = '29/11/2017')
         fixture.append(self.alrunden)
         self.arthen = Character(
                 accountId   = None,
                 name        = 'Arthen Relindar',
+                exp         = 20000,
+                area        = 'Relindar Green',
                 created     = None,
                 updated     = None)
         fixture.append(self.arthen)
@@ -104,7 +130,7 @@ class TestCharacterViews(BaseTest):
                 blueprintId = 'zombie_guard',
                 amount      = 2,
                 created     = None,
-                updated     = None)        
+                updated     = None)
 
     #Helper method for get calls to /character/{id}
     def character_get(self, character):
@@ -115,7 +141,7 @@ class TestCharacterViews(BaseTest):
         char_view = CharacterViews(testing.DummyResource(), request)
         char_view.url = url_params
 
-        character_result = char_view.get().__json__(request)
+        character_result = char_view.get().json_body
         return character_result
 
     #Helper method for delete calls to /character/{id}
@@ -127,7 +153,13 @@ class TestCharacterViews(BaseTest):
         char_view = CharacterViews(testing.DummyResource(), request)
         char_view.url = url_params
 
-        char_view.delete()
+        response = char_view.delete()
+
+        character_result = []
+        for character in response:
+            character_result.append(character.__json__(request))
+
+        return character_result
 
     #Helper method for update calls to /character/{id}
     def character_update(self, character):
@@ -135,7 +167,10 @@ class TestCharacterViews(BaseTest):
         url_params = {'id': character.id}
 
         character_payload = {
-            'name': character.name,
+            'accountId' : character.accountId,
+            'name'      : character.name,
+            'exp'       : character.exp,
+            'area'      : character.area,
         }
 
         request = self.dummy_put_request(
@@ -253,14 +288,36 @@ class TestCharacterViews(BaseTest):
 
         return item_result
 
-    #Test that we can get Siobhan via get call
-    def test_siobhan_get(self):
+    #Test that we can get Siobhan via get call when authorized
+    #Because Tweek owns Siobhan
+    def test_siobhan_auth_get(self):
+        self.config.testing_securitypolicy(userid=self.tweek.username, permissive=True)
         character_result = self.character_get(self.siobhan)
 
-        self.assertEqual(character_result['id'], self.siobhan.id)
         self.assertEqual(character_result['accountId'], self.siobhan.accountId)
         self.assertEqual(character_result['name'], self.siobhan.name)
+        self.assertEqual(character_result['exp'], self.siobhan.exp)
+        self.assertEqual(character_result['area'], self.siobhan.area)
         self.assertEqual(character_result['created'], self.siobhan.created)
+        self.assertEqual(character_result['updated'], self.siobhan.updated)
+
+    #Test that we can get Siobhan via get call when unauthorized
+    #Because Aez doesnt own Siobhan
+    def test_siobhan_no_auth_get(self):
+        self.config.testing_securitypolicy(userid=self.tam.username, permissive=True)
+        character_result = self.character_get(self.siobhan)
+
+        self.assertEqual(character_result['accountId'], self.siobhan.accountId)
+        self.assertEqual(character_result['name'], self.siobhan.name)
+
+        with self.assertRaises(KeyError):
+            character_result['exp']
+        with self.assertRaises(KeyError):
+            character_result['area']
+        with self.assertRaises(KeyError):
+            character_result['created']
+        with self.assertRaises(KeyError):
+            character_result['updated']
 
     #Test that we cannot get Meero via get call
     #Because she ain't created
@@ -273,9 +330,16 @@ class TestCharacterViews(BaseTest):
     def test_spy_update(self):
         test_spy = copy.copy(self.siobhan)
         test_spy.name = 'A SPY'
+
         character_result = self.character_update(test_spy)
 
+        self.assertEqual(character_result['id'], test_spy.id)
+        self.assertEqual(character_result['accountId'], test_spy.accountId)
         self.assertEqual(character_result['name'], test_spy.name)
+        self.assertEqual(character_result['exp'], test_spy.exp)
+        self.assertEqual(character_result['area'], test_spy.area)
+        #self.assertEqual(character_result['created'], test_spy.created)
+        #self.assertEqual(character_result['updated'], test_spy.updated)
 
     #Test that we cannot update Meero's name via get call
     #Because she ain't created
@@ -290,7 +354,19 @@ class TestCharacterViews(BaseTest):
     #Test that he isn't available via get afterwards
     #Because he's not a real character
     def test_arthen_delete(self):
-        self.character_delete(self.arthen)
+        characters_result = self.character_delete(self.arthen)
+
+        self.assertEqual(len(characters_result), 2)
+        siobhan = characters_result[0]
+        alrunden = characters_result[1]
+
+        self.assertEqual(siobhan['accountId'], self.siobhan.accountId)
+        self.assertEqual(siobhan['name'], self.siobhan.name)
+        self.assertEqual(siobhan['created'], self.siobhan.created)
+
+        self.assertEqual(alrunden['accountId'], self.alrunden.accountId)
+        self.assertEqual(alrunden['name'], self.alrunden.name)
+        self.assertEqual(alrunden['created'], self.alrunden.created)
 
         with self.assertRaises(HTTPNotFound):
             self.character_get(self.arthen)
