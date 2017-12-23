@@ -2,8 +2,7 @@
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid import testing
 import copy
-
-from ..security import hash_password
+ 
 from .base_test import BaseTest
 from ..views.character import CharacterViews
 from ..views.character import CharactersViews
@@ -43,6 +42,14 @@ class TestCharacterViews(BaseTest):
                 approved    = 0,
                 banned      = 0)
         fixture.append(self.tam)
+        self.noob = Account(
+                username    = 'XxDrizztxX',
+                password    = '$2b$12$QMHEWrZZaw5hhFFhh/92jut4UpQl5nxr8oEYqgppBm3iWFlpS0jJm'.encode('utf8'),
+                cdkey       = 'klmn9911',
+                role        = 1,
+                approved    = 0,
+                banned      = 0)
+        fixture.append(self.noob)
 
         self.siobhan = Character(
                 accountId   = 'Tweek',
@@ -190,10 +197,11 @@ class TestCharacterViews(BaseTest):
         request = self.dummy_request(self.session, (self.host+resource))
 
         char_view = CharactersViews(testing.DummyResource(), request)
+        character_resp = char_view.get().json_body
 
         characters_get = []
-        for character in char_view.get():
-            characters_get.append(character.__json__(request))
+        for character in character_resp:
+            characters_get.append(character)
 
         return characters_get
 
@@ -379,7 +387,9 @@ class TestCharacterViews(BaseTest):
 
     #Test that we can get Siobhan, Alrunden, and Arthen via get all call
     #As those are the only created characters
-    def test_siobhan_al_arthen_get(self):
+    #You're acting as if you're an admin account
+    def test_siobhan_al_arthen_auth_get(self):
+        self.config.testing_securitypolicy(userid=self.tweek.username, permissive=True)
         characters_result = self.characters_get_all()
 
         self.assertEqual(len(characters_result), 3)
@@ -389,15 +399,69 @@ class TestCharacterViews(BaseTest):
 
         self.assertEqual(siobhan['accountId'], self.siobhan.accountId)
         self.assertEqual(siobhan['name'], self.siobhan.name)
+        self.assertEqual(siobhan['exp'], self.siobhan.exp)
+        self.assertEqual(siobhan['area'], self.siobhan.area)
         self.assertEqual(siobhan['created'], self.siobhan.created)
+        self.assertEqual(siobhan['updated'], self.siobhan.updated)
 
         self.assertEqual(alrunden['accountId'], self.alrunden.accountId)
         self.assertEqual(alrunden['name'], self.alrunden.name)
+        self.assertEqual(alrunden['exp'], self.alrunden.exp)
+        self.assertEqual(alrunden['area'], self.alrunden.area)
         self.assertEqual(alrunden['created'], self.alrunden.created)
+        self.assertEqual(alrunden['updated'], self.alrunden.updated)
 
         self.assertEqual(arthen['accountId'], self.arthen.accountId)
         self.assertEqual(arthen['name'], self.arthen.name)
+        self.assertEqual(arthen['exp'], self.arthen.exp)
+        self.assertEqual(arthen['area'], self.arthen.area)
         self.assertEqual(arthen['created'], self.arthen.created)
+        self.assertEqual(arthen['updated'], self.arthen.updated)
+
+    #Test that we can get Siobhan, Alrunden, and Arthen via get all call
+    #As those are the only created characters
+    #You're acting as if you're an admin account
+    def test_siobhan_al_arthen_no_auth_get(self):
+        self.config.testing_securitypolicy(userid=self.noob.username, permissive=True)
+        characters_result = self.characters_get_all()
+
+        self.assertEqual(len(characters_result), 3)
+        siobhan = characters_result[0]
+        alrunden = characters_result[1]
+        arthen = characters_result[2]
+
+        self.assertEqual(siobhan['accountId'], self.siobhan.accountId)
+        self.assertEqual(siobhan['name'], self.siobhan.name)
+        with self.assertRaises(KeyError):
+            siobhan['exp']
+        with self.assertRaises(KeyError):
+            siobhan['area']
+        with self.assertRaises(KeyError):
+            siobhan['created']
+        with self.assertRaises(KeyError):
+            siobhan['updated']
+
+        self.assertEqual(alrunden['accountId'], self.alrunden.accountId)
+        self.assertEqual(alrunden['name'], self.alrunden.name)
+        with self.assertRaises(KeyError):
+            alrunden['exp']
+        with self.assertRaises(KeyError):
+            alrunden['area']
+        with self.assertRaises(KeyError):
+            alrunden['created']
+        with self.assertRaises(KeyError):
+            alrunden['updated']
+
+        self.assertEqual(arthen['accountId'], self.arthen.accountId)
+        self.assertEqual(arthen['name'], self.arthen.name)
+        with self.assertRaises(KeyError):
+            arthen['exp']
+        with self.assertRaises(KeyError):
+            arthen['area']
+        with self.assertRaises(KeyError):
+            arthen['created']
+        with self.assertRaises(KeyError):
+            arthen['updated']
 
     #Test that we can get Siobhan's money via get call
     def test_sio_money(self):

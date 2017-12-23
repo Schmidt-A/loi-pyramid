@@ -30,7 +30,8 @@ class CharacterViews(BaseView):
             accountQuery = self.request.dbsession.query(Account)
             account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
 
-            if character.accountId == account.username:
+            #if they own it or they're an admin
+            if character.accountId == account.username or account.role == 3:
                 get_data = {
                     'accountId' : character.accountId,
                     'name'      : character.name,
@@ -133,11 +134,37 @@ class CharactersViews(BaseView):
             characters = query.all()
             log.info('get: all characters')
 
+            #If they're an admin, they can see everything
+            accountQuery = self.request.dbsession.query(Account)
+            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
+
+            character_list = []
+            for character in characters:
+                #if they're an admin they can see everything
+                if account.role == 3:
+                    get_data = {
+                        'accountId' : character.accountId,
+                        'name'      : character.name,
+                        'exp'       : character.exp,
+                        'area'      : character.area,
+                        'created'   : character.created,
+                        'updated'   : character.updated,
+                    }
+                    character_list.append(get_data)
+                else:
+                    get_data = {
+                        'accountId' : character.accountId,
+                        'name'      : character.name
+                    }
+                    character_list.append(get_data)
+
+            response = Response(json=character_list, content_type='application/json')
+
         except NoResultFound:
             log.error('get: could not retrieve any characters')
             raise HTTPNotFound
 
-        return characters
+        return response
 
 #Govern calls to an item on a character /character/{id}/item/{id}
 @set_authorized

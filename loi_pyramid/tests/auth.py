@@ -30,6 +30,15 @@ class TestAuthViews(BaseTest):
                 approved    = 1,
                 banned      = 0)
         fixture.append(self.tweek)
+        #password is drizzit4ever
+        self.noob = Account(
+                username    = 'XxDrizztxX',
+                password    = '$2b$12$QMHEWrZZaw5hhFFhh/92jut4UpQl5nxr8oEYqgppBm3iWFlpS0jJm'.encode('utf8'),
+                cdkey       = 'klmn9911',
+                role        = 1,
+                approved    = 0,
+                banned      = 0)
+        fixture.append(self.noob)
 
         self.session.add_all(fixture)
         self.session.flush()
@@ -72,7 +81,7 @@ class TestAuthViews(BaseTest):
 
     #Test that logging in with the correct username and password works
     def test_login_success(self):
-        resp = self.login(self.tweek, 'dragon4ever')
+        resp = self.login(self.noob, 'drizzit4ever')
 
         self.assertEqual(resp.status_code, 200)
 
