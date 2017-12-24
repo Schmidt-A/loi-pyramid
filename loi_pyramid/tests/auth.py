@@ -6,6 +6,7 @@ import copy
 
 from .base_test import BaseTest
 from ..views.auth import AuthViews
+from .fixture_helper import FixtureHelper
 
 
 class TestAuthViews(BaseTest):
@@ -20,38 +21,14 @@ class TestAuthViews(BaseTest):
 
         self.host = 'http://localhost:6543'
 
-        fixture = []
-        #password is dragon4ever
-        self.tweek = Account(
-                username    = 'Tweek',
-                password    = '$2b$12$rHfWWZ0quR5x48479dwPBekHeiuhdBtT8A4IQKTC32ifOxhG0FKxK'.encode('utf8'),
-                cdkey       = 'efgh5678',
-                role        = 3,
-                approved    = 1,
-                banned      = 0)
-        fixture.append(self.tweek)
-        #password is drizzit4ever
-        self.noob = Account(
-                username    = 'XxDrizztxX',
-                password    = '$2b$12$QMHEWrZZaw5hhFFhh/92jut4UpQl5nxr8oEYqgppBm3iWFlpS0jJm'.encode('utf8'),
-                cdkey       = 'klmn9911',
-                role        = 1,
-                approved    = 0,
-                banned      = 0)
-        fixture.append(self.noob)
+        self.accounts = FixtureHelper.account_data(self)
+        for name, account in self.accounts.items():
+            self.session.add(account)
 
-        self.session.add_all(fixture)
         self.session.flush()
 
-        #non existent account, to be used for negative testing
-        #password is dicks4ever
-        self.tam = Account(
-                username    = 'TamTamTamTam',
-                password    = '$2b$12$aVzX7hfREVbVNy/UsAIUCu86tw23661kTl8iED8d1TbzreEWp9P0C'.encode('utf8'),
-                cdkey       = 'yzyz8008',
-                role        = 1,
-                approved    = 0,
-                banned      = 0)
+        #non existent accounts, to be used for negative testing
+        self.fake_accounts = FixtureHelper.fake_account_data(self)
 
     #helper method for login attempts to /login using username and password
     def login(self, account, password):
@@ -81,13 +58,13 @@ class TestAuthViews(BaseTest):
 
     #Test that logging in with the correct username and password works
     def test_login_success(self):
-        resp = self.login(self.noob, 'drizzit4ever')
+        resp = self.login(self.accounts.get('noob'), 'drizzit4ever')
 
         self.assertEqual(resp.status_code, 200)
 
     #Test that logging out works with a preexisting login
     def test_logout_success(self):
-        self.login(self.tweek, 'dragon4ever')
+        self.login(self.accounts.get('tweek'), 'dragon4ever')
         resp = self.logout()
 
         self.assertEqual(resp.status_code, 200)
@@ -95,10 +72,10 @@ class TestAuthViews(BaseTest):
     #Testing that logging in with a bad password does not work
     def test_login_bad_password(self):
         with self.assertRaises(HTTPUnauthorized):
-            resp = self.login(self.tweek, 'edor')
+            resp = self.login(self.accounts.get('tweek'), 'edor')
 
     #Test that logging into an uncreated account doesn't work
     #Because Tam hasn't created his account yet
     def test_login_no_account(self):
         with self.assertRaises(HTTPUnauthorized):
-            resp = self.login(self.tam, 'dicks4ever')
+            resp = self.login(self.fake_accounts.get('tam'), 'dicks4ever')

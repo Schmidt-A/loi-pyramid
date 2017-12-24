@@ -8,6 +8,7 @@ from .base_test import BaseTest
 from ..views.account import AccountViews
 from ..views.account import AccountsViews
 from ..security import hash_password
+from .fixture_helper import FixtureHelper
 
 
 class TestAccountViews(BaseTest):
@@ -22,27 +23,14 @@ class TestAccountViews(BaseTest):
 
         self.host = 'http://localhost:6543'
 
-        fixture = []
-        self.tweek = Account(
-                username    = 'Tweek',
-                password    = '$2b$12$rHfWWZ0quR5x48479dwPBekHeiuhdBtT8A4IQKTC32ifOxhG0FKxK'.encode('utf8'),
-                cdkey       = 'efgh5678',
-                role        = 3,
-                approved    = 1,
-                banned      = 0)
-        fixture.append(self.tweek)
+        self.accounts = FixtureHelper.account_data(self)
+        for name, account in self.accounts.items():
+            self.session.add(account)
 
-        self.session.add_all(fixture)
         self.session.flush()
 
-        #non existent account, to be used for negative testing
-        self.tam = Account(
-                username    = 'TamTamTamTam',
-                password    = '$2b$12$aVzX7hfREVbVNy/UsAIUCu86tw23661kTl8iED8d1TbzreEWp9P0C'.encode('utf8'),
-                cdkey       = 'yzyz8008',
-                role        = 1,
-                approved    = 0,
-                banned      = 0)
+        #non existent accounts, to be used for negative testing
+        self.fake_accounts = FixtureHelper.fake_account_data(self)
 
     #Helper method for get calls to /account/{username}
     def account_get(self, account):
@@ -71,32 +59,48 @@ class TestAccountViews(BaseTest):
 
     #Test that we can get Siobhan via get call
     def test_tweek_get(self):
-        account_result = self.account_get(self.tweek)
+        account_result = self.account_get(self.accounts.get('tweek'))
 
-        self.assertEqual(account_result['username'], self.tweek.username)
-        self.assertEqual(account_result['password'], self.tweek.password)
-        self.assertEqual(account_result['cdkey'], self.tweek.cdkey)
-        self.assertEqual(account_result['role'], self.tweek.role)
-        self.assertEqual(account_result['approved'], self.tweek.approved)
-        self.assertEqual(account_result['banned'], self.tweek.banned)
+        self.assertEqual(account_result['username'], self.accounts.get('tweek').username)
+        self.assertEqual(account_result['password'], self.accounts.get('tweek').password)
+        self.assertEqual(account_result['cdkey'], self.accounts.get('tweek').cdkey)
+        self.assertEqual(account_result['role'], self.accounts.get('tweek').role)
+        self.assertEqual(account_result['approved'], self.accounts.get('tweek').approved)
+        self.assertEqual(account_result['banned'], self.accounts.get('tweek').banned)
 
     #Test that we cannot get Tam via get call
     #Because he'll never nut up and log on
     def test_tam_get_not_found(self):
         with self.assertRaises(HTTPNotFound):
-            self.account_get(self.tam)
+            self.account_get(self.fake_accounts.get('tam'))
 
     #Test that we can get all one account via get all call
-    #As those are the only one created account
+    #As those are the only two created accounts
     def test_all_six_accounts_get(self):
         accounts_result = self.accounts_get_all()
 
-        self.assertEqual(len(accounts_result), 1)
+        self.assertEqual(len(accounts_result), 3)
         tweek = accounts_result[0]
+        aez = accounts_result[1]
+        noob = accounts_result[2]
 
-        self.assertEqual(tweek['username'], self.tweek.username)
-        self.assertEqual(tweek['password'], self.tweek.password)
-        self.assertEqual(tweek['cdkey'], self.tweek.cdkey)
-        self.assertEqual(tweek['role'], self.tweek.role)
-        self.assertEqual(tweek['approved'], self.tweek.approved)
-        self.assertEqual(tweek['banned'], self.tweek.banned)
+        self.assertEqual(tweek['username'], self.accounts.get('tweek').username)
+        self.assertEqual(tweek['password'], self.accounts.get('tweek').password)
+        self.assertEqual(tweek['cdkey'], self.accounts.get('tweek').cdkey)
+        self.assertEqual(tweek['role'], self.accounts.get('tweek').role)
+        self.assertEqual(tweek['approved'], self.accounts.get('tweek').approved)
+        self.assertEqual(tweek['banned'], self.accounts.get('tweek').banned)
+
+        self.assertEqual(aez['username'], self.accounts.get('aez').username)
+        self.assertEqual(aez['password'], self.accounts.get('aez').password)
+        self.assertEqual(aez['cdkey'], self.accounts.get('aez').cdkey)
+        self.assertEqual(aez['role'], self.accounts.get('aez').role)
+        self.assertEqual(aez['approved'], self.accounts.get('aez').approved)
+        self.assertEqual(aez['banned'], self.accounts.get('aez').banned)
+
+        self.assertEqual(noob['username'], self.accounts.get('noob').username)
+        self.assertEqual(noob['password'], self.accounts.get('noob').password)
+        self.assertEqual(noob['cdkey'], self.accounts.get('noob').cdkey)
+        self.assertEqual(noob['role'], self.accounts.get('noob').role)
+        self.assertEqual(noob['approved'], self.accounts.get('noob').approved)
+        self.assertEqual(tweek['banned'], self.accounts.get('tweek').banned)
