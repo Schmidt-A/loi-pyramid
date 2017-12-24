@@ -11,7 +11,9 @@ from .meta import Base
 class Character(Base):
     __tablename__ = 'characters'
     id          = Column(Integer, primary_key=True)
-    accountId   = Column(Integer)
+    accountId   = Column(String)
     name        = Column(String)
+    exp         = Column(Integer)
+    area        = Column(String)
     created     = Column(String)
     updated     = Column(String)

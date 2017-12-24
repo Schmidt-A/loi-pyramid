@@ -2,13 +2,14 @@ import logging
 
 from pyramid.httpexceptions import HTTPNotFound, HTTPClientError, HTTPForbidden
 from pyramid.view import view_config, view_defaults
+from pyramid.response import Response
 
 from sqlalchemy.orm.exc import NoResultFound
 
 from . import BaseView
-from ..models import Character, Inventory
+from ..models import Character, Inventory, Account
 from ..decorators import set_authorized
-from ..schemas import CharacterUpdateSchema, InventoryUpdateSchema, InventoryCreateSchema, Invalid
+from ..schemas import CharacterOwnerSchema, InventoryUpdateSchema, InventoryCreateSchema, Invalid
 
 
 log = logging.getLogger(__name__)
@@ -26,12 +27,34 @@ class CharacterViews(BaseView):
             log.info(
                 'get: character/id {}/{}'.format(character.name, character.id))
 
+            accountQuery = self.request.dbsession.query(Account)
+            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
+
+            #if they own it or they're an admin
+            if character.accountId == account.username or account.role == 3:
+                get_data = {
+                    'accountId' : character.accountId,
+                    'name'      : character.name,
+                    'exp'       : character.exp,
+                    'area'      : character.area,
+                    'created'   : character.created,
+                    'updated'   : character.updated,
+                }
+                response = Response(json=get_data, content_type='application/json')
+
+            else:
+                get_data = {
+                    'accountId' : character.accountId,
+                    'name'      : character.name
+                }
+                response = Response(json=get_data, content_type='application/json')
+
         except NoResultFound:
             log.error(
                 'get: character id \'{}\' not found'.format(self.url['id']))
             raise HTTPNotFound
 
-        return character
+        return response
 
     #This method will almost certainly be locked down since we should not allow any of this to be editable
     #Only admins or nwn (via db) should be able to create new characters or edit new characters
@@ -42,16 +65,25 @@ class CharacterViews(BaseView):
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['id']).one()
 
-            schema = CharacterUpdateSchema()
+            schema = CharacterOwnerSchema()
             put_data = schema.deserialize(self.request.body)
-            name = put_data.get('name')
+            accountId   = put_data.get('accountId')
+            name        = put_data.get('name')
+            exp         = put_data.get('exp')
+            area        = put_data.get('area')
 
-            log.info(
-                'update: character/id {}/{} with new data {}'.format(
-                    character.name, character.id, put_data['name']))
-
+            if accountId:
+                character.accountId = accountId
             if name:
                 character.name = name
+            if exp:
+                character.exp = exp
+            if area:
+                character.area = area
+
+                log.info(
+                    'update: character/id {}/{} with new data {}'.format(
+                    character.name, character.id, put_data['name']))
 
         except NoResultFound:
             log.error(
@@ -102,11 +134,37 @@ class CharactersViews(BaseView):
             characters = query.all()
             log.info('get: all characters')
 
+            #If they're an admin, they can see everything
+            accountQuery = self.request.dbsession.query(Account)
+            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
+
+            character_list = []
+            for character in characters:
+                #if they're an admin they can see everything
+                if account.role == 3:
+                    get_data = {
+                        'accountId' : character.accountId,
+                        'name'      : character.name,
+                        'exp'       : character.exp,
+                        'area'      : character.area,
+                        'created'   : character.created,
+                        'updated'   : character.updated,
+                    }
+                    character_list.append(get_data)
+                else:
+                    get_data = {
+                        'accountId' : character.accountId,
+                        'name'      : character.name
+                    }
+                    character_list.append(get_data)
+
+            response = Response(json=character_list, content_type='application/json')
+
         except NoResultFound:
             log.error('get: could not retrieve any characters')
             raise HTTPNotFound
 
-        return characters
+        return response
 
 #Govern calls to an item on a character /character/{id}/item/{id}
 @set_authorized
@@ -133,7 +191,7 @@ class CharacterItemViews(BaseView):
 
         except NoResultFound:
             log.error(
-                'get: character id \'{}\' not found'.format(self.url['charId']))
+                'get: item id \'{}\' or char id \'{}\' not found'.format(self.url['itemId'], self.url['charId']))
             raise HTTPNotFound
 
         return item

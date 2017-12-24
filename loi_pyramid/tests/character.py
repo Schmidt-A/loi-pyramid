@@ -4,10 +4,8 @@ from pyramid import testing
 import copy
 
 from .base_test import BaseTest
-from ..views.character import CharacterViews
-from ..views.character import CharactersViews
-from ..views.character import CharacterInventoryViews
-from ..views.character import CharacterItemViews
+from ..views.character import CharacterViews, CharactersViews, CharacterInventoryViews, CharacterItemViews
+from .fixture_helper import FixtureHelper
 
 
 class TestCharacterViews(BaseTest):
@@ -18,93 +16,25 @@ class TestCharacterViews(BaseTest):
         super(TestCharacterViews, self).setUp()
         self.init_database()
 
-        from ..models import Character, Inventory
-
         self.host = 'http://localhost:6543'
 
-        #TODO: Fix flask rules for indentation
-        fixture = []
-        self.siobhan = Character(
-                accountId   = 1,
-                name        = 'Siobhan Faulkner',
-                created     = '23/11/2017',
-                updated     = '29/11/2017')
-        fixture.append(self.siobhan)
-        self.alrunden = Character(
-                accountId   = 2,
-                name        = 'Alrunden Peralt',
-                created     = '26/6/2017',
-                updated     = '29/11/2017')
-        fixture.append(self.alrunden)
-        self.arthen = Character(
-                accountId   = None,
-                name        = 'Arthen Relindar',
-                created     = None,
-                updated     = None)
-        fixture.append(self.arthen)
+        self.characters = FixtureHelper.character_data(self)
+        for name, character in self.characters.items():
+            self.session.add(character)
 
-        self.al_grain = Inventory(
-                characterId = 2,
-                blueprintId = 'grain',
-                amount      = 10,
-                created     = None,
-                updated     = None)
-        fixture.append(self.al_grain)
-        self.al_cow = Inventory(
-                characterId = 2,
-                blueprintId = 'cow',
-                amount      = 5,
-                created     = None,
-                updated     = None)
-        fixture.append(self.al_cow)
-        self.al_sheep = Inventory(
-                characterId = 2,
-                blueprintId = 'sheep',
-                amount      = 20,
-                created     = None,
-                updated     = None)
-        fixture.append(self.al_sheep)
-        self.al_money = Inventory(
-                characterId = 2,
-                blueprintId = 'gp',
-                amount      = 400,
-                created     = None,
-                updated     = None)
-        fixture.append(self.al_money)
-        self.sio_money = Inventory(
-                characterId = 1,
-                blueprintId = 'gp',
-                amount      = 50,
-                created     = None,
-                updated     = None)
-        fixture.append(self.sio_money)
+        self.accounts = FixtureHelper.account_data(self)
+        for name, account in self.accounts.items():
+            self.session.add(account)
 
-        self.session.add_all(fixture)
+        self.inventory = FixtureHelper.inventory_data(self)
+        for name, item in self.inventory.items():
+            self.session.add(item)
+
         self.session.flush()
 
-        #non existent character, to be used for negative testing
-        self.meero = Character(
-                id          = 20,
-                accountId   = 2,
-                name        = 'Meero Isesi',
-                created     = None,
-                updated     = None)
-
-        #not yet added, to be used for create
-        self.op_armor = Inventory(
-                characterId = 2,
-                blueprintId = 'op_armor',
-                amount      = 1,
-                created     = None,
-                updated     = None)
-
-        #non existent item, to be used for negative testing
-        self.al_zombie = Inventory(
-                characterId = 2,
-                blueprintId = 'zombie_guard',
-                amount      = 2,
-                created     = None,
-                updated     = None)        
+        self.fake_characters = FixtureHelper.fake_character_data(self)
+        self.fake_accounts = FixtureHelper.fake_account_data(self)
+        self.fake_inventory = FixtureHelper.fake_inventory_data(self)
 
     #Helper method for get calls to /character/{id}
     def character_get(self, character):
@@ -115,7 +45,7 @@ class TestCharacterViews(BaseTest):
         char_view = CharacterViews(testing.DummyResource(), request)
         char_view.url = url_params
 
-        character_result = char_view.get().__json__(request)
+        character_result = char_view.get().json_body
         return character_result
 
     #Helper method for delete calls to /character/{id}
@@ -127,7 +57,13 @@ class TestCharacterViews(BaseTest):
         char_view = CharacterViews(testing.DummyResource(), request)
         char_view.url = url_params
 
-        char_view.delete()
+        response = char_view.delete()
+
+        character_result = []
+        for character in response:
+            character_result.append(character.__json__(request))
+
+        return character_result
 
     #Helper method for update calls to /character/{id}
     def character_update(self, character):
@@ -135,7 +71,10 @@ class TestCharacterViews(BaseTest):
         url_params = {'id': character.id}
 
         character_payload = {
-            'name': character.name,
+            'accountId' : character.accountId,
+            'name'      : character.name,
+            'exp'       : character.exp,
+            'area'      : character.area,
         }
 
         request = self.dummy_put_request(
@@ -155,10 +94,11 @@ class TestCharacterViews(BaseTest):
         request = self.dummy_request(self.session, (self.host+resource))
 
         char_view = CharactersViews(testing.DummyResource(), request)
+        character_resp = char_view.get().json_body
 
         characters_get = []
-        for character in char_view.get():
-            characters_get.append(character.__json__(request))
+        for character in character_resp:
+            characters_get.append(character)
 
         return characters_get
 
@@ -253,34 +193,63 @@ class TestCharacterViews(BaseTest):
 
         return item_result
 
-    #Test that we can get Siobhan via get call
-    def test_siobhan_get(self):
-        character_result = self.character_get(self.siobhan)
+    #Test that we can get Siobhan via get call when authorized
+    #Because Tweek owns Siobhan
+    def test_siobhan_auth_get(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
+        character_result = self.character_get(self.characters.get('siobhan'))
 
-        self.assertEqual(character_result['id'], self.siobhan.id)
-        self.assertEqual(character_result['accountId'], self.siobhan.accountId)
-        self.assertEqual(character_result['name'], self.siobhan.name)
-        self.assertEqual(character_result['created'], self.siobhan.created)
+        self.assertEqual(character_result['accountId'], self.characters.get('siobhan').accountId)
+        self.assertEqual(character_result['name'], self.characters.get('siobhan').name)
+        self.assertEqual(character_result['exp'], self.characters.get('siobhan').exp)
+        self.assertEqual(character_result['area'], self.characters.get('siobhan').area)
+        self.assertEqual(character_result['created'], self.characters.get('siobhan').created)
+        self.assertEqual(character_result['updated'], self.characters.get('siobhan').updated)
+
+    #Test that we can get Siobhan via get call when unauthorized
+    #Because Aez doesnt own Siobhan
+    def test_siobhan_no_auth_get(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('noob').username, permissive=True)
+        character_result = self.character_get(self.characters.get('siobhan'))
+
+        self.assertEqual(character_result['accountId'], self.characters.get('siobhan').accountId)
+        self.assertEqual(character_result['name'], self.characters.get('siobhan').name)
+
+        with self.assertRaises(KeyError):
+            character_result['exp']
+        with self.assertRaises(KeyError):
+            character_result['area']
+        with self.assertRaises(KeyError):
+            character_result['created']
+        with self.assertRaises(KeyError):
+            character_result['updated']
 
     #Test that we cannot get Meero via get call
     #Because she ain't created
     def test_meero_get_not_found(self):
         with self.assertRaises(HTTPNotFound):
-            self.character_get(self.meero)
+            self.character_get(self.fake_characters.get('meero'))
 
     #Test that we can update Siobhan's name via put call
     #Because she's a SPYY
     def test_spy_update(self):
-        test_spy = copy.copy(self.siobhan)
+        test_spy = copy.copy(self.characters.get('siobhan'))
         test_spy.name = 'A SPY'
+
         character_result = self.character_update(test_spy)
 
+        self.assertEqual(character_result['id'], test_spy.id)
+        self.assertEqual(character_result['accountId'], test_spy.accountId)
         self.assertEqual(character_result['name'], test_spy.name)
+        self.assertEqual(character_result['exp'], test_spy.exp)
+        self.assertEqual(character_result['area'], test_spy.area)
+        #self.assertEqual(character_result['created'], test_spy.created)
+        #self.assertEqual(character_result['updated'], test_spy.updated)
 
     #Test that we cannot update Meero's name via get call
     #Because she ain't created
     def test_meero_update_not_found(self):
-        test_slave = copy.copy(self.meero)
+        test_slave = copy.copy(self.fake_characters.get('meero'))
         test_slave.name = 'A SLAVE'
 
         with self.assertRaises(HTTPNotFound):
@@ -290,20 +259,34 @@ class TestCharacterViews(BaseTest):
     #Test that he isn't available via get afterwards
     #Because he's not a real character
     def test_arthen_delete(self):
-        self.character_delete(self.arthen)
+        characters_result = self.character_delete(self.characters.get('arthen'))
+
+        self.assertEqual(len(characters_result), 2)
+        siobhan = characters_result[0]
+        alrunden = characters_result[1]
+
+        self.assertEqual(siobhan['accountId'], self.characters.get('siobhan').accountId)
+        self.assertEqual(siobhan['name'], self.characters.get('siobhan').name)
+        self.assertEqual(siobhan['created'], self.characters.get('siobhan').created)
+
+        self.assertEqual(alrunden['accountId'], self.characters.get('alrunden').accountId)
+        self.assertEqual(alrunden['name'], self.characters.get('alrunden').name)
+        self.assertEqual(alrunden['created'], self.characters.get('alrunden').created)
 
         with self.assertRaises(HTTPNotFound):
-            self.character_get(self.arthen)
+            self.character_get(self.characters.get('arthen'))
 
     #Test that we cannot delete Meero
     #Because she ain't created
     def test_meero_delete_not_found(self):
         with self.assertRaises(HTTPNotFound):
-            self.character_delete(self.meero)
+            self.character_delete(self.fake_characters.get('meero'))
 
     #Test that we can get Siobhan, Alrunden, and Arthen via get all call
     #As those are the only created characters
-    def test_siobhan_al_arthen_get(self):
+    #You're acting as if you're an admin account
+    def test_siobhan_al_arthen_auth_get(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         characters_result = self.characters_get_all()
 
         self.assertEqual(len(characters_result), 3)
@@ -311,44 +294,98 @@ class TestCharacterViews(BaseTest):
         alrunden = characters_result[1]
         arthen = characters_result[2]
 
-        self.assertEqual(siobhan['accountId'], self.siobhan.accountId)
-        self.assertEqual(siobhan['name'], self.siobhan.name)
-        self.assertEqual(siobhan['created'], self.siobhan.created)
+        self.assertEqual(siobhan['accountId'], self.characters.get('siobhan').accountId)
+        self.assertEqual(siobhan['name'], self.characters.get('siobhan').name)
+        self.assertEqual(siobhan['exp'], self.characters.get('siobhan').exp)
+        self.assertEqual(siobhan['area'], self.characters.get('siobhan').area)
+        self.assertEqual(siobhan['created'], self.characters.get('siobhan').created)
+        self.assertEqual(siobhan['updated'], self.characters.get('siobhan').updated)
 
-        self.assertEqual(alrunden['accountId'], self.alrunden.accountId)
-        self.assertEqual(alrunden['name'], self.alrunden.name)
-        self.assertEqual(alrunden['created'], self.alrunden.created)
+        self.assertEqual(alrunden['accountId'], self.characters.get('alrunden').accountId)
+        self.assertEqual(alrunden['name'], self.characters.get('alrunden').name)
+        self.assertEqual(alrunden['exp'], self.characters.get('alrunden').exp)
+        self.assertEqual(alrunden['area'], self.characters.get('alrunden').area)
+        self.assertEqual(alrunden['created'], self.characters.get('alrunden').created)
+        self.assertEqual(alrunden['updated'], self.characters.get('alrunden').updated)
 
-        self.assertEqual(arthen['accountId'], self.arthen.accountId)
-        self.assertEqual(arthen['name'], self.arthen.name)
-        self.assertEqual(arthen['created'], self.arthen.created)
+        self.assertEqual(arthen['accountId'], self.characters.get('arthen').accountId)
+        self.assertEqual(arthen['name'], self.characters.get('arthen').name)
+        self.assertEqual(arthen['exp'], self.characters.get('arthen').exp)
+        self.assertEqual(arthen['area'], self.characters.get('arthen').area)
+        self.assertEqual(arthen['created'], self.characters.get('arthen').created)
+        self.assertEqual(arthen['updated'], self.characters.get('arthen').updated)
+
+    #Test that we can get Siobhan, Alrunden, and Arthen via get all call
+    #As those are the only created characters
+    #You're acting as if you're an admin account
+    def test_siobhan_al_arthen_no_auth_get(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('noob').username, permissive=True)
+        characters_result = self.characters_get_all()
+
+        self.assertEqual(len(characters_result), 3)
+        siobhan = characters_result[0]
+        alrunden = characters_result[1]
+        arthen = characters_result[2]
+
+        self.assertEqual(siobhan['accountId'], self.characters.get('siobhan').accountId)
+        self.assertEqual(siobhan['name'], self.characters.get('siobhan').name)
+        with self.assertRaises(KeyError):
+            siobhan['exp']
+        with self.assertRaises(KeyError):
+            siobhan['area']
+        with self.assertRaises(KeyError):
+            siobhan['created']
+        with self.assertRaises(KeyError):
+            siobhan['updated']
+
+        self.assertEqual(alrunden['accountId'], self.characters.get('alrunden').accountId)
+        self.assertEqual(alrunden['name'], self.characters.get('alrunden').name)
+        with self.assertRaises(KeyError):
+            alrunden['exp']
+        with self.assertRaises(KeyError):
+            alrunden['area']
+        with self.assertRaises(KeyError):
+            alrunden['created']
+        with self.assertRaises(KeyError):
+            alrunden['updated']
+
+        self.assertEqual(arthen['accountId'], self.characters.get('arthen').accountId)
+        self.assertEqual(arthen['name'], self.characters.get('arthen').name)
+        with self.assertRaises(KeyError):
+            arthen['exp']
+        with self.assertRaises(KeyError):
+            arthen['area']
+        with self.assertRaises(KeyError):
+            arthen['created']
+        with self.assertRaises(KeyError):
+            arthen['updated']
 
     #Test that we can get Siobhan's money via get call
     def test_sio_money(self):
-        money = self.item_get(self.siobhan, self.sio_money)
+        money = self.item_get(self.characters.get('siobhan'), self.inventory.get('sio_money'))
 
-        self.assertEqual(money['characterId'], self.siobhan.id)
-        self.assertEqual(money['blueprintId'], self.sio_money.blueprintId)
-        self.assertEqual(money['amount'], self.sio_money.amount)
+        self.assertEqual(money['characterId'], self.characters.get('siobhan').id)
+        self.assertEqual(money['blueprintId'], self.inventory.get('sio_money').blueprintId)
+        self.assertEqual(money['amount'], self.inventory.get('sio_money').amount)
 
     #Test that we cannot get Al's Zombie via get call
     #Because it ain't created, because Sigmund won't let him have zombies
     def test_al_zombie_get_not_found(self):
         with self.assertRaises(HTTPNotFound):
-            self.item_get(self.alrunden, self.al_zombie)
+            self.item_get(self.characters.get('alrunden'), self.fake_inventory.get('al_zombie'))
 
     #Test that we cannot get Al's cows with Siobhan's id via get call
     #Because those are owned by Al's character, not Siobhan's
     def test_sio_get_al_cows(self):
         with self.assertRaises(HTTPForbidden):
-            self.item_get(self.siobhan, self.al_cow)
+            self.item_get(self.characters.get('siobhan'), self.inventory.get('al_cow'))
 
     #Test that we can decrease Siobhan's money via put call
     #Because Siobhan's poor and spends her money on necessities
     def test_sio_poor(self):
-        test_money = copy.copy(self.sio_money)
+        test_money = copy.copy(self.inventory.get('sio_money'))
         test_money.amount = 1
-        item_result = self.item_update(self.siobhan, test_money)
+        item_result = self.item_update(self.characters.get('siobhan'), test_money)
 
         self.assertEqual(item_result['characterId'], test_money.characterId)
         self.assertEqual(item_result['blueprintId'], test_money.blueprintId)
@@ -357,62 +394,62 @@ class TestCharacterViews(BaseTest):
     #Test that we cannot update Al's cows with Siobhan's id via put call
     #Because those are owned by Al's character, not Siobhan's
     def test_sio_update_al_cows(self):
-        test_cow = copy.copy(self.al_cow)
+        test_cow = copy.copy(self.inventory.get('al_cow'))
         test_cow.amount = 9
 
         with self.assertRaises(HTTPForbidden):
-            self.item_update(self.siobhan, test_cow)
+            self.item_update(self.characters.get('siobhan'), test_cow)
 
     #Test that we cannot update Al's Zombie count via put call
     #Because it ain't created, because Sigmund won't let him have zombies
     def test_al_zombie_update_not_found(self):
-        test_zombie = copy.copy(self.al_zombie)
+        test_zombie = copy.copy(self.fake_inventory.get('al_zombie'))
         test_zombie.amount = 5
 
         with self.assertRaises(HTTPNotFound):
-            self.item_update(self.alrunden, test_zombie)
+            self.item_update(self.characters.get('alrunden'), test_zombie)
 
     #Test that we cannot delete Al's cows with Siobhan's id via get call
     #Because those are owned by Al's character, not Siobhan's
     def test_sio_delete_al_cows(self):
         with self.assertRaises(HTTPForbidden):
-            self.item_delete(self.siobhan, self.al_cow)
+            self.item_delete(self.characters.get('siobhan'), self.inventory.get('al_cow'))
 
     #Test that we can remove cows and sheep from Al's inventory via delete call
     #Test that Cows and Sheeps are not accessible via get call
     #Because Al's farm got stolen from
     def test_al_stolen(self):
-        self.item_delete(self.alrunden, self.al_cow)
-        inventory_result = self.item_delete(self.alrunden, self.al_sheep)
+        self.item_delete(self.characters.get('alrunden'), self.inventory.get('al_cow'))
+        inventory_result = self.item_delete(self.characters.get('alrunden'), self.inventory.get('al_sheep'))
 
         self.assertEqual(len(inventory_result), 2)
         grain = inventory_result[0]
         gp = inventory_result[1]
 
-        self.assertEqual(grain['characterId'], self.alrunden.id)
-        self.assertEqual(grain['blueprintId'], self.al_grain.blueprintId)
-        self.assertEqual(grain['amount'], self.al_grain.amount)
+        self.assertEqual(grain['characterId'], self.characters.get('alrunden').id)
+        self.assertEqual(grain['blueprintId'], self.inventory.get('al_grain').blueprintId)
+        self.assertEqual(grain['amount'], self.inventory.get('al_grain').amount)
 
-        self.assertEqual(gp['characterId'], self.alrunden.id)
-        self.assertEqual(gp['blueprintId'], self.al_money.blueprintId)
-        self.assertEqual(gp['amount'], self.al_money.amount)
+        self.assertEqual(gp['characterId'], self.characters.get('alrunden').id)
+        self.assertEqual(gp['blueprintId'], self.inventory.get('al_money').blueprintId)
+        self.assertEqual(gp['amount'], self.inventory.get('al_money').amount)
 
         with self.assertRaises(HTTPNotFound):
-            self.item_get(self.alrunden, self.al_cow)
+            self.item_get(self.characters.get('alrunden'), self.inventory.get('al_cow'))
         with self.assertRaises(HTTPNotFound):
-            self.item_get(self.alrunden, self.al_sheep)
+            self.item_get(self.characters.get('alrunden'), self.inventory.get('al_sheep'))
 
     #Test that we cannot get Al's Zombie via delete call
     #Because it ain't created, because Sigmund won't let him have zombies
     def test_al_zombie_delete_not_found(self):
         with self.assertRaises(HTTPNotFound):
-            self.item_delete(self.alrunden, self.al_zombie)
+            self.item_delete(self.characters.get('alrunden'), self.fake_inventory.get('al_zombie'))
 
     #Test that we can get Al's Grain, Cows, Sheep, and Money via get all call
     #Because those are all of the items in Al's inventory
     #Because he's a goddamn farmer
     def test_al_farm(self):
-        inventory_result = self.inventory_get_all(self.alrunden)
+        inventory_result = self.inventory_get_all(self.characters.get('alrunden'))
 
         self.assertEqual(len(inventory_result), 4)
         grain = inventory_result[0]
@@ -420,27 +457,27 @@ class TestCharacterViews(BaseTest):
         sheep = inventory_result[2]
         gp = inventory_result[3]
 
-        self.assertEqual(grain['characterId'], self.alrunden.id)
-        self.assertEqual(grain['blueprintId'], self.al_grain.blueprintId)
-        self.assertEqual(grain['amount'], self.al_grain.amount)
+        self.assertEqual(grain['characterId'], self.characters.get('alrunden').id)
+        self.assertEqual(grain['blueprintId'], self.inventory.get('al_grain').blueprintId)
+        self.assertEqual(grain['amount'], self.inventory.get('al_grain').amount)
 
-        self.assertEqual(cow['characterId'], self.alrunden.id)
-        self.assertEqual(cow['blueprintId'], self.al_cow.blueprintId)
-        self.assertEqual(cow['amount'], self.al_cow.amount)
+        self.assertEqual(cow['characterId'], self.characters.get('alrunden').id)
+        self.assertEqual(cow['blueprintId'], self.inventory.get('al_cow').blueprintId)
+        self.assertEqual(cow['amount'], self.inventory.get('al_cow').amount)
 
-        self.assertEqual(sheep['characterId'], self.alrunden.id)
-        self.assertEqual(sheep['blueprintId'], self.al_sheep.blueprintId)
-        self.assertEqual(sheep['amount'], self.al_sheep.amount)
+        self.assertEqual(sheep['characterId'], self.characters.get('alrunden').id)
+        self.assertEqual(sheep['blueprintId'], self.inventory.get('al_sheep').blueprintId)
+        self.assertEqual(sheep['amount'], self.inventory.get('al_sheep').amount)
 
-        self.assertEqual(gp['characterId'], self.alrunden.id)
-        self.assertEqual(gp['blueprintId'], self.al_money.blueprintId)
-        self.assertEqual(gp['amount'], self.al_money.amount)
+        self.assertEqual(gp['characterId'], self.characters.get('alrunden').id)
+        self.assertEqual(gp['blueprintId'], self.inventory.get('al_money').blueprintId)
+        self.assertEqual(gp['amount'], self.inventory.get('al_money').amount)
 
     #Test that we can create a new armor on Al via post call
     #Because Viti's campaign is ridiculous with loot
     def test_viti_gives_al_loot(self):
-        item_result = self.inventory_create(self.alrunden, self.op_armor)
+        item_result = self.inventory_create(self.characters.get('alrunden'), self.fake_inventory.get('op_armor'))
 
-        self.assertEqual(item_result['characterId'], self.op_armor.characterId)
-        self.assertEqual(item_result['blueprintId'], self.op_armor.blueprintId)
-        self.assertEqual(item_result['amount'], self.op_armor.amount)
+        self.assertEqual(item_result['characterId'], self.fake_inventory.get('op_armor').characterId)
+        self.assertEqual(item_result['blueprintId'], self.fake_inventory.get('op_armor').blueprintId)
+        self.assertEqual(item_result['amount'], self.fake_inventory.get('op_armor').amount)

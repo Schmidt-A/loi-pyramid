@@ -15,14 +15,7 @@ from ..models import (
     get_session_factory,
     get_tm_session,
     )
-from ..models import Character
-from ..models import Member
-from ..models import Faction
-from ..models import Reputation
-from ..models import Inventory
-from ..models import Account
-from ..security import hash_password
-
+from ..tests.fixture_helper import FixtureHelper
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
@@ -40,6 +33,9 @@ def main(argv=sys.argv):
     settings = get_appsettings(config_uri, options=options)
 
     engine = get_engine(settings)
+
+    #dropping all tables then creating all of them for a migration for fixture test data
+    Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
     session_factory = get_session_factory(engine)
@@ -47,176 +43,26 @@ def main(argv=sys.argv):
     with transaction.manager:
         dbsession = get_tm_session(session_factory, transaction.manager)
 
-        tweek = Account(
-                username    = 'Tweek',
-                password    = hash_password('dragon4ever').encode('utf8'),
-                cdkey       = 'efgh5678',
-                role        = 3,
-                approved    = 1,
-                banned      = 0)
-        aez = Account(
-                username    = 'Aez',
-                password    = hash_password('eldath4ever').encode('utf8'),
-                cdkey       = 'abcd1234',
-                role        = 3,
-                approved    = 1,
-                banned      = 0)
-        dbsession.add_all([tweek, aez])
+        characters = FixtureHelper.character_data(dbsession)
+        for name, character in characters.items():
+            dbsession.add(character)
 
-        siobhan = Character(
-                accountId   = 'Tweek',
-                name        = 'Siobhan Faulkner',
-                created     = '23/11/2017',
-                updated     = '29/11/2017')
-        alrunden = Character(
-                accountId   = 'Aez',
-                name        = 'Alrunden Peralt',
-                created     = '26/6/2017',
-                updated     = '29/11/2017')
-        arthen = Character(
-                accountId   = None,
-                name        = 'Arthen Relindar',
-                created     = None,
-                updated     = '29/11/2017')
-        dbsession.add_all([siobhan, alrunden, arthen])
+        accounts = FixtureHelper.account_data(dbsession)
+        for name, account in accounts.items():
+            dbsession.add(account)
 
-        al_grain = Inventory(
-                characterId = alrunden.id,
-                blueprintId = 'grain',
-                amount      = 10,
-                created     = None,
-                updated     = None)
-        al_cow = Inventory(
-                characterId = alrunden.id,
-                blueprintId = 'cow',
-                amount      = 5,
-                created     = None,
-                updated     = None)
-        al_sheep = Inventory(
-                characterId = alrunden.id,
-                blueprintId = 'sheep',
-                amount      = 20,
-                created     = None,
-                updated     = None)
-        al_money = Inventory(
-                characterId = alrunden.id,
-                blueprintId = 'gp',
-                amount      = 400,
-                created     = None,
-                updated     = None)
-        sio_money = Inventory(
-                characterId = siobhan.id,
-                blueprintId = 'gp',
-                amount      = 50,
-                created     = None,
-                updated     = None)
-        dbsession.add_all([sio_money, al_grain, al_cow, al_sheep, al_money])
+        inventory = FixtureHelper.inventory_data(dbsession)
+        for name, item in inventory.items():
+            dbsession.add(item)
 
-        smugglers = Faction(
-                name        = 'Smugglers',
-                factionId   = None)
-        relindars = Faction(
-                name        = 'Relindar Family',
-                factionId   = None)
-        cousins = Faction(
-                name        = 'Hlammach Relindar',
-                factionId   = relindars.id)
-        dbsession.add_all([smugglers, relindars, cousins])
+        factions = FixtureHelper.faction_data(dbsession)
+        for name, faction in factions.items():
+            dbsession.add(faction)
 
-        siobhan_spy = Member(
-                characterId = siobhan.id,
-                factionId   = smugglers.id,
-                role        = 'member',
-                active      = 1,
-                secret      = 1,
-                created     = '23/11/2017',
-                dateLeft    = None)
-        al_left = Member(
-                characterId = alrunden.id,
-                factionId   = smugglers.id,
-                role        = 'member',
-                active      = 0,
-                secret      = 0,
-                created     = '20/7/2017',
-                dateLeft    = '1/10/2017')
-        al_now = Member(
-                characterId = alrunden.id,
-                factionId   = cousins.id,
-                role        = 'member',
-                active      = 1,
-                secret      = 0,
-                created     = '4/11/2017',
-                dateLeft    = None)
-        arthen_fam = Member(
-                characterId = arthen.id,
-                factionId   = cousins.id,
-                role        = 'family',
-                active      = 1,
-                secret      = 1,
-                created     = None,
-                dateLeft    = None)
-        dbsession.add_all([siobhan_spy, al_left, al_now, arthen_fam])
+        members = FixtureHelper.member_data(dbsession)
+        for name, member in members.items():
+            dbsession.add(member)
 
-        rel_sio = Reputation(
-                characterId = None,
-                factionId   = cousins.id,
-                amount      = -5,
-                atCharId    = siobhan.id,
-                atFactionId = None)
-        smug_sio = Reputation(
-                characterId = None,
-                factionId   = smugglers.id,
-                amount      = 80,
-                atCharId    = siobhan.id,
-                atFactionId = None)
-        rel_al = Reputation(
-                characterId = None,
-                factionId   = cousins.id,
-                amount      = 30,
-                atCharId    = alrunden.id,
-                atFactionId = None)
-        smug_al = Reputation(
-                characterId = None,
-                factionId   = smugglers.id,
-                amount      = -30,
-                atCharId    = alrunden.id,
-                atFactionId = None)
-        rel_arthen = Reputation(
-                characterId = None,
-                factionId   = cousins.id,
-                amount      = 90,
-                atCharId    = arthen.id,
-                atFactionId = None)
-        arthen_al = Reputation(
-                characterId = arthen.id,
-                factionId   = None,
-                amount      = 50,
-                atCharId    = alrunden.id,
-                atFactionId = None)
-        smug_rel = Reputation(
-                characterId = None,
-                factionId   = smugglers.id,
-                amount      = -20,
-                atCharId    = None,
-                atFactionId = relindars.id)
-        rel_smug = Reputation(
-                characterId = None,
-                factionId   = relindars.id,
-                amount      = -10,
-                atCharId    = None,
-                atFactionId = smugglers.id)
-        cou_smug = Reputation(
-                characterId = None,
-                factionId   = cousins.id,
-                amount      = 10,
-                atCharId    = None,
-                atFactionId = smugglers.id)
-        dbsession.add_all([
-                smug_sio,
-                smug_rel,
-                smug_al,
-                cou_smug,
-                rel_sio,
-                rel_smug,
-                rel_arthen,
-                rel_al])
+        reputations = FixtureHelper.reputation_data(dbsession)
+        for name, reputation in reputations.items():
+            dbsession.add(reputation)
