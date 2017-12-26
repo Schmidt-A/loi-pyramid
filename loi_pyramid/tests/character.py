@@ -1,5 +1,5 @@
 # flake8: noqa
-from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
+from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden, HTTPClientError
 from pyramid import testing
 import copy
 
@@ -195,21 +195,8 @@ class TestCharacterViews(BaseTest):
 
     #Test that we can get Ji'Lin via get call when authorized
     #Because noob owns Ji'Lin
-    def test_auth_get(self):
+    def test_auth_get_char(self):
         self.config.testing_securitypolicy(userid=self.accounts.get('noob').username, permissive=True)
-        character_result = self.character_get(self.characters.get('jilin'))
-
-        self.assertEqual(character_result['accountId'], self.characters.get('jilin').accountId)
-        self.assertEqual(character_result['name'], self.characters.get('jilin').name)
-        self.assertEqual(character_result['exp'], self.characters.get('jilin').exp)
-        self.assertEqual(character_result['area'], self.characters.get('jilin').area)
-        self.assertEqual(character_result['created'], self.characters.get('jilin').created)
-        self.assertEqual(character_result['updated'], self.characters.get('jilin').updated)
-
-    #Test that we can get Ji'Lin via get call when admin
-    #Because Tweek is an admin
-    def test_admin_get(self):
-        self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         character_result = self.character_get(self.characters.get('jilin'))
 
         self.assertEqual(character_result['accountId'], self.characters.get('jilin').accountId)
@@ -221,7 +208,7 @@ class TestCharacterViews(BaseTest):
 
     #Test that we cannot get Siobhan via get call when unauthorized
     #Because noob doesnt own Siobhan
-    def test_no_auth_get(self):
+    def test_not_auth_get_char(self):
         self.config.testing_securitypolicy(userid=self.accounts.get('noob').username, permissive=True)
         character_result = self.character_get(self.characters.get('siobhan'))
 
@@ -237,16 +224,29 @@ class TestCharacterViews(BaseTest):
         with self.assertRaises(KeyError):
             character_result['updated']
 
-    #Test that we cannot get Meero via get call
+    #Test that we can get Ji'Lin via get call when admin
+    #Because Tweek is an admin
+    def test_admin_get_char(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
+        character_result = self.character_get(self.characters.get('jilin'))
+
+        self.assertEqual(character_result['accountId'], self.characters.get('jilin').accountId)
+        self.assertEqual(character_result['name'], self.characters.get('jilin').name)
+        self.assertEqual(character_result['exp'], self.characters.get('jilin').exp)
+        self.assertEqual(character_result['area'], self.characters.get('jilin').area)
+        self.assertEqual(character_result['created'], self.characters.get('jilin').created)
+        self.assertEqual(character_result['updated'], self.characters.get('jilin').updated)
+
+    #Test that we cannot get Meero via get call when admin
     #Because she ain't created
-    def test_admin_get_not_found(self):
+    def test_admin_get_char_not_found(self):
         self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         with self.assertRaises(HTTPNotFound):
             self.character_get(self.fake_characters.get('meero'))
 
-    #Test that we can update Siobhan's name via put call
+    #Test that we can update Siobhan's name via put call when admin
     #Because she's a SPYY
-    def test_admin_update(self):
+    def test_admin_update_char(self):
         self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         test_spy = copy.copy(self.characters.get('siobhan'))
         test_spy.name = 'A SPY'
@@ -261,21 +261,9 @@ class TestCharacterViews(BaseTest):
         #self.assertEqual(character_result['created'], test_spy.created)
         #self.assertEqual(character_result['updated'], test_spy.updated)
 
-    #Test that we cannot update Siobhan's name via put call
-    #Because noob isn't an admin
-    def test_no_admin_update(self):
-        self.config.testing_securitypolicy(userid=self.accounts.get('noob').username, permissive=True)
-        test_spy = copy.copy(self.characters.get('siobhan'))
-        test_spy.name = 'A SPY'
-
-        with self.assertRaises(HTTPForbidden):
-            self.character_update(test_spy)
-
-        #Should we test that the info wasn't altered afterwards?
-
-    #Test that we cannot update Meero's name via get call
+    #Test that we cannot update Meero's name via get call when admin
     #Because she ain't created
-    def test_admin_update_not_found(self):
+    def test_admin_update_char_not_found(self):
         self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         test_slave = copy.copy(self.fake_characters.get('meero'))
         test_slave.name = 'A SLAVE'
@@ -283,10 +271,21 @@ class TestCharacterViews(BaseTest):
         with self.assertRaises(HTTPNotFound):
             self.character_update(test_slave)
 
-    #Test that we can delete Arthen via delete call
+    #Test that we cannot update Jilin's name via put call when not admin
+    #Because noob isn't an admin
+    def test_not_admin_update_char(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('noob').username, permissive=True)
+        test_drow = copy.copy(self.characters.get('jilin'))
+        test_drow.name = 'Jarlaxe'
+
+        with self.assertRaises(HTTPForbidden):
+            self.character_update(test_drow)
+
+        #Should we test that the info wasn't altered afterwards?
+
+    #Test that we can delete Arthen via delete call when admin
     #Test that he isn't available via get afterwards
-    #Because he's not a real character
-    def test_admin_delete(self):
+    def test_admin_delete_char(self):
         self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         characters_result = self.character_delete(self.characters.get('arthen'))
 
@@ -295,26 +294,25 @@ class TestCharacterViews(BaseTest):
         with self.assertRaises(HTTPNotFound):
             self.character_get(self.characters.get('arthen'))
 
-    #Test that we cannot delete Arthen via delete call
-    #Because noob isn't an admin
-    def test_not_admin_delete(self):
-        self.config.testing_securitypolicy(userid=self.accounts.get('noob').username, permissive=True)
-        with self.assertRaises(HTTPForbidden):
-            self.character_delete(self.characters.get('arthen'))
-
-        #Should we test that the info wasn't altered afterwards?
-
-    #Test that we cannot delete Meero
+    #Test that we cannot delete Meero when admin
     #Because she ain't created
-    def test_admin_delete_not_found(self):
+    def test_admin_delete_char_not_found(self):
         self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         with self.assertRaises(HTTPNotFound):
             self.character_delete(self.fake_characters.get('meero'))
 
-    #Test that we can get Siobhan, Alrunden, Arthen, Ji'lin via get all call
-    #As those are the only created characters
-    #You're acting as if you're an admin account
-    def test_admin_get_all(self):
+    #Test that we cannot delete Jilin via delete call when not admin
+    #Because noob isn't an admin
+    def test_not_admin_delete_char(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('noob').username, permissive=True)
+        with self.assertRaises(HTTPForbidden):
+            self.character_delete(self.characters.get('jilin'))
+
+        #Should we test that the info wasn't altered afterwards?
+
+    #Test that we can get all characters via get all call when admin
+    #And that we get the full info payload
+    def test_admin_get_all_char(self):
         self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         characters_result = self.characters_get_all()
 
@@ -330,10 +328,9 @@ class TestCharacterViews(BaseTest):
             self.assertEqual(char['updated'], compare_char.updated)
             i += 1
 
-    #Test that we can get Siobhan, Alrunden, Arthen, and Ji'lin via get all call
-    #As those are the only created characters
-    #You're acting as if you're an admin account
-    def test_no_admin_get_all(self):
+    #Test that we can get all characters via get all call when not admin
+    #And that we get the partial info payload
+    def test_not_admin_get_all_char(self):
         self.config.testing_securitypolicy(userid=self.accounts.get('noob').username, permissive=True)
         characters_result = self.characters_get_all()
 
@@ -353,65 +350,89 @@ class TestCharacterViews(BaseTest):
                 char['updated']
             i += 1
 
-    #Test that we can get Siobhan's money via get call
-    def test_sio_money(self):
-        money = self.item_get(self.characters.get('siobhan'), self.inventory.get('sio_money'))
+    #Test that we can get the Jilin's money via get call when authorized
+    #Because the noob account owns the jilin character
+    def test_auth_get_item(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('noob').username, permissive=True)
+        money = self.item_get(self.characters.get('jilin'), self.inventory.get('noob_money'))
 
-        self.assertEqual(money['characterId'], self.characters.get('siobhan').id)
-        self.assertEqual(money['blueprintId'], self.inventory.get('sio_money').blueprintId)
-        self.assertEqual(money['amount'], self.inventory.get('sio_money').amount)
+        self.assertEqual(money['characterId'], self.characters.get('jilin').id)
+        self.assertEqual(money['blueprintId'], self.inventory.get('noob_money').blueprintId)
+        self.assertEqual(money['amount'], self.inventory.get('noob_money').amount)
 
-    #Test that we cannot get Al's Zombie via get call
+    #Test that we cannot get the Jilin's money via get call when unauthorized
+    #Because the noob account owns the jilin character
+    def test_not_auth_get_item(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('noob').username, permissive=True)
+        with self.assertRaises(HTTPClientError):
+            self.item_get(self.characters.get('alrunden'), self.inventory.get('al_money'))
+
+    #Test that we can get the Jilin's money via get call when admin
+    #Because the noob account owns the jilin character
+    def test_admin_get_item(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('aez').username, permissive=True)
+        money = self.item_get(self.characters.get('jilin'), self.inventory.get('noob_money'))
+
+        self.assertEqual(money['characterId'], self.characters.get('jilin').id)
+        self.assertEqual(money['blueprintId'], self.inventory.get('noob_money').blueprintId)
+        self.assertEqual(money['amount'], self.inventory.get('noob_money').amount)
+
+    #Test that we cannot get Al's Zombie via get call when admin
     #Because it ain't created, because Sigmund won't let him have zombies
-    def test_al_zombie_get_not_found(self):
+    def test_get_item_not_found(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('aez').username, permissive=True)
         with self.assertRaises(HTTPNotFound):
             self.item_get(self.characters.get('alrunden'), self.fake_inventory.get('al_zombie'))
 
-    #Test that we cannot get Al's cows with Siobhan's id via get call
+    #Test that we cannot get Al's cows with Siobhan's id via get call when admin
     #Because those are owned by Al's character, not Siobhan's
-    def test_sio_get_al_cows(self):
-        with self.assertRaises(HTTPForbidden):
+    def test_get_item_not_assoc(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('aez').username, permissive=True)
+        with self.assertRaises(HTTPClientError):
             self.item_get(self.characters.get('siobhan'), self.inventory.get('al_cow'))
 
-    #Test that we can decrease Siobhan's money via put call
-    #Because Siobhan's poor and spends her money on necessities
-    def test_sio_poor(self):
-        test_money = copy.copy(self.inventory.get('sio_money'))
-        test_money.amount = 1
-        item_result = self.item_update(self.characters.get('siobhan'), test_money)
+    #Test that we can increase Al's money via put call when admin
+    def test_admin_update_item(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('aez').username, permissive=True)
+        test_money = copy.copy(self.inventory.get('al_money'))
+        test_money.amount = 200000
+        item_result = self.item_update(self.characters.get('alrunden'), test_money)
 
         self.assertEqual(item_result['characterId'], test_money.characterId)
         self.assertEqual(item_result['blueprintId'], test_money.blueprintId)
         self.assertEqual(item_result['amount'], test_money.amount)
 
-    #Test that we cannot update Al's cows with Siobhan's id via put call
+    #Test that we cannot update Al's cows with Siobhan's id via put call when admin
     #Because those are owned by Al's character, not Siobhan's
-    def test_sio_update_al_cows(self):
+    def test_admin_update_item_not_assoc(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('aez').username, permissive=True)
         test_cow = copy.copy(self.inventory.get('al_cow'))
         test_cow.amount = 9
 
-        with self.assertRaises(HTTPForbidden):
+        with self.assertRaises(HTTPClientError):
             self.item_update(self.characters.get('siobhan'), test_cow)
 
-    #Test that we cannot update Al's Zombie count via put call
+    #Test that we cannot update Al's Zombie count via put call when admin
     #Because it ain't created, because Sigmund won't let him have zombies
-    def test_al_zombie_update_not_found(self):
+    def test_admin_update_item_not_found(self):
         test_zombie = copy.copy(self.fake_inventory.get('al_zombie'))
         test_zombie.amount = 5
 
         with self.assertRaises(HTTPNotFound):
             self.item_update(self.characters.get('alrunden'), test_zombie)
 
-    #Test that we cannot delete Al's cows with Siobhan's id via get call
+    #Test that we cannot delete Al's cows with Siobhan's id via get call when admin
     #Because those are owned by Al's character, not Siobhan's
-    def test_sio_delete_al_cows(self):
-        with self.assertRaises(HTTPForbidden):
+    def test_admin_delete_item_not_assoc(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('aez').username, permissive=True)
+        with self.assertRaises(HTTPClientError):
             self.item_delete(self.characters.get('siobhan'), self.inventory.get('al_cow'))
 
-    #Test that we can remove cows and sheep from Al's inventory via delete call
+    #Test that we can remove cows and sheep from Al's inventory via delete call when admin
     #Test that Cows and Sheeps are not accessible via get call
     #Because Al's farm got stolen from
-    def test_al_stolen(self):
+    def test_admin_delete_item(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('aez').username, permissive=True)
         self.item_delete(self.characters.get('alrunden'), self.inventory.get('al_cow'))
         inventory_result = self.item_delete(self.characters.get('alrunden'), self.inventory.get('al_sheep'))
 
@@ -432,16 +453,18 @@ class TestCharacterViews(BaseTest):
         with self.assertRaises(HTTPNotFound):
             self.item_get(self.characters.get('alrunden'), self.inventory.get('al_sheep'))
 
-    #Test that we cannot get Al's Zombie via delete call
+    #Test that we cannot get Al's Zombie via delete call when admin
     #Because it ain't created, because Sigmund won't let him have zombies
-    def test_al_zombie_delete_not_found(self):
+    def test_delete_item_not_found(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('aez').username, permissive=True)
         with self.assertRaises(HTTPNotFound):
             self.item_delete(self.characters.get('alrunden'), self.fake_inventory.get('al_zombie'))
 
-    #Test that we can get Al's Grain, Cows, Sheep, and Money via get all call
+    #Test that we can get Al's Grain, Cows, Sheep, and Money via get all call when admin
     #Because those are all of the items in Al's inventory
     #Because he's a goddamn farmer
-    def test_al_farm(self):
+    def test_get_all_item(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('aez').username, permissive=True)
         inventory_result = self.inventory_get_all(self.characters.get('alrunden'))
 
         self.assertEqual(len(inventory_result), 4)
@@ -466,9 +489,10 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(gp['blueprintId'], self.inventory.get('al_money').blueprintId)
         self.assertEqual(gp['amount'], self.inventory.get('al_money').amount)
 
-    #Test that we can create a new armor on Al via post call
+    #Test that we can create a new armor on Al via post call when admin
     #Because Viti's campaign is ridiculous with loot
-    def test_viti_gives_al_loot(self):
+    def test_create_item(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('aez').username, permissive=True)
         item_result = self.inventory_create(self.characters.get('alrunden'), self.fake_inventory.get('op_armor'))
 
         self.assertEqual(item_result['characterId'], self.fake_inventory.get('op_armor').characterId)

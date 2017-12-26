@@ -65,6 +65,7 @@ class CharacterViews(BaseView):
             accountQuery = self.request.dbsession.query(Account)
             account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
 
+            #if they're an admin they can do everything
             if account.role == 3:
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['id']).one()
@@ -93,9 +94,8 @@ class CharacterViews(BaseView):
 
             else:
                 log.error(
-                    'update: character id {} is not associated with account {}'.format(
-                        self.url['id'], account.username))
-
+                    'update: account/role {}/{} is not allowed to do this'.format(
+                        account.username, account.role))
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -120,6 +120,7 @@ class CharacterViews(BaseView):
             accountQuery = self.request.dbsession.query(Account)
             account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
 
+            #if they're an admin they can do everything
             if account.role == 3:
                 query = self.request.dbsession.query(Character)
 
@@ -135,9 +136,8 @@ class CharacterViews(BaseView):
 
             else:
                 log.error(
-                    'delete: character id {} is not associated with account {}'.format(
-                        self.url['id'], account.username))
-
+                    'delete: account/role {}/{} is not allowed to do this'.format(
+                        account.username, account.role))
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -199,58 +199,85 @@ class CharacterItemViews(BaseView):
     @view_config(request_method='GET')
     def get(self):
         try:
+            accountQuery = self.request.dbsession.query(Account)
+            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
+
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['charId']).one()
 
-            item_query = self.request.dbsession.query(Inventory)
-            item = item_query.filter(Inventory.id == self.url['itemId']).one()
+            #if they own it or they're an admin
+            if character.accountId == account.username or account.role == 3:
 
-            if character.id == item.characterId:
-                log.info(
-                    'get: item {}/{} of character/id {}/{}'.format(item.blueprintId, item.id, character.name, character.id))
+                item_query = self.request.dbsession.query(Inventory)
+                item = item_query.filter(Inventory.id == self.url['itemId']).one()
+
+                if character.id == item.characterId:
+                    log.info(
+                        'get: item {}/{} of character/id {}/{}'.format(
+                            item.blueprintId, item.id, character.name, character.id))
+                else:
+                    log.error(
+                        'update: item id \'{}\' not associated with char id \'{}\''.format(
+                            self.url['itemId'],self.url['charId']))
+                    raise HTTPClientError
             else:
                 log.error(
-                    'update: item id \'{}\' not associated with char id \'{}\''.format(self.url['itemId'],self.url['charId']))
+                    'update: character id {} is not associated with account {}'.format(
+                        self.url['charId'], account.username))
+
                 raise HTTPForbidden
 
         except NoResultFound:
             log.error(
-                'get: item id \'{}\' or char id \'{}\' not found'.format(self.url['itemId'], self.url['charId']))
+                'get: item id \'{}\', char id \'{}\', or account \'{}\' not found'.format(
+                    self.url['itemId'], self.url['charId'], self.request.authenticated_userid))
             raise HTTPNotFound
 
         return item
 
-    #This method will almost certainly be locked down since we should not allow any of this to be editable
+    #This method will be locked down since we should not allow any of this to be editable
     #Only admins or nwn (via db) should be able to create new characters or edit new characters
     @view_config(request_method='PUT')
     def update(self):
         try:
-            #Maybe remove the char lookup?
-            query = self.request.dbsession.query(Character)
-            character = query.filter(Character.id == self.url['charId']).one()
+            accountQuery = self.request.dbsession.query(Account)
+            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
 
-            item_query = self.request.dbsession.query(Inventory)
-            item = item_query.filter(Inventory.id == self.url['itemId']).one()
+            #if they own it or they're an admin
+            if account.role == 3:
+                #Maybe remove the char lookup?
+                query = self.request.dbsession.query(Character)
+                character = query.filter(Character.id == self.url['charId']).one()
 
-            schema = InventoryUpdateSchema()
-            put_data = schema.deserialize(self.request.body)
-            amount = put_data.get('amount')
+                item_query = self.request.dbsession.query(Inventory)
+                item = item_query.filter(Inventory.id == self.url['itemId']).one()
 
-            if character.id == item.characterId:
-                log.info(
-                    'update: item/amount {}/{} from character/id {}/{} with new data {}'.format(item.blueprintId, item.amount,
-                        character.name, character.id, put_data['amount']))
+                schema = InventoryUpdateSchema()
+                put_data = schema.deserialize(self.request.body)
+                amount = put_data.get('amount')
 
-                if amount:
-                    item.amount = amount
+                if character.id == item.characterId:
+                    log.info(
+                        'update: item/amount {}/{} from character/id {}/{} with new data {}'.format(
+                            item.blueprintId, item.amount, character.name, character.id, put_data['amount']))
+
+                    if amount:
+                        item.amount = amount
+                else:
+                    log.error(
+                        'update: item id \'{}\' not associated with char id \'{}\''.format(
+                            self.url['itemId'], self.url['charId']))
+                    raise HTTPClientError
+
             else:
-                log.error(
-                    'update: item id \'{}\' not associated with char id \'{}\''.format(self.url['itemId'],self.url['charId']))
+                'update: account/role {}/{} is not allowed to do this'.format(
+                    account.username, account.role)
                 raise HTTPForbidden
 
         except NoResultFound:
             log.error(
-                'update: item id \'{}\' or char id \'{}\' not found'.format(self.url['itemId'],self.url['charId']))
+                'update: item id \'{}\' or char id \'{}\' not found'.format(
+                    self.url['itemId'], self.url['charId']))
             raise HTTPNotFound
 
         except Invalid:
@@ -260,35 +287,49 @@ class CharacterItemViews(BaseView):
 
         return item
 
-    #This method will almost certainly be locked down since we should not allow any of this to be editable
+    #This method will be locked down since we should not allow any of this to be editable
     #Only admin server or nwn (via db) should be able to delete characters
     @view_config(request_method='DELETE')
     def delete(self):
         try:
-            #Maybe remove the char lookup?
-            query = self.request.dbsession.query(Character)
-            character = query.filter(Character.id == self.url['charId']).one()
+            accountQuery = self.request.dbsession.query(Account)
+            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
 
-            item_query = self.request.dbsession.query(Inventory)
-            item = item_query.filter(Inventory.id == self.url['itemId']).one()
+            #if they own it or they're an admin
+            if account.role == 3:
+                #Maybe remove the char lookup?
+                query = self.request.dbsession.query(Character)
+                character = query.filter(Character.id == self.url['charId']).one()
 
-            if character.id == item.characterId:
-                item_query.filter(Inventory.id == self.url['itemId']).delete()
-                log.info(
-                    'delete: item/amount {}/{} from character/id {}/{}'.format(item.blueprintId, item.amount, character.name, character.id))
+                item_query = self.request.dbsession.query(Inventory)
+                item = item_query.filter(Inventory.id == self.url['itemId']).one()
 
-                #we should return the full list of characters for a delete attempt
-                inv_query = self.request.dbsession.query(Inventory)
-                inventory = inv_query.filter(Inventory.characterId == self.url['charId']).all()
+                if character.id == item.characterId:
+                    item_query.filter(Inventory.id == self.url['itemId']).delete()
+                    log.info(
+                        'delete: item/amount {}/{} from character/id {}/{}'.format(
+                            item.blueprintId, item.amount, character.name, character.id))
+
+                    #we should return the full list of characters for a delete attempt
+                    inv_query = self.request.dbsession.query(Inventory)
+                    inventory = inv_query.filter(Inventory.characterId == self.url['charId']).all()
+
+                else:
+                    log.error(
+                        'update: item id \'{}\' not associated with char id \'{}\''.format(
+                            self.url['itemId'], self.url['charId']))
+                    raise HTTPClientError
 
             else:
                 log.error(
-                    'update: item id \'{}\' not associated with char id \'{}\''.format(self.url['itemId'],self.url['charId']))
+                    'delete: account/role {}/{} is not allowed to do this'.format(
+                        account.username, account.role))
                 raise HTTPForbidden
 
         except NoResultFound:
             log.error(
-                'get: item id \'{}\' or char id \'{}\' not found'.format(self.url['itemId'],self.url['charId']))
+                'get: item id \'{}\' or char id \'{}\' not found'.format(
+                    self.url['itemId'], self.url['charId']))
             raise HTTPNotFound
 
         return inventory
@@ -301,14 +342,25 @@ class CharacterInventoryViews(BaseView):
     @view_config(request_method='GET')
     def get(self):
         try:
-            #Maybe remove the char lookup
+            accountQuery = self.request.dbsession.query(Account)
+            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
+
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['id']).one()
 
-            inv_query = self.request.dbsession.query(Inventory)
-            inventory = inv_query.filter(Inventory.characterId == self.url['id']).all()
-            log.info(
-                'get: inventory of character/id {}/{}'.format(character.name, character.id))
+            #if they own it or they're an admin
+            if character.accountId == account.username or account.role == 3:
+
+                inv_query = self.request.dbsession.query(Inventory)
+                inventory = inv_query.filter(Inventory.characterId == self.url['id']).all()
+                log.info(
+                    'get: inventory of character/id {}/{}'.format(character.name, character.id))
+            else:
+                log.error(
+                    'update: character id {} is not associated with account {}'.format(
+                        self.url['id'], account.username))
+
+                raise HTTPForbidden
 
         except NoResultFound:
             log.error(
@@ -317,30 +369,40 @@ class CharacterInventoryViews(BaseView):
 
         return inventory
 
-    #This method will almost certainly be locked down since we should not allow any of this to be editable
+    #This method will be locked down since we should not allow any of this to be editable
     #Only admin server or nwn (via db) should be able to create items
     @view_config(request_method='POST')
     def create(self):
         try:
-            query = self.request.dbsession.query(Character)
-            character = query.filter(Character.id == self.url['id']).one()
+            accountQuery = self.request.dbsession.query(Account)
+            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
 
-            schema = InventoryCreateSchema()
-            post_data = schema.deserialize(self.request.POST)
+            #if they own it or they're an admin
+            if account.role == 3:
+                query = self.request.dbsession.query(Character)
+                character = query.filter(Character.id == self.url['id']).one()
 
-            characterId = character.id
-            blueprintId = post_data.get('blueprintId')
-            amount = post_data.get('amount')
+                schema = InventoryCreateSchema()
+                post_data = schema.deserialize(self.request.POST)
 
-            newItem = Inventory(
-                characterId = characterId,
-                blueprintId = blueprintId,
-                amount      = amount)
-            self.request.dbsession.add(newItem)
+                characterId = character.id
+                blueprintId = post_data.get('blueprintId')
+                amount = post_data.get('amount')
 
-            log.info(
-            'create: item/amount {}/{} from character/id {}/{}'.format(newItem.blueprintId, newItem.amount,
-                character.name, character.id))
+                newItem = Inventory(
+                    characterId = characterId,
+                    blueprintId = blueprintId,
+                    amount      = amount)
+                self.request.dbsession.add(newItem)
+
+                log.info(
+                    'create: item/amount {}/{} from character/id {}/{}'.format(
+                        newItem.blueprintId, newItem.amount, character.name, character.id))
+            else:
+                log.error(
+                    'create: account/role {}/{} is not allowed to do this'.format(
+                        account.username, account.role))
+                raise HTTPForbidden
 
         except NoResultFound:
             log.error(

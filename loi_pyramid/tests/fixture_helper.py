@@ -93,35 +93,41 @@ class FixtureHelper():
     def inventory_data(self):
         return {
             'al_grain': Inventory(
-                    characterId = 2,
-                    blueprintId = 'grain',
-                    amount      = 10,
-                    created     = None,
-                    updated     = None),
+                characterId = 2,
+                blueprintId = 'grain',
+                amount      = 10,
+                created     = None,
+                updated     = None),
             'al_cow': Inventory(
-                    characterId = 2,
-                    blueprintId = 'cow',
-                    amount      = 5,
-                    created     = None,
-                    updated     = None),
+                characterId = 2,
+                blueprintId = 'cow',
+                amount      = 5,
+                created     = None,
+                updated     = None),
             'al_sheep': Inventory(
-                    characterId = 2,
-                    blueprintId = 'sheep',
-                    amount      = 20,
-                    created     = None,
-                    updated     = None),
+                characterId = 2,
+                blueprintId = 'sheep',
+                amount      = 20,
+                created     = None,
+                updated     = None),
             'al_money': Inventory(
-                    characterId = 2,
-                    blueprintId = 'gp',
-                    amount      = 400,
-                    created     = None,
-                    updated     = None),
+                characterId = 2,
+                blueprintId = 'gp',
+                amount      = 400,
+                created     = None,
+                updated     = None),
             'sio_money': Inventory(
-                    characterId = 1,
-                    blueprintId = 'gp',
-                    amount      = 50,
-                    created     = None,
-                    updated     = None)
+                characterId = 1,
+                blueprintId = 'gp',
+                amount      = 50,
+                created     = None,
+                updated     = None),
+            'noob_money': Inventory(
+                characterId = 4,
+                blueprintId = 'gp',
+                amount      = 11,
+                created     = None,
+                updated     = None)
         }
 
     def fake_inventory_data(self):
