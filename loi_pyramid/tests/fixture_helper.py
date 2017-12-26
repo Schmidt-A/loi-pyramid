@@ -69,7 +69,14 @@ class FixtureHelper():
                 exp         = 20000,
                 area        = 'Relindar Green',
                 created     = None,
-                updated     = None)
+                updated     = None),
+            'jilin': Character(
+                accountId   = 3,
+                name        = 'Ji\'Lin Thri\'quen',
+                exp         = 1050,
+                area        = 'Dreyen Inn',
+                created     = '29/11/2017',
+                updated     = '29/11/2017')
         }
 
     def fake_character_data(self):

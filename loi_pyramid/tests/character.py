@@ -195,7 +195,7 @@ class TestCharacterViews(BaseTest):
 
     #Test that we can get Siobhan via get call when authorized
     #Because Tweek owns Siobhan
-    def test_siobhan_auth_get(self):
+    def test_auth_get(self):
         self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         character_result = self.character_get(self.characters.get('siobhan'))
 
@@ -206,9 +206,9 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(character_result['created'], self.characters.get('siobhan').created)
         self.assertEqual(character_result['updated'], self.characters.get('siobhan').updated)
 
-    #Test that we can get Siobhan via get call when unauthorized
-    #Because Aez doesnt own Siobhan
-    def test_siobhan_no_auth_get(self):
+    #Test that we cannot get Siobhan via get call when unauthorized
+    #Because noob doesnt own Siobhan
+    def test_no_auth_get(self):
         self.config.testing_securitypolicy(userid=self.accounts.get('noob').username, permissive=True)
         character_result = self.character_get(self.characters.get('siobhan'))
 
@@ -226,13 +226,14 @@ class TestCharacterViews(BaseTest):
 
     #Test that we cannot get Meero via get call
     #Because she ain't created
-    def test_meero_get_not_found(self):
+    def test_get_not_found(self):
         with self.assertRaises(HTTPNotFound):
             self.character_get(self.fake_characters.get('meero'))
 
     #Test that we can update Siobhan's name via put call
     #Because she's a SPYY
-    def test_spy_update(self):
+    def test_admin_update(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         test_spy = copy.copy(self.characters.get('siobhan'))
         test_spy.name = 'A SPY'
 
@@ -246,9 +247,22 @@ class TestCharacterViews(BaseTest):
         #self.assertEqual(character_result['created'], test_spy.created)
         #self.assertEqual(character_result['updated'], test_spy.updated)
 
+    #Test that we cannot update Siobhan's name via put call
+    #Because noob isn't an admin
+    def test_no_admin_update(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('noob').username, permissive=True)
+        test_spy = copy.copy(self.characters.get('siobhan'))
+        test_spy.name = 'A SPY'
+
+        with self.assertRaises(HTTPForbidden):
+            self.character_update(test_spy)
+
+        #Should we test that the info wasn't altered afterwards?
+
     #Test that we cannot update Meero's name via get call
     #Because she ain't created
-    def test_meero_update_not_found(self):
+    def test_admin_update_not_found(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         test_slave = copy.copy(self.fake_characters.get('meero'))
         test_slave.name = 'A SLAVE'
 
@@ -258,107 +272,72 @@ class TestCharacterViews(BaseTest):
     #Test that we can delete Arthen via delete call
     #Test that he isn't available via get afterwards
     #Because he's not a real character
-    def test_arthen_delete(self):
+    def test_admin_delete(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         characters_result = self.character_delete(self.characters.get('arthen'))
 
-        self.assertEqual(len(characters_result), 2)
-        siobhan = characters_result[0]
-        alrunden = characters_result[1]
-
-        self.assertEqual(siobhan['accountId'], self.characters.get('siobhan').accountId)
-        self.assertEqual(siobhan['name'], self.characters.get('siobhan').name)
-        self.assertEqual(siobhan['created'], self.characters.get('siobhan').created)
-
-        self.assertEqual(alrunden['accountId'], self.characters.get('alrunden').accountId)
-        self.assertEqual(alrunden['name'], self.characters.get('alrunden').name)
-        self.assertEqual(alrunden['created'], self.characters.get('alrunden').created)
+        self.assertEqual(len(characters_result), len(self.characters.keys()) - 1)
 
         with self.assertRaises(HTTPNotFound):
             self.character_get(self.characters.get('arthen'))
 
+    #Test that we cannot delete Arthen via delete call
+    #Because noob isn't an admin
+    def test_not_admin_delete(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('noob').username, permissive=True)
+        with self.assertRaises(HTTPForbidden):
+            self.character_delete(self.characters.get('arthen'))
+
+        #Should we test that the info wasn't altered afterwards?
+
     #Test that we cannot delete Meero
     #Because she ain't created
     def test_meero_delete_not_found(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         with self.assertRaises(HTTPNotFound):
             self.character_delete(self.fake_characters.get('meero'))
 
-    #Test that we can get Siobhan, Alrunden, and Arthen via get all call
+    #Test that we can get Siobhan, Alrunden, Arthen, Ji'lin via get all call
     #As those are the only created characters
     #You're acting as if you're an admin account
-    def test_siobhan_al_arthen_auth_get(self):
+    def test_admin_get_all(self):
         self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         characters_result = self.characters_get_all()
 
-        self.assertEqual(len(characters_result), 3)
-        siobhan = characters_result[0]
-        alrunden = characters_result[1]
-        arthen = characters_result[2]
+        self.assertEqual(len(characters_result), len(self.characters.keys()))
+        i = 0
+        for char in characters_result:
+            compare_char = self.characters.get(list(self.characters.keys())[i])
+            self.assertEqual(char['accountId'], compare_char.accountId)
+            self.assertEqual(char['name'], compare_char.name)
+            self.assertEqual(char['exp'], compare_char.exp)
+            self.assertEqual(char['area'], compare_char.area)
+            self.assertEqual(char['created'], compare_char.created)
+            self.assertEqual(char['updated'], compare_char.updated)
+            i += 1
 
-        self.assertEqual(siobhan['accountId'], self.characters.get('siobhan').accountId)
-        self.assertEqual(siobhan['name'], self.characters.get('siobhan').name)
-        self.assertEqual(siobhan['exp'], self.characters.get('siobhan').exp)
-        self.assertEqual(siobhan['area'], self.characters.get('siobhan').area)
-        self.assertEqual(siobhan['created'], self.characters.get('siobhan').created)
-        self.assertEqual(siobhan['updated'], self.characters.get('siobhan').updated)
-
-        self.assertEqual(alrunden['accountId'], self.characters.get('alrunden').accountId)
-        self.assertEqual(alrunden['name'], self.characters.get('alrunden').name)
-        self.assertEqual(alrunden['exp'], self.characters.get('alrunden').exp)
-        self.assertEqual(alrunden['area'], self.characters.get('alrunden').area)
-        self.assertEqual(alrunden['created'], self.characters.get('alrunden').created)
-        self.assertEqual(alrunden['updated'], self.characters.get('alrunden').updated)
-
-        self.assertEqual(arthen['accountId'], self.characters.get('arthen').accountId)
-        self.assertEqual(arthen['name'], self.characters.get('arthen').name)
-        self.assertEqual(arthen['exp'], self.characters.get('arthen').exp)
-        self.assertEqual(arthen['area'], self.characters.get('arthen').area)
-        self.assertEqual(arthen['created'], self.characters.get('arthen').created)
-        self.assertEqual(arthen['updated'], self.characters.get('arthen').updated)
-
-    #Test that we can get Siobhan, Alrunden, and Arthen via get all call
+    #Test that we can get Siobhan, Alrunden, Arthen, and Ji'lin via get all call
     #As those are the only created characters
     #You're acting as if you're an admin account
-    def test_siobhan_al_arthen_no_auth_get(self):
+    def test_no_admin_get_all(self):
         self.config.testing_securitypolicy(userid=self.accounts.get('noob').username, permissive=True)
         characters_result = self.characters_get_all()
 
-        self.assertEqual(len(characters_result), 3)
-        siobhan = characters_result[0]
-        alrunden = characters_result[1]
-        arthen = characters_result[2]
-
-        self.assertEqual(siobhan['accountId'], self.characters.get('siobhan').accountId)
-        self.assertEqual(siobhan['name'], self.characters.get('siobhan').name)
-        with self.assertRaises(KeyError):
-            siobhan['exp']
-        with self.assertRaises(KeyError):
-            siobhan['area']
-        with self.assertRaises(KeyError):
-            siobhan['created']
-        with self.assertRaises(KeyError):
-            siobhan['updated']
-
-        self.assertEqual(alrunden['accountId'], self.characters.get('alrunden').accountId)
-        self.assertEqual(alrunden['name'], self.characters.get('alrunden').name)
-        with self.assertRaises(KeyError):
-            alrunden['exp']
-        with self.assertRaises(KeyError):
-            alrunden['area']
-        with self.assertRaises(KeyError):
-            alrunden['created']
-        with self.assertRaises(KeyError):
-            alrunden['updated']
-
-        self.assertEqual(arthen['accountId'], self.characters.get('arthen').accountId)
-        self.assertEqual(arthen['name'], self.characters.get('arthen').name)
-        with self.assertRaises(KeyError):
-            arthen['exp']
-        with self.assertRaises(KeyError):
-            arthen['area']
-        with self.assertRaises(KeyError):
-            arthen['created']
-        with self.assertRaises(KeyError):
-            arthen['updated']
+        self.assertEqual(len(characters_result), len(self.characters.keys()))
+        i = 0
+        for char in characters_result:
+            compare_char = self.characters.get(list(self.characters.keys())[i])
+            self.assertEqual(char['accountId'], compare_char.accountId)
+            self.assertEqual(char['name'], compare_char.name)
+            with self.assertRaises(KeyError):
+                char['exp']
+            with self.assertRaises(KeyError):
+                char['area']
+            with self.assertRaises(KeyError):
+                char['created']
+            with self.assertRaises(KeyError):
+                char['updated']
+            i += 1
 
     #Test that we can get Siobhan's money via get call
     def test_sio_money(self):

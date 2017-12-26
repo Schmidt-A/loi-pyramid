@@ -56,38 +56,52 @@ class CharacterViews(BaseView):
 
         return response
 
-    #This method will almost certainly be locked down since we should not allow any of this to be editable
+    #This method will be locked down since we should not allow any of this to be editable
     #Only admins or nwn (via db) should be able to create new characters or edit new characters
     #I'm not going to expose a new api for making new characters, that should be done by NWN only
     @view_config(request_method='PUT')
     def update(self):
         try:
-            query = self.request.dbsession.query(Character)
-            character = query.filter(Character.id == self.url['id']).one()
+            accountQuery = self.request.dbsession.query(Account)
+            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
 
-            schema = CharacterOwnerSchema()
-            put_data = schema.deserialize(self.request.body)
-            accountId   = put_data.get('accountId')
-            name        = put_data.get('name')
-            exp         = put_data.get('exp')
-            area        = put_data.get('area')
+            if account.role == 3:
+                query = self.request.dbsession.query(Character)
+                character = query.filter(Character.id == self.url['id']).one()
 
-            if accountId:
-                character.accountId = accountId
-            if name:
-                character.name = name
-            if exp:
-                character.exp = exp
-            if area:
-                character.area = area
+                schema = CharacterOwnerSchema()
+                put_data = schema.deserialize(self.request.body)
+                accountId   = put_data.get('accountId')
+                name        = put_data.get('name')
+                exp         = put_data.get('exp')
+                area        = put_data.get('area')
+
+                if accountId:
+                    character.accountId = accountId
+                if name:
+                    character.name = name
+                if exp:
+                    character.exp = exp
+                if area:
+                    character.area = area
+                #add updated timestamp
 
                 log.info(
                     'update: character/id {}/{} with new data {}'.format(
-                    character.name, character.id, put_data['name']))
+                    character.name, character.id, [put_data['accountId'],
+                    put_data['name'], put_data['exp'], put_data['area']]))
+
+            else:
+                log.error(
+                    'update: character id {} is not associated with account {}'.format(
+                        self.url['id'], account.username))
+
+                raise HTTPForbidden
 
         except NoResultFound:
             log.error(
-                'update: character id \'{}\' not found'.format(self.url['id']))
+                'update: character id \'{}\' or account \'{}\' not found'.format(
+                    self.url['id'], self.request.authenticated_userid))
             raise HTTPNotFound
 
         except Invalid:
@@ -103,21 +117,33 @@ class CharacterViews(BaseView):
     @view_config(request_method='DELETE')
     def delete(self):
         try:
-            query = self.request.dbsession.query(Character)
+            accountQuery = self.request.dbsession.query(Account)
+            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
 
-            #This dumb shit is only needed because we don't throw a not found error if it's not there
-            query.filter(Character.id == self.url['id']).one()
+            if account.role == 3:
+                query = self.request.dbsession.query(Character)
 
-            query.filter(Character.id == self.url['id']).delete()
-            log.info(
-                'delete: character/id {}'.format(self.url['id']))
+                #This dumb shit is only needed because we don't throw a not found error if it's not there
+                query.filter(Character.id == self.url['id']).one()
 
-            #we should return the full list of characters for a delete attempt
-            characters = self.request.dbsession.query(Character).all()
+                query.filter(Character.id == self.url['id']).delete()
+                log.info(
+                    'delete: character/id {}'.format(self.url['id']))
+
+                #we should return the full list of characters for a delete attempt
+                characters = self.request.dbsession.query(Character).all()
+
+            else:
+                log.error(
+                    'delete: character id {} is not associated with account {}'.format(
+                        self.url['id'], account.username))
+
+                raise HTTPForbidden
 
         except NoResultFound:
             log.error(
-                'get: character id \'{}\' not found'.format(self.url['id']))
+                'delete: character id \'{}\' or account \'{}\' not found'.format(
+                    self.url['id'], self.request.authenticated_userid))
             raise HTTPNotFound
 
         return characters
@@ -134,7 +160,6 @@ class CharactersViews(BaseView):
             characters = query.all()
             log.info('get: all characters')
 
-            #If they're an admin, they can see everything
             accountQuery = self.request.dbsession.query(Account)
             account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
 
@@ -174,7 +199,6 @@ class CharacterItemViews(BaseView):
     @view_config(request_method='GET')
     def get(self):
         try:
-            #Maybe remove the char lookup?
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['charId']).one()
 
