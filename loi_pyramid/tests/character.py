@@ -45,8 +45,7 @@ class TestCharacterViews(BaseTest):
         char_view = CharacterViews(testing.DummyResource(), request)
         char_view.url = url_params
 
-        character_result = char_view.get().json_body
-        return character_result
+        return char_view.get().json_body
 
     #Helper method for delete calls to /character/{id}
     def character_delete(self, character):
@@ -57,13 +56,7 @@ class TestCharacterViews(BaseTest):
         char_view = CharacterViews(testing.DummyResource(), request)
         char_view.url = url_params
 
-        response = char_view.delete()
-
-        character_result = []
-        for character in response:
-            character_result.append(character.__json__(request))
-
-        return character_result
+        return char_view.delete().json_body
 
     #Helper method for update calls to /character/{id}
     def character_update(self, character):
@@ -84,9 +77,8 @@ class TestCharacterViews(BaseTest):
 
         char_view = CharacterViews(testing.DummyResource(), request)
         char_view.url = url_params
-        character = char_view.update().__json__(request)
 
-        return character
+        return char_view.update().json_body
 
     #Helper method for get all calls to /characters
     def characters_get_all(self):
@@ -94,13 +86,8 @@ class TestCharacterViews(BaseTest):
         request = self.dummy_request(self.session, (self.host+resource))
 
         char_view = CharactersViews(testing.DummyResource(), request)
-        character_resp = char_view.get().json_body
 
-        characters_get = []
-        for character in character_resp:
-            characters_get.append(character)
-
-        return characters_get
+        return char_view.get().json_body
 
     #Helper method for get calls for /character/{id}/item/{id}
     def item_get(self, character, item):
@@ -112,9 +99,7 @@ class TestCharacterViews(BaseTest):
         char_view = CharacterItemViews(testing.DummyResource(), request)
         char_view.url = url_params
 
-        item_result = char_view.get().__json__(request)
-
-        return item_result
+        return char_view.get().json_body
 
     #Helper method for update calls for /character/{id}/item/{id}
     def item_update(self, character, item):
@@ -134,9 +119,8 @@ class TestCharacterViews(BaseTest):
 
         char_view = CharacterItemViews(testing.DummyResource(), request)
         char_view.url = url_params
-        character = char_view.update().__json__(request)
 
-        return character
+        return char_view.update().json_body
 
     #Helper method for delete calls for /character/{id}/item/{id}
     def item_delete(self, character, item):
@@ -146,13 +130,8 @@ class TestCharacterViews(BaseTest):
 
         char_view = CharacterItemViews(testing.DummyResource(), request)
         char_view.url = url_params
-        response = char_view.delete()
 
-        inventory_get = []
-        for item in response:
-            inventory_get.append(item.__json__(request))
-
-        return inventory_get
+        return char_view.delete().json_body
 
     #Helper method for get all calls to /character/{id}/inventory
     def inventory_get_all(self, character):
@@ -163,13 +142,8 @@ class TestCharacterViews(BaseTest):
 
         char_view = CharacterInventoryViews(testing.DummyResource(), request)
         char_view.url = url_params
-        response = char_view.get()
 
-        inventory_get = []
-        for item in response:
-            inventory_get.append(item.__json__(request))
-
-        return inventory_get
+        return char_view.get().json_body
 
     #Helper method for create calls to /character/{id}/inventory
     def inventory_create(self, character, item):
@@ -189,9 +163,8 @@ class TestCharacterViews(BaseTest):
 
         char_view = CharacterInventoryViews(testing.DummyResource(), request)
         char_view.url = url_params
-        item_result = char_view.create().__json__(request)
 
-        return item_result
+        return char_view.create().json_body
 
     #Test that we can get Ji'Lin via get call when owner
     #Because noob owns Ji'Lin
@@ -253,7 +226,6 @@ class TestCharacterViews(BaseTest):
 
         character_result = self.character_update(test_spy)
 
-        self.assertEqual(character_result['id'], test_spy.id)
         self.assertEqual(character_result['accountId'], test_spy.accountId)
         self.assertEqual(character_result['name'], test_spy.name)
         self.assertEqual(character_result['exp'], test_spy.exp)
@@ -441,7 +413,7 @@ class TestCharacterViews(BaseTest):
         inventory_result = self.item_delete(self.characters.get('alrunden'), self.inventory.get('al_sheep'))
 
         compare_inventory = []
-        for name, item in self.inventory.items():
+        for key, item in self.inventory.items():
             if item.characterId == self.characters.get('alrunden').id:
                 compare_inventory.append(item)
 
@@ -478,7 +450,7 @@ class TestCharacterViews(BaseTest):
         inventory_result = self.inventory_get_all(self.characters.get('jilin'))
 
         compare_inventory = []
-        for name, item in self.inventory.items():
+        for key, item in self.inventory.items():
             if item.characterId == self.characters.get('jilin').id:
                 compare_inventory.append(item)
 
@@ -505,7 +477,7 @@ class TestCharacterViews(BaseTest):
         inventory_result = self.inventory_get_all(self.characters.get('jilin'))
 
         compare_inventory = []
-        for name, item in self.inventory.items():
+        for key, item in self.inventory.items():
             if item.characterId == self.characters.get('jilin').id:
                 compare_inventory.append(item)
 

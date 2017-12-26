@@ -24,11 +24,12 @@ class CharacterViews(BaseView):
         try:
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['id']).one()
-            log.info(
-                'get: character/id {}/{}'.format(character.name, character.id))
 
             accountQuery = self.request.dbsession.query(Account)
             account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
+
+            log.info(
+                'get: character/id {}/{}'.format(character.name, character.id))
 
             #if they own it or they're an admin
             if character.accountId == account.username or account.role == 3:
@@ -51,7 +52,8 @@ class CharacterViews(BaseView):
 
         except NoResultFound:
             log.error(
-                'get: character id \'{}\' not found'.format(self.url['id']))
+                'get: character id \'{}\' or account \'{}\' not found'.format(
+                    self.url['id'], self.request.authenticated_userid))
             raise HTTPNotFound
 
         return response
@@ -87,6 +89,17 @@ class CharacterViews(BaseView):
                     character.area = area
                 #add updated timestamp
 
+                update_data = {
+                    'accountId' : character.accountId,
+                    'name'      : character.name,
+                    'exp'       : character.exp,
+                    'area'      : character.area,
+                    'created'   : character.created,
+                    'updated'   : character.updated,
+                }
+
+                response = Response(json=update_data, content_type='application/json')
+
                 log.info(
                     'update: character/id {}/{} with new data {}'.format(
                     character.name, character.id, [put_data['accountId'],
@@ -109,7 +122,7 @@ class CharacterViews(BaseView):
                 'update: could not deserialize {}'.format(self.request.body))
             raise HTTPClientError
 
-        return character
+        return response
 
 
     #This method will almost certainly be locked down since we should not allow any of this to be editable
@@ -134,6 +147,19 @@ class CharacterViews(BaseView):
                 #we should return the full list of characters for a delete attempt
                 characters = self.request.dbsession.query(Character).all()
 
+                delete_data = []
+                for character in characters:
+                    delete_data.append({
+                        'accountId' : character.accountId,
+                        'name'      : character.name,
+                        'exp'       : character.exp,
+                        'area'      : character.area,
+                        'created'   : character.created,
+                        'updated'   : character.updated,
+                    })
+
+                response = Response(json=delete_data, content_type='application/json')
+
             else:
                 log.error(
                     'delete: account/role {}/{} is not allowed to do this'.format(
@@ -146,7 +172,7 @@ class CharacterViews(BaseView):
                     self.url['id'], self.request.authenticated_userid))
             raise HTTPNotFound
 
-        return characters
+        return response
 
 #Govern calls to all character objects /characters
 @set_authorized
@@ -163,27 +189,25 @@ class CharactersViews(BaseView):
             accountQuery = self.request.dbsession.query(Account)
             account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
 
-            character_list = []
+            get_all_data = []
             for character in characters:
                 #if they're an admin they can see everything
                 if account.role == 3:
-                    get_data = {
+                    get_all_data.append({
                         'accountId' : character.accountId,
                         'name'      : character.name,
                         'exp'       : character.exp,
                         'area'      : character.area,
                         'created'   : character.created,
                         'updated'   : character.updated,
-                    }
-                    character_list.append(get_data)
+                    })
                 else:
-                    get_data = {
+                    get_all_data.append({
                         'accountId' : character.accountId,
                         'name'      : character.name
-                    }
-                    character_list.append(get_data)
+                    })
 
-            response = Response(json=character_list, content_type='application/json')
+            response = Response(json=get_all_data, content_type='application/json')
 
         except NoResultFound:
             log.error('get: could not retrieve any characters')
@@ -215,16 +239,27 @@ class CharacterItemViews(BaseView):
                     log.info(
                         'get: item {}/{} of character/id {}/{}'.format(
                             item.blueprintId, item.id, character.name, character.id))
+
+                    get_data = {
+                        'characterId'   : item.characterId,
+                        'blueprintId'   : item.blueprintId,
+                        'amount'        : item.amount,
+                        'created'       : item.created,
+                        'updated'       : item.updated,
+                    }
+
+                    response = Response(json=get_data, content_type='application/json')
+
                 else:
                     log.error(
                         'update: item id \'{}\' not associated with char id \'{}\''.format(
-                            self.url['itemId'],self.url['charId']))
+                            self.url['itemId'], self.url['charId']))
                     raise HTTPClientError
+
             else:
                 log.error(
                     'update: character id {} is not associated with account {}'.format(
                         self.url['charId'], account.username))
-
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -233,7 +268,7 @@ class CharacterItemViews(BaseView):
                     self.url['itemId'], self.url['charId'], self.request.authenticated_userid))
             raise HTTPNotFound
 
-        return item
+        return response
 
     #This method will be locked down since we should not allow any of this to be editable
     #Only admins or nwn (via db) should be able to create new characters or edit new characters
@@ -263,6 +298,17 @@ class CharacterItemViews(BaseView):
 
                     if amount:
                         item.amount = amount
+
+                    update_data = {
+                        'characterId'   : item.characterId,
+                        'blueprintId'   : item.blueprintId,
+                        'amount'        : item.amount,
+                        'created'       : item.created,
+                        'updated'       : item.updated,
+                    }
+
+                    response = Response(json=update_data, content_type='application/json')
+
                 else:
                     log.error(
                         'update: item id \'{}\' not associated with char id \'{}\''.format(
@@ -285,7 +331,7 @@ class CharacterItemViews(BaseView):
                 'update: could not deserialize {}'.format(self.request.body))
             raise HTTPClientError
 
-        return item
+        return response
 
     #This method will be locked down since we should not allow any of this to be editable
     #Only admin server or nwn (via db) should be able to delete characters
@@ -314,6 +360,18 @@ class CharacterItemViews(BaseView):
                     inv_query = self.request.dbsession.query(Inventory)
                     inventory = inv_query.filter(Inventory.characterId == self.url['charId']).all()
 
+                    delete_data = []
+                    for item in inventory:
+                        delete_data.append({
+                            'characterId'   : item.characterId,
+                            'blueprintId'   : item.blueprintId,
+                            'amount'        : item.amount,
+                            'created'       : item.created,
+                            'updated'       : item.updated,
+                        })
+
+                    response = Response(json=delete_data, content_type='application/json')
+
                 else:
                     log.error(
                         'update: item id \'{}\' not associated with char id \'{}\''.format(
@@ -332,7 +390,7 @@ class CharacterItemViews(BaseView):
                     self.url['itemId'], self.url['charId']))
             raise HTTPNotFound
 
-        return inventory
+        return response
 
 #Govern calls to a character's inventory /character/{id}/inventory
 @set_authorized
@@ -355,11 +413,23 @@ class CharacterInventoryViews(BaseView):
                 inventory = inv_query.filter(Inventory.characterId == self.url['id']).all()
                 log.info(
                     'get: inventory of character/id {}/{}'.format(character.name, character.id))
+
+                get_all_data = []
+                for item in inventory:
+                    get_all_data.append({
+                        'characterId'   : item.characterId,
+                        'blueprintId'   : item.blueprintId,
+                        'amount'        : item.amount,
+                        'created'       : item.created,
+                        'updated'       : item.updated,
+                    })
+
+                response = Response(json=get_all_data, content_type='application/json')
+
             else:
                 log.error(
                     'update: character id {} is not associated with account {}'.format(
                         self.url['id'], account.username))
-
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -367,7 +437,7 @@ class CharacterInventoryViews(BaseView):
                 'get: character id \'{}\' not found'.format(self.url['id']))
             raise HTTPNotFound
 
-        return inventory
+        return response
 
     #This method will be locked down since we should not allow any of this to be editable
     #Only admin server or nwn (via db) should be able to create items
@@ -398,6 +468,17 @@ class CharacterInventoryViews(BaseView):
                 log.info(
                     'create: item/amount {}/{} from character/id {}/{}'.format(
                         newItem.blueprintId, newItem.amount, character.name, character.id))
+
+                create_data = {
+                    'characterId'   : newItem.characterId,
+                    'blueprintId'   : newItem.blueprintId,
+                    'amount'        : newItem.amount,
+                    'created'       : newItem.created,
+                    'updated'       : newItem.updated,
+                }
+
+                response = Response(json=create_data, content_type='application/json')
+
             else:
                 log.error(
                     'create: account/role {}/{} is not allowed to do this'.format(
@@ -414,4 +495,4 @@ class CharacterInventoryViews(BaseView):
                 'update: could not deserialize {}'.format(self.request.POST))
             raise HTTPClientError
 
-        return newItem
+        return response
