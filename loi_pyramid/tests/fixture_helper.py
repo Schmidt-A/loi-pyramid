@@ -127,6 +127,12 @@ class FixtureHelper():
                 blueprintId = 'gp',
                 amount      = 11,
                 created     = None,
+                updated     = None),
+            'noob_copper': Inventory(
+                characterId = 4,
+                blueprintId = 'copper',
+                amount      = 3,
+                created     = None,
                 updated     = None)
         }
 
@@ -145,7 +151,14 @@ class FixtureHelper():
                 blueprintId = 'zombie_guard',
                 amount      = 2,
                 created     = None,
-                updated     = None)
+                updated     = None),
+            #not yet added, to be used for create
+            'cheat_sword': Inventory(
+                characterId = 4,
+                blueprintId = 'scimitar_plus_5',
+                amount      = 1,
+                created     = None,
+                updated     = None),
         }
 
     def faction_data(self):
