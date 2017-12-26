@@ -24,7 +24,7 @@ class TestAccountViews(BaseTest):
         self.host = 'http://localhost:6543'
 
         self.accounts = FixtureHelper.account_data(self)
-        for name, account in self.accounts.items():
+        for key, account in self.accounts.items():
             self.session.add(account)
 
         self.session.flush()
@@ -57,8 +57,8 @@ class TestAccountViews(BaseTest):
 
         return accounts_get
 
-    #Test that we can get Siobhan via get call
-    def test_tweek_get(self):
+    #Test that we can get Tweek via get call
+    def test_get(self):
         account_result = self.account_get(self.accounts.get('tweek'))
 
         self.assertEqual(account_result['username'], self.accounts.get('tweek').username)
@@ -70,13 +70,13 @@ class TestAccountViews(BaseTest):
 
     #Test that we cannot get Tam via get call
     #Because he'll never nut up and log on
-    def test_tam_get_not_found(self):
+    def test_get_not_found(self):
         with self.assertRaises(HTTPNotFound):
             self.account_get(self.fake_accounts.get('tam'))
 
     #Test that we can get all one account via get all call
     #As those are the only two created accounts
-    def test_all_six_accounts_get(self):
+    def test_get_all(self):
         accounts_result = self.accounts_get_all()
 
         self.assertEqual(len(accounts_result), 3)

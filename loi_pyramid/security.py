@@ -11,8 +11,7 @@ def check_password(pw, hashed_pw):
     return bcrypt.checkpw(pw.encode('utf8'), expected_hash)
 
 def role_lookup(username, request):
-    query = self.request.dbsession.query(Account)
+    query = request.dbsession.query(Account)
     account = query.filter(Account.username == username).one()
 
-    roles = account.role
-    return roles
+    return account.role
