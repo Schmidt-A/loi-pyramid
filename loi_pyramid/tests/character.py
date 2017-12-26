@@ -193,18 +193,31 @@ class TestCharacterViews(BaseTest):
 
         return item_result
 
-    #Test that we can get Siobhan via get call when authorized
-    #Because Tweek owns Siobhan
+    #Test that we can get Ji'Lin via get call when authorized
+    #Because noob owns Ji'Lin
     def test_auth_get(self):
-        self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
-        character_result = self.character_get(self.characters.get('siobhan'))
+        self.config.testing_securitypolicy(userid=self.accounts.get('noob').username, permissive=True)
+        character_result = self.character_get(self.characters.get('jilin'))
 
-        self.assertEqual(character_result['accountId'], self.characters.get('siobhan').accountId)
-        self.assertEqual(character_result['name'], self.characters.get('siobhan').name)
-        self.assertEqual(character_result['exp'], self.characters.get('siobhan').exp)
-        self.assertEqual(character_result['area'], self.characters.get('siobhan').area)
-        self.assertEqual(character_result['created'], self.characters.get('siobhan').created)
-        self.assertEqual(character_result['updated'], self.characters.get('siobhan').updated)
+        self.assertEqual(character_result['accountId'], self.characters.get('jilin').accountId)
+        self.assertEqual(character_result['name'], self.characters.get('jilin').name)
+        self.assertEqual(character_result['exp'], self.characters.get('jilin').exp)
+        self.assertEqual(character_result['area'], self.characters.get('jilin').area)
+        self.assertEqual(character_result['created'], self.characters.get('jilin').created)
+        self.assertEqual(character_result['updated'], self.characters.get('jilin').updated)
+
+    #Test that we can get Ji'Lin via get call when admin
+    #Because Tweek is an admin
+    def test_admin_get(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
+        character_result = self.character_get(self.characters.get('jilin'))
+
+        self.assertEqual(character_result['accountId'], self.characters.get('jilin').accountId)
+        self.assertEqual(character_result['name'], self.characters.get('jilin').name)
+        self.assertEqual(character_result['exp'], self.characters.get('jilin').exp)
+        self.assertEqual(character_result['area'], self.characters.get('jilin').area)
+        self.assertEqual(character_result['created'], self.characters.get('jilin').created)
+        self.assertEqual(character_result['updated'], self.characters.get('jilin').updated)
 
     #Test that we cannot get Siobhan via get call when unauthorized
     #Because noob doesnt own Siobhan
@@ -226,7 +239,8 @@ class TestCharacterViews(BaseTest):
 
     #Test that we cannot get Meero via get call
     #Because she ain't created
-    def test_get_not_found(self):
+    def test_admin_get_not_found(self):
+        self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         with self.assertRaises(HTTPNotFound):
             self.character_get(self.fake_characters.get('meero'))
 
@@ -292,7 +306,7 @@ class TestCharacterViews(BaseTest):
 
     #Test that we cannot delete Meero
     #Because she ain't created
-    def test_meero_delete_not_found(self):
+    def test_admin_delete_not_found(self):
         self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         with self.assertRaises(HTTPNotFound):
             self.character_delete(self.fake_characters.get('meero'))

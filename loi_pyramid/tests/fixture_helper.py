@@ -71,7 +71,7 @@ class FixtureHelper():
                 created     = None,
                 updated     = None),
             'jilin': Character(
-                accountId   = 3,
+                accountId   = 'XxDrizztxX',
                 name        = 'Ji\'Lin Thri\'quen',
                 exp         = 1050,
                 area        = 'Dreyen Inn',
