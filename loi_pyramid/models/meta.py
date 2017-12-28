@@ -26,6 +26,12 @@ class Base(object):
     def __json__(self, request):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
+    def owned_payload(self):
+        raise NotImplementedError
+
+    def public_payload(self):
+        raise NotImplementedError
+
     def set_created(self):
         created = str(datetime.now())
 
