@@ -187,15 +187,13 @@ class TestCharacterViews(BaseTest):
 
         self.assertEqual(character_result['accountId'], self.characters.get('siobhan').accountId)
         self.assertEqual(character_result['name'], self.characters.get('siobhan').name)
+        self.assertEqual(character_result['created'], self.characters.get('siobhan').created)
+        self.assertEqual(character_result['updated'], self.characters.get('siobhan').updated)
 
         with self.assertRaises(KeyError):
             character_result['exp']
         with self.assertRaises(KeyError):
             character_result['area']
-        with self.assertRaises(KeyError):
-            character_result['created']
-        with self.assertRaises(KeyError):
-            character_result['updated']
 
     #Test that we can get Ji'Lin via get call when admin
     #Because admins can look at other peoples' chars
@@ -218,11 +216,11 @@ class TestCharacterViews(BaseTest):
             self.character_get(self.fake_characters.get('meero'))
 
     #Test that we can update Siobhan's name via put call when admin
-    #Because she's a SPYY
+    #She got some rp exp
     def test_admin_update_char(self):
         self.config.testing_securitypolicy(userid=self.accounts.get('tweek').username, permissive=True)
         test_spy = copy.copy(self.characters.get('siobhan'))
-        test_spy.name = 'A SPY'
+        test_spy.exp = 11000
 
         character_result = self.character_update(test_spy)
 
@@ -230,8 +228,8 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(character_result['name'], test_spy.name)
         self.assertEqual(character_result['exp'], test_spy.exp)
         self.assertEqual(character_result['area'], test_spy.area)
-        #self.assertEqual(character_result['created'], test_spy.created)
-        #self.assertEqual(character_result['updated'], test_spy.updated)
+        self.assertEqual(character_result['created'], test_spy.created)
+        #TODO: Need update test for updated timestamp
 
     #Test that we cannot update Meero's name via get call when admin
     #Because she ain't created
@@ -298,6 +296,7 @@ class TestCharacterViews(BaseTest):
             self.assertEqual(char['area'], compare_char.area)
             self.assertEqual(char['created'], compare_char.created)
             self.assertEqual(char['updated'], compare_char.updated)
+
             i += 1
 
     #Test that we can get all characters via get all call when not admin
@@ -313,14 +312,14 @@ class TestCharacterViews(BaseTest):
             compare_char = self.characters.get(list(self.characters.keys())[i])
             self.assertEqual(char['accountId'], compare_char.accountId)
             self.assertEqual(char['name'], compare_char.name)
+            self.assertEqual(char['created'], compare_char.created)
+            self.assertEqual(char['updated'], compare_char.updated)
+
             with self.assertRaises(KeyError):
                 char['exp']
             with self.assertRaises(KeyError):
                 char['area']
-            with self.assertRaises(KeyError):
-                char['created']
-            with self.assertRaises(KeyError):
-                char['updated']
+
             i += 1
 
     #Test that we can get the Jilin's money via get call when owner
@@ -332,6 +331,8 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(money['characterId'], self.characters.get('jilin').id)
         self.assertEqual(money['blueprintId'], self.items.get('noob_money').blueprintId)
         self.assertEqual(money['amount'], self.items.get('noob_money').amount)
+        self.assertEqual(money['created'], self.items.get('noob_money').created)
+        self.assertEqual(money['updated'], self.items.get('noob_money').updated)
 
     #Test that we cannot get the Jilin's money via get call when not owner
     #Because the noob account doesn't own alrunden
@@ -349,6 +350,8 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(money['characterId'], self.characters.get('jilin').id)
         self.assertEqual(money['blueprintId'], self.items.get('noob_money').blueprintId)
         self.assertEqual(money['amount'], self.items.get('noob_money').amount)
+        self.assertEqual(money['created'], self.items.get('noob_money').created)
+        self.assertEqual(money['updated'], self.items.get('noob_money').updated)
 
     #Test that we cannot get Al's cows with Siobhan's id via get call when admin
     #Because those are owned by Al's character, not Siobhan's
@@ -374,6 +377,8 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(item_result['characterId'], test_money.characterId)
         self.assertEqual(item_result['blueprintId'], test_money.blueprintId)
         self.assertEqual(item_result['amount'], test_money.amount)
+        self.assertEqual(item_result['created'], test_money.created)
+        self.assertEqual(item_result['updated'], test_money.updated)
 
     #Test that we cannot update Al's cows with Siobhan's id via put call when admin
     #Because those are owned by Al's character, not Siobhan's
@@ -461,6 +466,9 @@ class TestCharacterViews(BaseTest):
             self.assertEqual(item['characterId'], compare_item.characterId)
             self.assertEqual(item['blueprintId'], compare_item.blueprintId)
             self.assertEqual(item['amount'], compare_item.amount)
+            self.assertEqual(item['created'], compare_item.created)
+            self.assertEqual(item['updated'], compare_item.updated)
+
             i += 1
 
     #Test that we can get Jilin's items via get all call when not owner
@@ -488,6 +496,9 @@ class TestCharacterViews(BaseTest):
             self.assertEqual(item['characterId'], compare_item.characterId)
             self.assertEqual(item['blueprintId'], compare_item.blueprintId)
             self.assertEqual(item['amount'], compare_item.amount)
+            self.assertEqual(item['created'], compare_item.created)
+            self.assertEqual(item['updated'], compare_item.updated)
+
             i += 1
 
     #Test that we cannot get Meero's items via get all call when admin
@@ -506,6 +517,7 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(item_result['characterId'], self.fake_items.get('op_armor').characterId)
         self.assertEqual(item_result['blueprintId'], self.fake_items.get('op_armor').blueprintId)
         self.assertEqual(item_result['amount'], self.fake_items.get('op_armor').amount)
+        #TODO:Created and updated tests
 
     #Test that we cannot create an item on Meero via create call when admin
     #Because she ain't created

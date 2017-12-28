@@ -33,22 +33,10 @@ class CharacterViews(BaseView):
 
             #if they own it or they're an admin
             if character.accountId == account.username or account.role == 3:
-                get_data = {
-                    'accountId' : character.accountId,
-                    'name'      : character.name,
-                    'exp'       : character.exp,
-                    'area'      : character.area,
-                    'created'   : character.created,
-                    'updated'   : character.updated,
-                }
-                response = Response(json=get_data, content_type='application/json')
+                response = Response(json=character.owned_payload(), content_type='application/json')
 
             else:
-                get_data = {
-                    'accountId' : character.accountId,
-                    'name'      : character.name
-                }
-                response = Response(json=get_data, content_type='application/json')
+                response = Response(json=character.public_payload(), content_type='application/json')
 
         except NoResultFound:
             log.error(
@@ -74,31 +62,17 @@ class CharacterViews(BaseView):
 
                 schema = CharacterOwnerSchema()
                 put_data = schema.deserialize(self.request.body)
-                accountId   = put_data.get('accountId')
-                name        = put_data.get('name')
                 exp         = put_data.get('exp')
                 area        = put_data.get('area')
 
-                if accountId:
-                    character.accountId = accountId
-                if name:
-                    character.name = name
+                #should we allow this api to update all more things like transferring account ownership?
                 if exp:
                     character.exp = exp
                 if area:
                     character.area = area
-                #add updated timestamp
+                character.set_updated()
 
-                update_data = {
-                    'accountId' : character.accountId,
-                    'name'      : character.name,
-                    'exp'       : character.exp,
-                    'area'      : character.area,
-                    'created'   : character.created,
-                    'updated'   : character.updated,
-                }
-
-                response = Response(json=update_data, content_type='application/json')
+                response = Response(json=character.owned_payload(), content_type='application/json')
 
                 log.info(
                     'update: character/id {}/{} with new data {}'.format(
@@ -147,18 +121,11 @@ class CharacterViews(BaseView):
                 #we should return the full list of characters for a delete attempt
                 characters = self.request.dbsession.query(Character).all()
 
-                delete_data = []
+                get_all_data = []
                 for character in characters:
-                    delete_data.append({
-                        'accountId' : character.accountId,
-                        'name'      : character.name,
-                        'exp'       : character.exp,
-                        'area'      : character.area,
-                        'created'   : character.created,
-                        'updated'   : character.updated,
-                    })
+                    get_all_data.append(character.owned_payload())
 
-                response = Response(json=delete_data, content_type='application/json')
+                response = Response(json=get_all_data, content_type='application/json')
 
             else:
                 log.error(
@@ -193,19 +160,9 @@ class CharactersViews(BaseView):
             for character in characters:
                 #if they're an admin they can see everything
                 if account.role == 3:
-                    get_all_data.append({
-                        'accountId' : character.accountId,
-                        'name'      : character.name,
-                        'exp'       : character.exp,
-                        'area'      : character.area,
-                        'created'   : character.created,
-                        'updated'   : character.updated,
-                    })
+                    get_all_data.append(character.owned_payload())
                 else:
-                    get_all_data.append({
-                        'accountId' : character.accountId,
-                        'name'      : character.name
-                    })
+                    get_all_data.append(character.public_payload())
 
             response = Response(json=get_all_data, content_type='application/json')
 
@@ -240,15 +197,8 @@ class CharacterItemViews(BaseView):
                         'get: item {}/{} of character/id {}/{}'.format(
                             item.blueprintId, item.id, character.name, character.id))
 
-                    get_data = {
-                        'characterId'   : item.characterId,
-                        'blueprintId'   : item.blueprintId,
-                        'amount'        : item.amount,
-                        'created'       : item.created,
-                        'updated'       : item.updated,
-                    }
-
-                    response = Response(json=get_data, content_type='application/json')
+                    print(item.owned_payload())
+                    response = Response(json=item.owned_payload(), content_type='application/json')
 
                 else:
                     log.error(
@@ -296,18 +246,12 @@ class CharacterItemViews(BaseView):
                         'update: item/amount {}/{} from character/id {}/{} with new data {}'.format(
                             item.blueprintId, item.amount, character.name, character.id, put_data['amount']))
 
+                    #should we allow this api to update all more things like transferring api ownership?
                     if amount:
                         item.amount = amount
+                    item.set_updated()
 
-                    update_data = {
-                        'characterId'   : item.characterId,
-                        'blueprintId'   : item.blueprintId,
-                        'amount'        : item.amount,
-                        'created'       : item.created,
-                        'updated'       : item.updated,
-                    }
-
-                    response = Response(json=update_data, content_type='application/json')
+                    response = Response(json=item.owned_payload(), content_type='application/json')
 
                 else:
                     log.error(
@@ -360,17 +304,11 @@ class CharacterItemViews(BaseView):
                     inv_query = self.request.dbsession.query(Item)
                     items = inv_query.filter(Item.characterId == self.url['charId']).all()
 
-                    delete_data = []
+                    get_all_data = []
                     for item in items:
-                        delete_data.append({
-                            'characterId'   : item.characterId,
-                            'blueprintId'   : item.blueprintId,
-                            'amount'        : item.amount,
-                            'created'       : item.created,
-                            'updated'       : item.updated,
-                        })
+                        get_all_data.append(item.owned_payload())
 
-                    response = Response(json=delete_data, content_type='application/json')
+                    response = Response(json=get_all_data, content_type='application/json')
 
                 else:
                     log.error(
@@ -416,13 +354,7 @@ class CharacterItemsViews(BaseView):
 
                 get_all_data = []
                 for item in items:
-                    get_all_data.append({
-                        'characterId'   : item.characterId,
-                        'blueprintId'   : item.blueprintId,
-                        'amount'        : item.amount,
-                        'created'       : item.created,
-                        'updated'       : item.updated,
-                    })
+                    get_all_data.append(item.owned_payload())
 
                 response = Response(json=get_all_data, content_type='application/json')
 
@@ -465,20 +397,14 @@ class CharacterItemsViews(BaseView):
                     blueprintId = blueprintId,
                     amount      = amount)
                 self.request.dbsession.add(newItem)
+                newItem.set_created()
+                newItem.set_updated()
 
                 log.info(
                     'create: item/amount {}/{} from character/id {}/{}'.format(
                         newItem.blueprintId, newItem.amount, character.name, character.id))
 
-                create_data = {
-                    'characterId'   : newItem.characterId,
-                    'blueprintId'   : newItem.blueprintId,
-                    'amount'        : newItem.amount,
-                    'created'       : newItem.created,
-                    'updated'       : newItem.updated,
-                }
-
-                response = Response(json=create_data, content_type='application/json')
+                response = Response(json=newItem.owned_payload(), content_type='application/json')
 
             else:
                 log.error(
