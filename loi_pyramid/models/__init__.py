@@ -11,7 +11,7 @@ from .faction import Faction # flake8: noqa
 from .reputation import Reputation # flake8: noqa
 from .action import Action # flake8: noqa
 from .recipe import Recipe # flake8: noqa
-from .inventory import Inventory # flake8: noqa
+from .item import Item # flake8: noqa
 from .account import Account # flake8: noqa
 
 # run configure_mappers after defining all of the models to ensure

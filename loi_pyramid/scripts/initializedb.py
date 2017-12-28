@@ -51,8 +51,8 @@ def main(argv=sys.argv):
         for name, account in accounts.items():
             dbsession.add(account)
 
-        inventory = FixtureHelper.inventory_data(dbsession)
-        for name, item in inventory.items():
+        items = FixtureHelper.items_data(dbsession)
+        for name, item in items.items():
             dbsession.add(item)
 
         factions = FixtureHelper.faction_data(dbsession)

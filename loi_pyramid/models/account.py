@@ -9,7 +9,7 @@ from sqlalchemy import (
 
 from .meta import Base
 
-# TODO: change updated+created to datetimes. sqlite doesn't support.
+
 # TODO: Change password to binary because sqlite doesn't support
 class Account(Base):
     __tablename__   = 'accounts'
@@ -21,5 +21,26 @@ class Account(Base):
     actions     = Column(Integer)
     approved    = Column(Integer)
     banned      = Column(Integer)
-    created     = Column(String)
-    updated     = Column(String)
+
+    def owned_payload(self):
+        return {
+            'username'  : self.username,
+            'cdkey'     : self.cdkey,
+            'ip'        : self.ip,
+            'role'      : self.role,
+            'actions'   : self.actions,
+            'approved'  : self.approved,
+            'banned'    : self.banned,
+            'created'   : self.created,
+            'updated'   : self.updated
+        }
+
+    def public_payload(self):
+        return {
+            'username'  : self.username,
+            'role'      : self.role,
+            'approved'  : self.approved,
+            'banned'    : self.banned,
+            'created'   : self.created,
+            'updated'   : self.updated
+        }

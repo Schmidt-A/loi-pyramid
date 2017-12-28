@@ -2,7 +2,7 @@ from ..models import Character
 from ..models import Member
 from ..models import Faction
 from ..models import Reputation
-from ..models import Inventory
+from ..models import Item
 from ..models import Account
 
 #TODO: Fix flask rules for indentation
@@ -90,45 +90,45 @@ class FixtureHelper():
                 updated     = None)
         }
 
-    def inventory_data(self):
+    def items_data(self):
         return {
-            'al_grain': Inventory(
+            'al_grain': Item(
                 characterId = 2,
                 blueprintId = 'grain',
                 amount      = 10,
                 created     = None,
                 updated     = None),
-            'al_cow': Inventory(
+            'al_cow': Item(
                 characterId = 2,
                 blueprintId = 'cow',
                 amount      = 5,
                 created     = None,
                 updated     = None),
-            'al_sheep': Inventory(
+            'al_sheep': Item(
                 characterId = 2,
                 blueprintId = 'sheep',
                 amount      = 20,
                 created     = None,
                 updated     = None),
-            'al_money': Inventory(
+            'al_money': Item(
                 characterId = 2,
                 blueprintId = 'gp',
                 amount      = 400,
                 created     = None,
                 updated     = None),
-            'sio_money': Inventory(
+            'sio_money': Item(
                 characterId = 1,
                 blueprintId = 'gp',
                 amount      = 50,
                 created     = None,
                 updated     = None),
-            'noob_money': Inventory(
+            'noob_money': Item(
                 characterId = 4,
                 blueprintId = 'gp',
                 amount      = 11,
                 created     = None,
                 updated     = None),
-            'noob_copper': Inventory(
+            'noob_copper': Item(
                 characterId = 4,
                 blueprintId = 'copper',
                 amount      = 3,
@@ -136,24 +136,24 @@ class FixtureHelper():
                 updated     = None)
         }
 
-    def fake_inventory_data(self):
+    def fake_items_data(self):
         return {
             #not yet added, to be used for create
-            'op_armor': Inventory(
+            'op_armor': Item(
                 characterId = 2,
                 blueprintId = 'op_armor',
                 amount      = 1,
                 created     = None,
                 updated     = None),
             #non existent item, to be used for negative testing
-            'al_zombie': Inventory(
+            'al_zombie': Item(
                 characterId = 2,
                 blueprintId = 'zombie_guard',
                 amount      = 2,
                 created     = None,
                 updated     = None),
             #not yet added, to be used for create
-            'cheat_sword': Inventory(
+            'cheat_sword': Item(
                 characterId = 4,
                 blueprintId = 'scimitar_plus_5',
                 amount      = 1,

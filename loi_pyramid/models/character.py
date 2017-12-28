@@ -7,7 +7,7 @@ from sqlalchemy import (
 
 from .meta import Base
 
-# TODO: change updated+created to datetimes. sqlite doesn't support.
+
 class Character(Base):
     __tablename__ = 'characters'
     id          = Column(Integer, primary_key=True)
@@ -15,5 +15,23 @@ class Character(Base):
     name        = Column(String)
     exp         = Column(Integer)
     area        = Column(String)
-    created     = Column(String)
-    updated     = Column(String)
+
+    def owned_payload(self):
+        return {
+            'id'        : self.id,
+            'accountId' : self.accountId,
+            'name'      : self.name,
+            'exp'       : self.exp,
+            'area'      : self.area,
+            'created'   : self.created,
+            'updated'   : self.updated
+        }
+
+    def public_payload(self):
+        return {
+            'id'        : self.id,
+            'accountId' : self.accountId,
+            'name'      : self.name,
+            'created'   : self.created,
+            'updated'   : self.updated
+        }

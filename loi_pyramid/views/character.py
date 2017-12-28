@@ -7,9 +7,9 @@ from pyramid.response import Response
 from sqlalchemy.orm.exc import NoResultFound
 
 from . import BaseView
-from ..models import Character, Inventory, Account
+from ..models import Character, Item, Account
 from ..decorators import set_authorized
-from ..schemas import CharacterOwnerSchema, InventoryUpdateSchema, InventoryCreateSchema, Invalid
+from ..schemas import CharacterOwnerSchema, ItemUpdateSchema, ItemCreateSchema, Invalid
 
 
 log = logging.getLogger(__name__)
@@ -232,8 +232,8 @@ class CharacterItemViews(BaseView):
             #if they own it or they're an admin
             if character.accountId == account.username or account.role == 3:
 
-                item_query = self.request.dbsession.query(Inventory)
-                item = item_query.filter(Inventory.id == self.url['itemId']).one()
+                item_query = self.request.dbsession.query(Item)
+                item = item_query.filter(Item.id == self.url['itemId']).one()
 
                 if character.id == item.characterId:
                     log.info(
@@ -284,10 +284,10 @@ class CharacterItemViews(BaseView):
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['charId']).one()
 
-                item_query = self.request.dbsession.query(Inventory)
-                item = item_query.filter(Inventory.id == self.url['itemId']).one()
+                item_query = self.request.dbsession.query(Item)
+                item = item_query.filter(Item.id == self.url['itemId']).one()
 
-                schema = InventoryUpdateSchema()
+                schema = ItemUpdateSchema()
                 put_data = schema.deserialize(self.request.body)
                 amount = put_data.get('amount')
 
@@ -347,21 +347,21 @@ class CharacterItemViews(BaseView):
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['charId']).one()
 
-                item_query = self.request.dbsession.query(Inventory)
-                item = item_query.filter(Inventory.id == self.url['itemId']).one()
+                item_query = self.request.dbsession.query(Item)
+                item = item_query.filter(Item.id == self.url['itemId']).one()
 
                 if character.id == item.characterId:
-                    item_query.filter(Inventory.id == self.url['itemId']).delete()
+                    item_query.filter(Item.id == self.url['itemId']).delete()
                     log.info(
                         'delete: item/amount {}/{} from character/id {}/{}'.format(
                             item.blueprintId, item.amount, character.name, character.id))
 
                     #we should return the full list of characters for a delete attempt
-                    inv_query = self.request.dbsession.query(Inventory)
-                    inventory = inv_query.filter(Inventory.characterId == self.url['charId']).all()
+                    inv_query = self.request.dbsession.query(Item)
+                    items = inv_query.filter(Item.characterId == self.url['charId']).all()
 
                     delete_data = []
-                    for item in inventory:
+                    for item in items:
                         delete_data.append({
                             'characterId'   : item.characterId,
                             'blueprintId'   : item.blueprintId,
@@ -392,10 +392,10 @@ class CharacterItemViews(BaseView):
 
         return response
 
-#Govern calls to a character's inventory /character/{id}/inventory
+#Govern calls to a character's items /character/{id}/items
 @set_authorized
-@view_defaults(route_name='character_inventory', renderer='json')
-class CharacterInventoryViews(BaseView):
+@view_defaults(route_name='character_items', renderer='json')
+class CharacterItemsViews(BaseView):
 
     @view_config(request_method='GET')
     def get(self):
@@ -409,13 +409,13 @@ class CharacterInventoryViews(BaseView):
             #if they own it or they're an admin
             if character.accountId == account.username or account.role == 3:
 
-                inv_query = self.request.dbsession.query(Inventory)
-                inventory = inv_query.filter(Inventory.characterId == self.url['id']).all()
+                inv_query = self.request.dbsession.query(Item)
+                items = inv_query.filter(Item.characterId == self.url['id']).all()
                 log.info(
-                    'get: inventory of character/id {}/{}'.format(character.name, character.id))
+                    'get: items of character/id {}/{}'.format(character.name, character.id))
 
                 get_all_data = []
-                for item in inventory:
+                for item in items:
                     get_all_data.append({
                         'characterId'   : item.characterId,
                         'blueprintId'   : item.blueprintId,
@@ -452,14 +452,15 @@ class CharacterInventoryViews(BaseView):
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['id']).one()
 
-                schema = InventoryCreateSchema()
+                schema = ItemCreateSchema()
                 post_data = schema.deserialize(self.request.POST)
 
+                #TODO: Create a way to check if the character already owns an item of the same blueprintId
                 characterId = character.id
                 blueprintId = post_data.get('blueprintId')
                 amount = post_data.get('amount')
 
-                newItem = Inventory(
+                newItem = Item(
                     characterId = characterId,
                     blueprintId = blueprintId,
                     amount      = amount)

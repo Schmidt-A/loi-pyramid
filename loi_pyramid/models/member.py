@@ -7,7 +7,7 @@ from sqlalchemy import (
 
 from .meta import Base
 
-# TODO: change dates to datetimes. sqlite doesn't support.
+
 class Member(Base):
     __tablename__ = 'members'
     id          = Column(Integer, primary_key=True)
@@ -17,5 +17,3 @@ class Member(Base):
     active      = Column(Integer)
     secret      = Column(Integer)
     dateLeft    = Column(String)
-    created     = Column(String)
-    updated     = Column(String)

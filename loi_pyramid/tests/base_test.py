@@ -4,6 +4,8 @@ import transaction
 
 from pyramid import testing
 
+from ..models.meta import Base
+
 
 class BaseTest(unittest.TestCase):
     def setUp(self):
@@ -26,12 +28,9 @@ class BaseTest(unittest.TestCase):
         self.session = get_tm_session(session_factory, transaction.manager)
 
     def init_database(self):
-        from ..models.meta import Base
         Base.metadata.create_all(self.engine)
 
     def tearDown(self):
-        from ..models.meta import Base
-
         testing.tearDown()
         transaction.abort()
         Base.metadata.drop_all(self.engine)

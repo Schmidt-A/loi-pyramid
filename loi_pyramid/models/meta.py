@@ -1,5 +1,7 @@
 from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.schema import MetaData
+from sqlalchemy import Column, String
+from datetime import datetime
 
 # Recommended naming convention used by Alembic, as various different database
 # providers will autogenerate vastly different names making migrations more
@@ -18,5 +20,14 @@ metadata = MetaData(naming_convention=NAMING_CONVENTION)
 @as_declarative(metadata=metadata)
 class Base(object):
 
+    created = Column(String)
+    updated = Column(String)
+
     def __json__(self, request):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+    def set_created(self):
+        created = str(datetime.now())
+
+    def set_updated(self):
+        updated = str(datetime.now())
