@@ -25,14 +25,12 @@ class CharacterViews(BaseView):
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['id']).one()
 
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
             log.info(
-                'get: character/id {}/{}'.format(character.name, character.id))
+                'get: character/id {}/{} by account {}'.format(
+                    character.name, character.id, self.request.account.username))
 
             #if they own it or they're an admin
-            if character.accountId == account.username or account.role == 3:
+            if character.account.username == self.request.account.username or self.request.account.role == 3:
                 response = Response(json=character.owned_payload(), content_type='application/json')
 
             else:
@@ -52,11 +50,8 @@ class CharacterViews(BaseView):
     @view_config(request_method='PUT')
     def update(self):
         try:
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
             #if they're an admin they can do everything
-            if account.role == 3:
+            if self.request.account.role == 3:
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['id']).one()
 
@@ -82,7 +77,7 @@ class CharacterViews(BaseView):
             else:
                 log.error(
                     'update: account/role {}/{} is not allowed to do this'.format(
-                        account.username, account.role))
+                        self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -104,11 +99,8 @@ class CharacterViews(BaseView):
     @view_config(request_method='DELETE')
     def delete(self):
         try:
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
             #if they're an admin they can do everything
-            if account.role == 3:
+            if self.request.account.role == 3:
                 query = self.request.dbsession.query(Character)
 
                 #This dumb shit is only needed because we don't throw a not found error if it's not there
@@ -130,7 +122,7 @@ class CharacterViews(BaseView):
             else:
                 log.error(
                     'delete: account/role {}/{} is not allowed to do this'.format(
-                        account.username, account.role))
+                        self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -153,13 +145,10 @@ class CharactersViews(BaseView):
             characters = query.all()
             log.info('get: all characters')
 
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
             get_all_data = []
             for character in characters:
                 #if they're an admin they can see everything
-                if account.role == 3:
+                if self.request.account.role == 3:
                     get_all_data.append(character.owned_payload())
                 else:
                     get_all_data.append(character.public_payload())
@@ -180,14 +169,11 @@ class CharacterItemViews(BaseView):
     @view_config(request_method='GET')
     def get(self):
         try:
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['charId']).one()
 
             #if they own it or they're an admin
-            if character.accountId == account.username or account.role == 3:
+            if character.account.username == self.request.account.username or self.request.account.role == 3:
 
                 item_query = self.request.dbsession.query(Item)
                 item = item_query.filter(Item.id == self.url['itemId']).one()
@@ -209,7 +195,7 @@ class CharacterItemViews(BaseView):
             else:
                 log.error(
                     'update: character id {} is not associated with account {}'.format(
-                        self.url['charId'], account.username))
+                        self.url['charId'], self.request.account.username))
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -225,11 +211,8 @@ class CharacterItemViews(BaseView):
     @view_config(request_method='PUT')
     def update(self):
         try:
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
             #if they own it or they're an admin
-            if account.role == 3:
+            if self.request.account.role == 3:
                 #Maybe remove the char lookup?
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['charId']).one()
@@ -261,7 +244,7 @@ class CharacterItemViews(BaseView):
 
             else:
                 'update: account/role {}/{} is not allowed to do this'.format(
-                    account.username, account.role)
+                    self.request.account.username, self.request.account.role)
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -282,11 +265,8 @@ class CharacterItemViews(BaseView):
     @view_config(request_method='DELETE')
     def delete(self):
         try:
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
             #if they own it or they're an admin
-            if account.role == 3:
+            if self.request.account.role == 3:
                 #Maybe remove the char lookup?
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['charId']).one()
@@ -319,7 +299,7 @@ class CharacterItemViews(BaseView):
             else:
                 log.error(
                     'delete: account/role {}/{} is not allowed to do this'.format(
-                        account.username, account.role))
+                        self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -338,14 +318,11 @@ class CharacterItemsViews(BaseView):
     @view_config(request_method='GET')
     def get(self):
         try:
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['id']).one()
 
             #if they own it or they're an admin
-            if character.accountId == account.username or account.role == 3:
+            if character.account.username == self.request.account.username or self.request.account.role == 3:
 
                 inv_query = self.request.dbsession.query(Item)
                 items = inv_query.filter(Item.characterId == self.url['id']).all()
@@ -361,7 +338,7 @@ class CharacterItemsViews(BaseView):
             else:
                 log.error(
                     'update: character id {} is not associated with account {}'.format(
-                        self.url['id'], account.username))
+                        self.url['id'], self.request.account.username))
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -376,11 +353,8 @@ class CharacterItemsViews(BaseView):
     @view_config(request_method='POST')
     def create(self):
         try:
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
             #if they own it or they're an admin
-            if account.role == 3:
+            if self.request.account.role == 3:
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['id']).one()
 
@@ -409,7 +383,7 @@ class CharacterItemsViews(BaseView):
             else:
                 log.error(
                     'create: account/role {}/{} is not allowed to do this'.format(
-                        account.username, account.role))
+                        self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
 
         except NoResultFound:

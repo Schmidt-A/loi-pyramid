@@ -7,8 +7,19 @@ from ..models import Account
 
 #TODO: Fix flask rules for indentation
 class FixtureHelper():
+
+    def __init__(self, session):
+        self.session = session
+
+    def convert_to_json(self, model_dict):
+        test_data = {}
+        for key, model in model_dict.items():
+            test_data[key] = model.__json__(self)
+
+        return test_data
+
     def account_data(self):
-        return {
+        accounts = {
             #password is dragon4ever
             'tweek': Account(
                 username    = 'Tweek',
@@ -34,9 +45,12 @@ class FixtureHelper():
                 approved    = 0,
                 banned      = 0)
         }
+        self.session.add_all(list(accounts.values()))
+        test_accounts = self.convert_to_json(accounts)
+        return test_accounts
 
     def fake_account_data(self):
-        return {
+        accounts = {
             #password is dicks4ever
             'tam': Account(
                 username    = 'TamTamTamTam',
@@ -46,10 +60,13 @@ class FixtureHelper():
                 approved    = 0,
                 banned      = 0)
         }
+        fake_accounts = self.convert_to_json(accounts)
+        return fake_accounts
 
     def character_data(self):
-        return {
+        characters = {
             'siobhan': Character(
+                id          = 1,
                 accountId   = 'Tweek',
                 name        = 'Siobhan Faulkner',
                 exp         = 10000,
@@ -57,6 +74,7 @@ class FixtureHelper():
                 created     = '23/11/2017',
                 updated     = '29/11/2017'),
             'alrunden': Character(
+                id          = 2,
                 accountId   = 'Aez',
                 name        = 'Alrunden Peralt',
                 exp         = 12000,
@@ -64,6 +82,7 @@ class FixtureHelper():
                 created     = '26/6/2017',
                 updated     = '29/11/2017'),
             'arthen': Character(
+                id          = 3,
                 accountId   = None,
                 name        = 'Arthen Relindar',
                 exp         = 20000,
@@ -71,6 +90,7 @@ class FixtureHelper():
                 created     = None,
                 updated     = None),
             'jilin': Character(
+                id          = 4,
                 accountId   = 'XxDrizztxX',
                 name        = 'Ji\'Lin Thri\'quen',
                 exp         = 1050,
@@ -78,9 +98,12 @@ class FixtureHelper():
                 created     = '29/11/2017',
                 updated     = '29/11/2017')
         }
+        self.session.add_all(list(characters.values()))
+        test_characters = self.convert_to_json(characters)
+        return test_characters
 
     def fake_character_data(self):
-        return {
+        characters = {
             #non existent character, to be used for negative testing
             'meero': Character(
                 id          = 20,
@@ -89,57 +112,70 @@ class FixtureHelper():
                 created     = None,
                 updated     = None)
         }
+        fake_characters = self.convert_to_json(characters)
+        return fake_characters
 
     def items_data(self):
-        return {
+        items = {
             'al_grain': Item(
+                id          = 1,
                 characterId = 2,
                 blueprintId = 'grain',
                 amount      = 10,
                 created     = None,
                 updated     = None),
             'al_cow': Item(
+                id          = 2,
                 characterId = 2,
                 blueprintId = 'cow',
                 amount      = 5,
                 created     = None,
                 updated     = None),
             'al_sheep': Item(
+                id          = 3,
                 characterId = 2,
                 blueprintId = 'sheep',
                 amount      = 20,
                 created     = None,
                 updated     = None),
             'al_money': Item(
+                id          = 4,
                 characterId = 2,
                 blueprintId = 'gp',
                 amount      = 400,
                 created     = None,
                 updated     = None),
             'sio_money': Item(
+                id          = 5,
                 characterId = 1,
                 blueprintId = 'gp',
                 amount      = 50,
                 created     = None,
                 updated     = None),
             'noob_money': Item(
+                id          = 6,
                 characterId = 4,
                 blueprintId = 'gp',
                 amount      = 11,
                 created     = None,
                 updated     = None),
             'noob_copper': Item(
+                id          = 7,
                 characterId = 4,
                 blueprintId = 'copper',
                 amount      = 3,
                 created     = None,
                 updated     = None)
         }
+        self.session.add_all(list(items.values()))
+        test_items = self.convert_to_json(items)
+        return test_items
 
     def fake_items_data(self):
-        return {
+        items = {
             #not yet added, to be used for create
             'op_armor': Item(
+                id          = 20,
                 characterId = 2,
                 blueprintId = 'op_armor',
                 amount      = 1,
@@ -147,6 +183,7 @@ class FixtureHelper():
                 updated     = None),
             #non existent item, to be used for negative testing
             'al_zombie': Item(
+                id          = 21,
                 characterId = 2,
                 blueprintId = 'zombie_guard',
                 amount      = 2,
@@ -154,29 +191,39 @@ class FixtureHelper():
                 updated     = None),
             #not yet added, to be used for create
             'cheat_sword': Item(
+                id          = 22,
                 characterId = 4,
                 blueprintId = 'scimitar_plus_5',
                 amount      = 1,
                 created     = None,
                 updated     = None),
         }
+        fake_items = self.convert_to_json(items)
+        return fake_items
 
     def faction_data(self):
-        return {
+        factions = {
             'smugglers': Faction(
+                id          = 1,
                 name        = 'Smugglers',
                 factionId   = None),
             'relindars': Faction(
+                id          = 2,
                 name        = 'Relindar Family',
                 factionId   = None),
             'cousins': Faction(
+                id          = 3,
                 name        = 'Hlammach Relindar',
                 factionId   = 2)
         }
+        self.session.add_all(list(factions.values()))
+        test_factions = self.convert_to_json(factions)
+        return test_factions
 
     def member_data(self):
-        return {
+        members = {
             'siobhan_spy': Member(
+                id          = 1,
                 characterId = 1,
                 factionId   = 1,
                 role        = 'member',
@@ -185,6 +232,7 @@ class FixtureHelper():
                 created     = '23/11/2017',
                 dateLeft    = None),
             'al_left': Member(
+                id          = 2,
                 characterId = 2,
                 factionId   = 1,
                 role        = 'member',
@@ -201,6 +249,7 @@ class FixtureHelper():
                 created     = '4/11/2017',
                 dateLeft    = None),
             'arthen_fam': Member(
+                id          = 3,
                 characterId = 3,
                 factionId   = 3,
                 role        = 'family',
@@ -209,16 +258,21 @@ class FixtureHelper():
                 created     = None,
                 dateLeft    = None)
         }
+        self.session.add_all(list(members.values()))
+        test_members = self.convert_to_json(members)
+        return test_members
 
     def reputation_data(self):
-        return {
+        reputation = {
             'rel_sio': Reputation(
+                id          = 1,
                 characterId = None,
                 factionId   = 3,
                 amount      = -5,
                 atCharId    = 1,
                 atFactionId = None),
             'smug_sio': Reputation(
+                id          = 2,
                 characterId = None,
                 factionId   = 1,
                 amount      = 80,
@@ -231,39 +285,48 @@ class FixtureHelper():
                 atCharId    = 2,
                 atFactionId = None),
             'smug_al': Reputation(
+                id          = 3,
                 characterId = None,
                 factionId   = 1,
                 amount      = -30,
                 atCharId    = 2,
                 atFactionId = None),
             'rel_arthen': Reputation(
+                id          = 4,
                 characterId = None,
                 factionId   = 3,
                 amount      = 90,
                 atCharId    = 3,
                 atFactionId = None),
             'arthen_al': Reputation(
+                id          = 5,
                 characterId = 3,
                 factionId   = None,
                 amount      = 50,
                 atCharId    = 2,
                 atFactionId = None),
             'smug_rel': Reputation(
+                id          = 6,
                 characterId = None,
                 factionId   = 1,
                 amount      = -20,
                 atCharId    = None,
                 atFactionId = 2),
             'rel_smug': Reputation(
+                id          = 7,
                 characterId = None,
                 factionId   = 2,
                 amount      = -10,
                 atCharId    = None,
                 atFactionId = 1),
             'cou_smug': Reputation(
+                id          = 8,
                 characterId = None,
                 factionId   = 3,
                 amount      = 10,
                 atCharId    = None,
                 atFactionId = 1)
         }
+        self.session.add_all(list(reputation.values()))
+        test_reputation = self.convert_to_json(reputation)
+        return test_reputation

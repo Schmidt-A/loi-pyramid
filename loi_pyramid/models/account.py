@@ -6,6 +6,7 @@ from sqlalchemy import (
     LargeBinary,
     Boolean
 )
+from sqlalchemy.orm import relationship
 
 from .meta import Base
 
@@ -21,6 +22,9 @@ class Account(Base):
     actions     = Column(Integer)
     approved    = Column(Integer)
     banned      = Column(Integer)
+
+    #Is it worth doing backpopulation? It's only useful for chained deletes
+    characters  = relationship('Character', back_populates='account')
 
     def owned_payload(self):
         return {
