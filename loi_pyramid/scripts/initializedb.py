@@ -47,6 +47,3 @@ def main(argv=sys.argv):
         fixture_data.character_data()
         fixture_data.account_data()
         fixture_data.items_data()
-        fixture_data.faction_data()
-        fixture_data.member_data()
-        fixture_data.reputation_data()

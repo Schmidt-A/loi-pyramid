@@ -38,7 +38,7 @@ class FixtureHelper():
                 banned      = 0),
             #password is drizzit4ever
             'noob': Account(
-                username    = 'XxDrizztxX',
+                username    = 'XxDrizzitxX',
                 password    = '$2b$12$QMHEWrZZaw5hhFFhh/92jut4UpQl5nxr8oEYqgppBm3iWFlpS0jJm'.encode('utf8'),
                 cdkey       = 'klmn9911',
                 role        = 1,
@@ -109,6 +109,8 @@ class FixtureHelper():
                 id          = 20,
                 accountId   = 2,
                 name        = 'Meero Isesi',
+                exp         = 2000,
+                area        = 'Dreyen Inn',
                 created     = None,
                 updated     = None)
         }
@@ -279,48 +281,49 @@ class FixtureHelper():
                 atCharId    = 1,
                 atFactionId = None),
             'rel_al': Reputation(
+                id          = 3,
                 characterId = None,
                 factionId   = 3,
                 amount      = 30,
                 atCharId    = 2,
                 atFactionId = None),
             'smug_al': Reputation(
-                id          = 3,
+                id          = 4,
                 characterId = None,
                 factionId   = 1,
                 amount      = -30,
                 atCharId    = 2,
                 atFactionId = None),
             'rel_arthen': Reputation(
-                id          = 4,
+                id          = 5,
                 characterId = None,
                 factionId   = 3,
                 amount      = 90,
                 atCharId    = 3,
                 atFactionId = None),
             'arthen_al': Reputation(
-                id          = 5,
+                id          = 6,
                 characterId = 3,
                 factionId   = None,
                 amount      = 50,
                 atCharId    = 2,
                 atFactionId = None),
             'smug_rel': Reputation(
-                id          = 6,
+                id          = 7,
                 characterId = None,
                 factionId   = 1,
                 amount      = -20,
                 atCharId    = None,
                 atFactionId = 2),
             'rel_smug': Reputation(
-                id          = 7,
+                id          = 8,
                 characterId = None,
                 factionId   = 2,
                 amount      = -10,
                 atCharId    = None,
                 atFactionId = 1),
             'cou_smug': Reputation(
-                id          = 8,
+                id          = 9,
                 characterId = None,
                 factionId   = 3,
                 amount      = 10,
