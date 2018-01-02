@@ -31,7 +31,7 @@ class CharacterViews(BaseView):
 
             #if they own it or they're an admin
             #infuriatingly, unittest does not recognize the valid character.account relationship
-            if character.accountId == self.request.account.username or self.request.account.role == 3:
+            if self.request.account.is_owner(character) or self.request.account.is_admin():
                 response = Response(json=character.owned_payload(), content_type='application/json')
 
             else:
@@ -52,7 +52,7 @@ class CharacterViews(BaseView):
     def update(self):
         try:
             #if they're an admin they can do everything
-            if self.request.account.role == 3:
+            if self.request.account.is_admin():
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['id']).one()
 
@@ -101,7 +101,7 @@ class CharacterViews(BaseView):
     def delete(self):
         try:
             #if they're an admin they can do everything
-            if self.request.account.role == 3:
+            if self.request.account.is_admin():
                 query = self.request.dbsession.query(Character)
 
                 #This dumb shit is only needed because we don't throw a not found error if it's not there
@@ -149,7 +149,7 @@ class CharactersViews(BaseView):
             get_all_data = []
             for character in characters:
                 #if they're an admin they can see everything
-                if self.request.account.role == 3:
+                if self.request.account.is_admin():
                     get_all_data.append(character.owned_payload())
                 else:
                     get_all_data.append(character.public_payload())
@@ -175,7 +175,7 @@ class CharacterItemViews(BaseView):
 
             #if they own it or they're an admin
             #infuriatingly, unittest does not recognize the valid character.account relationship
-            if character.accountId == self.request.account.username or self.request.account.role == 3:
+            if self.request.account.is_owner(character) or self.request.account.is_admin():
 
                 item_query = self.request.dbsession.query(Item)
                 item = item_query.filter(Item.id == self.url['itemId']).one()
@@ -214,7 +214,7 @@ class CharacterItemViews(BaseView):
     def update(self):
         try:
             #if they own it or they're an admin
-            if self.request.account.role == 3:
+            if self.request.account.is_admin():
                 #Maybe remove the char lookup?
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['charId']).one()
@@ -268,7 +268,7 @@ class CharacterItemViews(BaseView):
     def delete(self):
         try:
             #if they own it or they're an admin
-            if self.request.account.role == 3:
+            if self.request.account.is_admin():
                 #Maybe remove the char lookup?
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['charId']).one()
@@ -325,7 +325,7 @@ class CharacterItemsViews(BaseView):
 
             #if they own it or they're an admin
             #infuriatingly, unittest does not recognize the valid character.account relationship
-            if character.accountId == self.request.account.username or self.request.account.role == 3:
+            if self.request.account.is_owner(character) or self.request.account.is_admin():
 
                 inv_query = self.request.dbsession.query(Item)
                 items = inv_query.filter(Item.characterId == self.url['id']).all()
@@ -357,7 +357,7 @@ class CharacterItemsViews(BaseView):
     def create(self):
         try:
             #if they own it or they're an admin
-            if self.request.account.role == 3:
+            if self.request.account.is_admin():
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['id']).one()
 

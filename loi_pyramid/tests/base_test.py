@@ -71,6 +71,10 @@ class BaseTest(unittest.TestCase):
         return account
 
 
+#Making this because pyramid's request alteration does not translate to unittesting dummy ruquest
+#This means that unittesting just doesn't work for many views that utilize this nifty stuff
+#So I have to mock up a class object that can be passed with the request
+#TODO: honestly, this stuff should probably move to integration tests
 class DummyAccount():
 
     def __init__(self, account):
@@ -78,3 +82,9 @@ class DummyAccount():
         self.role       = account['role']
         self.approved   = account['approved']
         self.banned     = account['banned']
+
+    def is_owner(self, character):
+        return self.username == character.accountId
+
+    def is_admin(self):
+        return self.role > 2

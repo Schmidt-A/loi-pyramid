@@ -48,3 +48,9 @@ class Account(Base):
             'created'   : self.created,
             'updated'   : self.updated
         }
+
+    def is_owner(self, character):
+        return self.username == character.accountId
+
+    def is_admin(self):
+        return self.role > 2
