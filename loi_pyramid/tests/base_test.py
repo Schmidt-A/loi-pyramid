@@ -5,6 +5,7 @@ import transaction
 from pyramid import testing
 
 from ..models.meta import Base
+from .fixture_helper import FixtureHelper
 
 
 class BaseTest(unittest.TestCase):
@@ -26,6 +27,8 @@ class BaseTest(unittest.TestCase):
         session_factory = get_session_factory(self.engine)
 
         self.session = get_tm_session(session_factory, transaction.manager)
+
+        self.fixture_helper = FixtureHelper(self.session)
 
     def init_database(self):
         Base.metadata.create_all(self.engine)
@@ -63,7 +66,7 @@ class BaseTest(unittest.TestCase):
         return req
 
     def create_testing_session(self, account):
-        self.config.testing_securitypolicy(userid=account.get('username'), permissive=True)
+        self.config.testing_securitypolicy(userid=account['username'], permissive=True)
         account = DummyAccount(account)
         return account
 
@@ -71,7 +74,7 @@ class BaseTest(unittest.TestCase):
 class DummyAccount():
 
     def __init__(self, account):
-        self.username   = account.get('username')
-        self.role       = account.get('role')
-        self.approved   = account.get('approved')
-        self.banned     = account.get('banned')
+        self.username   = account['username']
+        self.role       = account['role']
+        self.approved   = account['approved']
+        self.banned     = account['banned']

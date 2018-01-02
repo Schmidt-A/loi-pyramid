@@ -1,6 +1,6 @@
 import colander
 
-class CharacterOwnerSchema(colander.MappingSchema):
+class CharacterAdminUpdate(colander.MappingSchema):
     accountId = colander.SchemaNode(colander.String())
     name = colander.SchemaNode(colander.String())
     exp = colander.SchemaNode(colander.Integer())

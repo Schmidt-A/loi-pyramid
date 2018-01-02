@@ -91,7 +91,7 @@ class FixtureHelper():
                 updated     = None),
             'jilin': Character(
                 id          = 4,
-                accountId   = 'XxDrizztxX',
+                accountId   = 'XxDrizzitxX',
                 name        = 'Ji\'Lin Thri\'quen',
                 exp         = 1050,
                 area        = 'Dreyen Inn',
@@ -107,7 +107,7 @@ class FixtureHelper():
             #non existent character, to be used for negative testing
             'meero': Character(
                 id          = 20,
-                accountId   = 2,
+                accountId   = 'Aez',
                 name        = 'Meero Isesi',
                 exp         = 2000,
                 area        = 'Dreyen Inn',

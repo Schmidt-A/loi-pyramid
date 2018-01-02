@@ -9,7 +9,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from . import BaseView
 from ..models import Character, Item, Account
 from ..decorators import set_authorized
-from ..schemas import CharacterOwnerSchema, ItemUpdateSchema, ItemCreateSchema, Invalid
+from ..schemas import CharacterAdminUpdate, ItemAdminUpdate, ItemAdminCreate, Invalid
 
 
 log = logging.getLogger(__name__)
@@ -30,7 +30,8 @@ class CharacterViews(BaseView):
                     character.name, character.id, self.request.account.username))
 
             #if they own it or they're an admin
-            if character.account.username == self.request.account.username or self.request.account.role == 3:
+            #infuriatingly, unittest does not recognize the valid character.account relationship
+            if character.accountId == self.request.account.username or self.request.account.role == 3:
                 response = Response(json=character.owned_payload(), content_type='application/json')
 
             else:
@@ -55,10 +56,10 @@ class CharacterViews(BaseView):
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['id']).one()
 
-                schema = CharacterOwnerSchema()
+                schema = CharacterAdminUpdate()
                 put_data = schema.deserialize(self.request.body)
-                exp         = put_data.get('exp')
-                area        = put_data.get('area')
+                exp         = put_data['exp']
+                area        = put_data['area']
 
                 #should we allow this api to update all more things like transferring account ownership?
                 if exp:
@@ -173,7 +174,8 @@ class CharacterItemViews(BaseView):
             character = query.filter(Character.id == self.url['charId']).one()
 
             #if they own it or they're an admin
-            if character.account.username == self.request.account.username or self.request.account.role == 3:
+            #infuriatingly, unittest does not recognize the valid character.account relationship
+            if character.accountId == self.request.account.username or self.request.account.role == 3:
 
                 item_query = self.request.dbsession.query(Item)
                 item = item_query.filter(Item.id == self.url['itemId']).one()
@@ -220,9 +222,9 @@ class CharacterItemViews(BaseView):
                 item_query = self.request.dbsession.query(Item)
                 item = item_query.filter(Item.id == self.url['itemId']).one()
 
-                schema = ItemUpdateSchema()
+                schema = ItemAdminUpdate()
                 put_data = schema.deserialize(self.request.body)
-                amount = put_data.get('amount')
+                amount = put_data['amount']
 
                 if character.id == item.characterId:
                     log.info(
@@ -322,7 +324,8 @@ class CharacterItemsViews(BaseView):
             character = query.filter(Character.id == self.url['id']).one()
 
             #if they own it or they're an admin
-            if character.account.username == self.request.account.username or self.request.account.role == 3:
+            #infuriatingly, unittest does not recognize the valid character.account relationship
+            if character.accountId == self.request.account.username or self.request.account.role == 3:
 
                 inv_query = self.request.dbsession.query(Item)
                 items = inv_query.filter(Item.characterId == self.url['id']).all()
@@ -358,13 +361,13 @@ class CharacterItemsViews(BaseView):
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['id']).one()
 
-                schema = ItemCreateSchema()
+                schema = ItemAdminCreate()
                 post_data = schema.deserialize(self.request.POST)
 
                 #TODO: Create a way to check if the character already owns an item of the same blueprintId
                 characterId = character.id
-                blueprintId = post_data.get('blueprintId')
-                amount = post_data.get('amount')
+                blueprintId = post_data['blueprintId']
+                amount = post_data['amount']
 
                 newItem = Item(
                     characterId = characterId,
