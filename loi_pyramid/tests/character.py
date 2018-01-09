@@ -269,10 +269,12 @@ class TestCharacterViews(BaseTest):
     def test_admin_get_all_char(self):
         characters_result = self.characters_get_all(self.accounts['tweek'])
 
+        compare_chars = list(self.characters.values())
+
         self.assertEqual(len(characters_result), len(self.characters.keys()))
         i = 0
         for char in characters_result:
-            compare_char = self.characters.get(list(self.characters.keys())[i])
+            compare_char = compare_chars[i]
             self.assertEqual(char['accountId'], compare_char['accountId'])
             self.assertEqual(char['name'], compare_char['name'])
             self.assertEqual(char['exp'], compare_char['exp'])
@@ -469,7 +471,7 @@ class TestCharacterViews(BaseTest):
     #Because she ain't created
     def test_admin_get_all_items_not_found(self):
         with self.assertRaises(HTTPNotFound):
-            self.character_get(self.fake_characters['meero'], self.accounts['aez'])
+            self.items_get_all(self.fake_characters['meero'], self.accounts['aez'])
 
     #Test that we can create a new armor on Al via post call when admin
     #Because Viti's campaign is ridiculous with loot

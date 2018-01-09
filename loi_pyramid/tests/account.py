@@ -5,8 +5,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid import testing
 
 from .base_test import BaseTest
-from ..views.account import AccountViews
-from ..views.account import AccountsViews
+from ..views.account import AccountViews, AccountsViews, AccountCharactersView
 from ..security import hash_password
 
 
@@ -23,6 +22,7 @@ class TestAccountViews(BaseTest):
         self.host = 'http://localhost:6543'
 
         self.accounts = self.fixture_helper.account_data()
+        self.characters = self.fixture_helper.character_data()
         self.session.flush()
 
         #non existent accounts, to be used for negative testing
@@ -49,12 +49,12 @@ class TestAccountViews(BaseTest):
         return account_view.get().json_body
 
     #Helper method for get all calls to /account/{username}/characters
-    def account_characters_get_all(self, account, user_account):
+    def characters_get_all(self, account, user_account):
         resource = '/account/{}/characters'.format(account['username'])
         url_params = {'username': account['username']}
         request = self.dummy_request(self.session, (self.host+resource), user_account)
 
-        account_view = AccountCharactersViews(testing.DummyResource(), request)
+        account_view = AccountCharactersView(testing.DummyResource(), request)
         account_view.url = url_params
 
         return account_view.get().json_body
@@ -75,24 +75,47 @@ class TestAccountViews(BaseTest):
         with self.assertRaises(HTTPNotFound):
             self.account_get(self.fake_accounts['tam'], self.accounts['tweek'])
 
-    #Test that we can get all one account via get all call
+    #Test that we can get all accounts via get all call
     #As those are the only two created accounts
     def test_get_all(self):
         accounts_result = self.accounts_get_all(self.accounts['tweek'])
 
-        compare_items = []
-        for key, item in self.items.items():
-            if item['characterId'] == self.characters['jilin']['id']:
-                compare_items.append(item)
+        compare_accounts = list(self.accounts.values())
 
-        self.assertEqual(len(items_result), len(compare_items))
+        self.assertEqual(len(accounts_result), len(compare_accounts))
         i = 0
-        for item in items_result:
-            compare_item = compare_items[i]
-            self.assertEqual(item['username'], compare_item['username'])
-            self.assertEqual(item['username'], compare_item['password'])
-            self.assertEqual(item['username'], compare_item['cdkey'])
-            self.assertEqual(item['username'], compare_item['role'])
-            self.assertEqual(item['username'], compare_item['approved'])
-            self.assertEqual(item['username'], compare_item['banned'])
+        for account in accounts_result:
+            compare_account = compare_accounts[i]
+            self.assertEqual(account['username'], compare_account['username'])
+            self.assertEqual(account['cdkey'], compare_account['cdkey'])
+            self.assertEqual(account['role'], compare_account['role'])
+            self.assertEqual(account['approved'], compare_account['approved'])
+            self.assertEqual(account['banned'], compare_account['banned'])
             i += 1
+
+    #Test that we can get all characters for Tweek via get all call
+    def test_get_all_chars(self):
+        characters_result = self.characters_get_all(self.accounts['tweek'], self.accounts['tweek'])
+
+        compare_chars = []
+        for key, char in self.characters.items():
+            if char['accountId'] == self.accounts['tweek']['username']:
+                compare_chars.append(char)
+
+        self.assertEqual(len(characters_result), len(compare_chars))
+        i = 0
+        for char in compare_chars:
+            compare_char = compare_chars[i]
+            self.assertEqual(char['accountId'], compare_char['accountId'])
+            self.assertEqual(char['name'], compare_char['name'])
+            self.assertEqual(char['exp'], compare_char['exp'])
+            self.assertEqual(char['area'], compare_char['area'])
+            self.assertEqual(char['created'], compare_char['created'])
+            self.assertEqual(char['updated'], compare_char['updated'])
+            i += 1
+
+    #Test that we cannot get Tam's characters via get all call
+    #Because he never nutted up and logged on
+    def test_get_all_chars_not_found(self):
+        with self.assertRaises(HTTPNotFound):
+            self.characters_get_all(self.fake_accounts['tam'], self.accounts['tweek'])

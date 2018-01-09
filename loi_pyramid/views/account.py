@@ -2,11 +2,12 @@ import logging
 
 from pyramid.httpexceptions import HTTPNotFound, HTTPClientError, HTTPForbidden, HTTPUnauthorized
 from pyramid.view import view_config, view_defaults
+from pyramid.response import Response
 
 from sqlalchemy.orm.exc import NoResultFound
 
 from . import BaseView
-from ..models import Account
+from ..models import Account, Character
 from ..decorators import set_authorized
 from ..schemas import AccountAdminUpdate, AccountOwnerUpdate, Invalid
 
@@ -28,7 +29,7 @@ class AccountViews(BaseView):
 
             #if they own it or they're an admin
             #infuriatingly, unittest does not recognize the valid character.account relationship
-            if self.request.account.is_owner(account) or self.request.account.is_admin():
+            if self.request.account == account or self.request.account.is_admin():
                 response = Response(json=account.owned_payload, content_type='application/json')
 
             else:
@@ -79,14 +80,19 @@ class AccountCharactersView(BaseView):
     @view_config(request_method='GET')
     def get(self):
         try:
+            #only doing this because otherwise the NoResultFound won't throw - might refactor by making it an if character returned
+            query = self.request.dbsession.query(Account)
+            account = query.filter(Account.username == self.url['username']).one()
+
             char_query = self.request.dbsession.query(Character)
             characters = char_query.filter(Character.accountId == self.url['username']).all()
+
             log.info(
                 'get: characters of {}'.format(self.url['username']))
 
             get_all_data = []
             for character in characters:
-                if self.request.account.is_admin():
+                if self.request.account == account or self.request.account.is_admin():
                     get_all_data.append(character.owned_payload)
 
                 else:
