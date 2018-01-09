@@ -43,26 +43,7 @@ def main(argv=sys.argv):
     with transaction.manager:
         dbsession = get_tm_session(session_factory, transaction.manager)
 
-        characters = FixtureHelper.character_data(dbsession)
-        for name, character in characters.items():
-            dbsession.add(character)
-
-        accounts = FixtureHelper.account_data(dbsession)
-        for name, account in accounts.items():
-            dbsession.add(account)
-
-        inventory = FixtureHelper.inventory_data(dbsession)
-        for name, item in inventory.items():
-            dbsession.add(item)
-
-        factions = FixtureHelper.faction_data(dbsession)
-        for name, faction in factions.items():
-            dbsession.add(faction)
-
-        members = FixtureHelper.member_data(dbsession)
-        for name, member in members.items():
-            dbsession.add(member)
-
-        reputations = FixtureHelper.reputation_data(dbsession)
-        for name, reputation in reputations.items():
-            dbsession.add(reputation)
+        fixture_helper = FixtureHelper(dbsession)
+        fixture_helper.character_data()
+        fixture_helper.account_data()
+        fixture_helper.items_data()

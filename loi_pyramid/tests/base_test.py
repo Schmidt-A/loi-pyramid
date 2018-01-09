@@ -4,12 +4,15 @@ import transaction
 
 from pyramid import testing
 
+from ..models.meta import Base
+from .fixture_helper import FixtureHelper
+
 
 class BaseTest(unittest.TestCase):
     def setUp(self):
         self.config = testing.setUp(settings={
             'sqlalchemy.url': 'sqlite:///:memory:',
-            'loi.auth_enabled': 0
+            'loi.auth_enabled': 1
         })
         self.config.include('..models')
         settings = self.config.get_settings()
@@ -25,36 +28,63 @@ class BaseTest(unittest.TestCase):
 
         self.session = get_tm_session(session_factory, transaction.manager)
 
+        self.fixture_helper = FixtureHelper(self.session)
+
     def init_database(self):
-        from ..models.meta import Base
         Base.metadata.create_all(self.engine)
 
     def tearDown(self):
-        from ..models.meta import Base
-
         testing.tearDown()
         transaction.abort()
         Base.metadata.drop_all(self.engine)
 
-    def dummy_request(self, dbsession, url):
+    def dummy_request(self, dbsession, url, account):
         req = testing.DummyRequest(dbsession=dbsession)
         req.path_url = url
+        req.account = self.create_testing_session(account)
         return req
 
-    def dummy_post_request(self, dbsession, url, post):
+    def dummy_post_request(self, dbsession, url, post, account):
         req = testing.DummyRequest(dbsession=dbsession, post=post)
         req.path_url = url
+        req.account = self.create_testing_session(account)
         return req
 
-    def dummy_put_request(self, dbsession, url, body):
+    def dummy_put_request(self, dbsession, url, body, account):
         req = testing.DummyRequest(dbsession=dbsession)
         req.path_url = url
         req.method = 'PUT'
         req.body = body
+        req.account = self.create_testing_session(account)
         return req
 
-    def dummy_delete_request(self, dbsession, url):
+    def dummy_delete_request(self, dbsession, url, account):
         req = testing.DummyRequest(dbsession=dbsession)
         req.path_url = url
         req.method = 'DELETE'
+        req.account = self.create_testing_session(account)
         return req
+
+    def create_testing_session(self, account):
+        self.config.testing_securitypolicy(userid=account['username'], permissive=True)
+        account = DummyAccount(account)
+        return account
+
+
+#Making this because pyramid's request alteration does not translate to unittesting dummy ruquest
+#This means that unittesting just doesn't work for many views that utilize this nifty stuff
+#So I have to mock up a class object that can be passed with the request
+#TODO: honestly, this stuff should probably move to integration tests
+class DummyAccount():
+
+    def __init__(self, account):
+        self.username   = account['username']
+        self.role       = account['role']
+        self.approved   = account['approved']
+        self.banned     = account['banned']
+
+    def is_owner(self, character):
+        return self.username == character.accountId
+
+    def is_admin(self):
+        return self.role > 2

@@ -14,4 +14,14 @@ def role_lookup(username, request):
     query = request.dbsession.query(Account)
     account = query.filter(Account.username == username).one()
 
-    return account.role
+    role = []
+    if account.role == 3:
+        role.append('g:admin')
+
+    return role
+
+def get_account(request):
+    query = request.dbsession.query(Account)
+    account = query.filter(Account.username == request.authenticated_userid).one()
+
+    return account

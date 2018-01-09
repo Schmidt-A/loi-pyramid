@@ -6,10 +6,11 @@ from sqlalchemy import (
     LargeBinary,
     Boolean
 )
+from sqlalchemy.orm import relationship
 
 from .meta import Base
 
-# TODO: change updated+created to datetimes. sqlite doesn't support.
+
 # TODO: Change password to binary because sqlite doesn't support
 class Account(Base):
     __tablename__   = 'accounts'
@@ -21,5 +22,37 @@ class Account(Base):
     actions     = Column(Integer)
     approved    = Column(Integer)
     banned      = Column(Integer)
-    created     = Column(String)
-    updated     = Column(String)
+
+    #Is it worth doing backpopulation? It's only useful for chained deletes
+    characters  = relationship('Character', back_populates='account')
+
+    @property
+    def owned_payload(self):
+        return {
+            'username'  : self.username,
+            'cdkey'     : self.cdkey,
+            'ip'        : self.ip,
+            'role'      : self.role,
+            'actions'   : self.actions,
+            'approved'  : self.approved,
+            'banned'    : self.banned,
+            'created'   : self.created,
+            'updated'   : self.updated
+        }
+
+    @property
+    def public_payload(self):
+        return {
+            'username'  : self.username,
+            'role'      : self.role,
+            'approved'  : self.approved,
+            'banned'    : self.banned,
+            'created'   : self.created,
+            'updated'   : self.updated
+        }
+
+    def is_owner(self, character):
+        return self.username == character.accountId
+
+    def is_admin(self):
+        return self.role > 2

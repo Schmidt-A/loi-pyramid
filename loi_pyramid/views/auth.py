@@ -10,7 +10,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from . import BaseView
 from ..decorators import set_authorized, no_auth
 from ..security import check_password
-from ..schemas import LoginSchema, AccountUpdateSchema, Invalid
+from ..schemas import LoginSchema, AccountAdminUpdate, Invalid
 from ..models import Account
 
 

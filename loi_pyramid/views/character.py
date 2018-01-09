@@ -7,9 +7,9 @@ from pyramid.response import Response
 from sqlalchemy.orm.exc import NoResultFound
 
 from . import BaseView
-from ..models import Character, Inventory, Account
+from ..models import Character, Item, Account
 from ..decorators import set_authorized
-from ..schemas import CharacterOwnerSchema, InventoryUpdateSchema, InventoryCreateSchema, Invalid
+from ..schemas import CharacterAdminUpdate, ItemAdminUpdate, ItemAdminCreate, Invalid
 
 
 log = logging.getLogger(__name__)
@@ -24,34 +24,23 @@ class CharacterViews(BaseView):
         try:
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['id']).one()
-            log.info(
-                'get: character/id {}/{}'.format(character.name, character.id))
 
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
+            log.info(
+                'get: character/id {}/{} by account {}'.format(
+                    character.name, character.id, self.request.account.username))
 
             #if they own it or they're an admin
-            if character.accountId == account.username or account.role == 3:
-                get_data = {
-                    'accountId' : character.accountId,
-                    'name'      : character.name,
-                    'exp'       : character.exp,
-                    'area'      : character.area,
-                    'created'   : character.created,
-                    'updated'   : character.updated,
-                }
-                response = Response(json=get_data, content_type='application/json')
+            #infuriatingly, unittest does not recognize the valid character.account relationship
+            if self.request.account.is_owner(character) or self.request.account.is_admin():
+                response = Response(json=character.owned_payload, content_type='application/json')
 
             else:
-                get_data = {
-                    'accountId' : character.accountId,
-                    'name'      : character.name
-                }
-                response = Response(json=get_data, content_type='application/json')
+                response = Response(json=character.public_payload, content_type='application/json')
 
         except NoResultFound:
             log.error(
-                'get: character id \'{}\' not found'.format(self.url['id']))
+                'get: character id \'{}\' or account \'{}\' not found'.format(
+                    self.url['id'], self.request.authenticated_userid))
             raise HTTPNotFound
 
         return response
@@ -62,30 +51,24 @@ class CharacterViews(BaseView):
     @view_config(request_method='PUT')
     def update(self):
         try:
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
             #if they're an admin they can do everything
-            if account.role == 3:
+            if self.request.account.is_admin():
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['id']).one()
 
-                schema = CharacterOwnerSchema()
+                schema = CharacterAdminUpdate()
                 put_data = schema.deserialize(self.request.body)
-                accountId   = put_data.get('accountId')
-                name        = put_data.get('name')
-                exp         = put_data.get('exp')
-                area        = put_data.get('area')
+                exp         = put_data['exp']
+                area        = put_data['area']
 
-                if accountId:
-                    character.accountId = accountId
-                if name:
-                    character.name = name
+                #should we allow this api to update all more things like transferring account ownership?
                 if exp:
                     character.exp = exp
                 if area:
                     character.area = area
-                #add updated timestamp
+                character.set_updated()
+
+                response = Response(json=character.owned_payload, content_type='application/json')
 
                 log.info(
                     'update: character/id {}/{} with new data {}'.format(
@@ -95,7 +78,7 @@ class CharacterViews(BaseView):
             else:
                 log.error(
                     'update: account/role {}/{} is not allowed to do this'.format(
-                        account.username, account.role))
+                        self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -109,7 +92,7 @@ class CharacterViews(BaseView):
                 'update: could not deserialize {}'.format(self.request.body))
             raise HTTPClientError
 
-        return character
+        return response
 
 
     #This method will almost certainly be locked down since we should not allow any of this to be editable
@@ -117,11 +100,8 @@ class CharacterViews(BaseView):
     @view_config(request_method='DELETE')
     def delete(self):
         try:
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
             #if they're an admin they can do everything
-            if account.role == 3:
+            if self.request.account.is_admin():
                 query = self.request.dbsession.query(Character)
 
                 #This dumb shit is only needed because we don't throw a not found error if it's not there
@@ -134,10 +114,16 @@ class CharacterViews(BaseView):
                 #we should return the full list of characters for a delete attempt
                 characters = self.request.dbsession.query(Character).all()
 
+                get_all_data = []
+                for character in characters:
+                    get_all_data.append(character.owned_payload)
+
+                response = Response(json=get_all_data, content_type='application/json')
+
             else:
                 log.error(
                     'delete: account/role {}/{} is not allowed to do this'.format(
-                        account.username, account.role))
+                        self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -146,7 +132,7 @@ class CharacterViews(BaseView):
                     self.url['id'], self.request.authenticated_userid))
             raise HTTPNotFound
 
-        return characters
+        return response
 
 #Govern calls to all character objects /characters
 @set_authorized
@@ -160,30 +146,15 @@ class CharactersViews(BaseView):
             characters = query.all()
             log.info('get: all characters')
 
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
-            character_list = []
+            get_all_data = []
             for character in characters:
                 #if they're an admin they can see everything
-                if account.role == 3:
-                    get_data = {
-                        'accountId' : character.accountId,
-                        'name'      : character.name,
-                        'exp'       : character.exp,
-                        'area'      : character.area,
-                        'created'   : character.created,
-                        'updated'   : character.updated,
-                    }
-                    character_list.append(get_data)
+                if self.request.account.is_admin():
+                    get_all_data.append(character.owned_payload)
                 else:
-                    get_data = {
-                        'accountId' : character.accountId,
-                        'name'      : character.name
-                    }
-                    character_list.append(get_data)
+                    get_all_data.append(character.public_payload)
 
-            response = Response(json=character_list, content_type='application/json')
+            response = Response(json=get_all_data, content_type='application/json')
 
         except NoResultFound:
             log.error('get: could not retrieve any characters')
@@ -199,32 +170,33 @@ class CharacterItemViews(BaseView):
     @view_config(request_method='GET')
     def get(self):
         try:
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['charId']).one()
 
             #if they own it or they're an admin
-            if character.accountId == account.username or account.role == 3:
+            #infuriatingly, unittest does not recognize the valid character.account relationship
+            if self.request.account.is_owner(character) or self.request.account.is_admin():
 
-                item_query = self.request.dbsession.query(Inventory)
-                item = item_query.filter(Inventory.id == self.url['itemId']).one()
+                item_query = self.request.dbsession.query(Item)
+                item = item_query.filter(Item.id == self.url['itemId']).one()
 
                 if character.id == item.characterId:
                     log.info(
                         'get: item {}/{} of character/id {}/{}'.format(
                             item.blueprintId, item.id, character.name, character.id))
+
+                    response = Response(json=item.owned_payload, content_type='application/json')
+
                 else:
                     log.error(
                         'update: item id \'{}\' not associated with char id \'{}\''.format(
-                            self.url['itemId'],self.url['charId']))
+                            self.url['itemId'], self.url['charId']))
                     raise HTTPClientError
+
             else:
                 log.error(
                     'update: character id {} is not associated with account {}'.format(
-                        self.url['charId'], account.username))
-
+                        self.url['charId'], self.request.account.username))
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -233,36 +205,38 @@ class CharacterItemViews(BaseView):
                     self.url['itemId'], self.url['charId'], self.request.authenticated_userid))
             raise HTTPNotFound
 
-        return item
+        return response
 
     #This method will be locked down since we should not allow any of this to be editable
     #Only admins or nwn (via db) should be able to create new characters or edit new characters
     @view_config(request_method='PUT')
     def update(self):
         try:
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
             #if they own it or they're an admin
-            if account.role == 3:
+            if self.request.account.is_admin():
                 #Maybe remove the char lookup?
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['charId']).one()
 
-                item_query = self.request.dbsession.query(Inventory)
-                item = item_query.filter(Inventory.id == self.url['itemId']).one()
+                item_query = self.request.dbsession.query(Item)
+                item = item_query.filter(Item.id == self.url['itemId']).one()
 
-                schema = InventoryUpdateSchema()
+                schema = ItemAdminUpdate()
                 put_data = schema.deserialize(self.request.body)
-                amount = put_data.get('amount')
+                amount = put_data['amount']
 
                 if character.id == item.characterId:
                     log.info(
                         'update: item/amount {}/{} from character/id {}/{} with new data {}'.format(
                             item.blueprintId, item.amount, character.name, character.id, put_data['amount']))
 
+                    #should we allow this api to update all more things like transferring api ownership?
                     if amount:
                         item.amount = amount
+                    item.set_updated()
+
+                    response = Response(json=item.owned_payload, content_type='application/json')
+
                 else:
                     log.error(
                         'update: item id \'{}\' not associated with char id \'{}\''.format(
@@ -271,7 +245,7 @@ class CharacterItemViews(BaseView):
 
             else:
                 'update: account/role {}/{} is not allowed to do this'.format(
-                    account.username, account.role)
+                    self.request.account.username, self.request.account.role)
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -285,34 +259,37 @@ class CharacterItemViews(BaseView):
                 'update: could not deserialize {}'.format(self.request.body))
             raise HTTPClientError
 
-        return item
+        return response
 
     #This method will be locked down since we should not allow any of this to be editable
     #Only admin server or nwn (via db) should be able to delete characters
     @view_config(request_method='DELETE')
     def delete(self):
         try:
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
             #if they own it or they're an admin
-            if account.role == 3:
+            if self.request.account.is_admin():
                 #Maybe remove the char lookup?
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['charId']).one()
 
-                item_query = self.request.dbsession.query(Inventory)
-                item = item_query.filter(Inventory.id == self.url['itemId']).one()
+                item_query = self.request.dbsession.query(Item)
+                item = item_query.filter(Item.id == self.url['itemId']).one()
 
                 if character.id == item.characterId:
-                    item_query.filter(Inventory.id == self.url['itemId']).delete()
+                    item_query.filter(Item.id == self.url['itemId']).delete()
                     log.info(
                         'delete: item/amount {}/{} from character/id {}/{}'.format(
                             item.blueprintId, item.amount, character.name, character.id))
 
                     #we should return the full list of characters for a delete attempt
-                    inv_query = self.request.dbsession.query(Inventory)
-                    inventory = inv_query.filter(Inventory.characterId == self.url['charId']).all()
+                    inv_query = self.request.dbsession.query(Item)
+                    items = inv_query.filter(Item.characterId == self.url['charId']).all()
+
+                    get_all_data = []
+                    for item in items:
+                        get_all_data.append(item.owned_payload)
+
+                    response = Response(json=get_all_data, content_type='application/json')
 
                 else:
                     log.error(
@@ -323,7 +300,7 @@ class CharacterItemViews(BaseView):
             else:
                 log.error(
                     'delete: account/role {}/{} is not allowed to do this'.format(
-                        account.username, account.role))
+                        self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -332,34 +309,38 @@ class CharacterItemViews(BaseView):
                     self.url['itemId'], self.url['charId']))
             raise HTTPNotFound
 
-        return inventory
+        return response
 
-#Govern calls to a character's inventory /character/{id}/inventory
+#Govern calls to a character's items /character/{id}/items
 @set_authorized
-@view_defaults(route_name='character_inventory', renderer='json')
-class CharacterInventoryViews(BaseView):
+@view_defaults(route_name='character_items', renderer='json')
+class CharacterItemsViews(BaseView):
 
     @view_config(request_method='GET')
     def get(self):
         try:
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['id']).one()
 
             #if they own it or they're an admin
-            if character.accountId == account.username or account.role == 3:
+            #infuriatingly, unittest does not recognize the valid character.account relationship
+            if self.request.account.is_owner(character) or self.request.account.is_admin():
 
-                inv_query = self.request.dbsession.query(Inventory)
-                inventory = inv_query.filter(Inventory.characterId == self.url['id']).all()
+                inv_query = self.request.dbsession.query(Item)
+                items = inv_query.filter(Item.characterId == self.url['id']).all()
                 log.info(
-                    'get: inventory of character/id {}/{}'.format(character.name, character.id))
+                    'get: items of character/id {}/{}'.format(character.name, character.id))
+
+                get_all_data = []
+                for item in items:
+                    get_all_data.append(item.owned_payload)
+
+                response = Response(json=get_all_data, content_type='application/json')
+
             else:
                 log.error(
                     'update: character id {} is not associated with account {}'.format(
-                        self.url['id'], account.username))
-
+                        self.url['id'], self.request.account.username))
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -367,41 +348,44 @@ class CharacterInventoryViews(BaseView):
                 'get: character id \'{}\' not found'.format(self.url['id']))
             raise HTTPNotFound
 
-        return inventory
+        return response
 
     #This method will be locked down since we should not allow any of this to be editable
     #Only admin server or nwn (via db) should be able to create items
     @view_config(request_method='POST')
     def create(self):
         try:
-            accountQuery = self.request.dbsession.query(Account)
-            account = accountQuery.filter(Account.username == self.request.authenticated_userid).one()
-
             #if they own it or they're an admin
-            if account.role == 3:
+            if self.request.account.is_admin():
                 query = self.request.dbsession.query(Character)
                 character = query.filter(Character.id == self.url['id']).one()
 
-                schema = InventoryCreateSchema()
+                schema = ItemAdminCreate()
                 post_data = schema.deserialize(self.request.POST)
 
+                #TODO: Create a way to check if the character already owns an item of the same blueprintId
                 characterId = character.id
-                blueprintId = post_data.get('blueprintId')
-                amount = post_data.get('amount')
+                blueprintId = post_data['blueprintId']
+                amount = post_data['amount']
 
-                newItem = Inventory(
+                newItem = Item(
                     characterId = characterId,
                     blueprintId = blueprintId,
                     amount      = amount)
                 self.request.dbsession.add(newItem)
+                newItem.set_created()
+                newItem.set_updated()
 
                 log.info(
                     'create: item/amount {}/{} from character/id {}/{}'.format(
                         newItem.blueprintId, newItem.amount, character.name, character.id))
+
+                response = Response(json=newItem.owned_payload, content_type='application/json')
+
             else:
                 log.error(
                     'create: account/role {}/{} is not allowed to do this'.format(
-                        account.username, account.role))
+                        self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -414,4 +398,4 @@ class CharacterInventoryViews(BaseView):
                 'update: could not deserialize {}'.format(self.request.POST))
             raise HTTPClientError
 
-        return newItem
+        return response

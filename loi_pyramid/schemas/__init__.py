@@ -8,7 +8,7 @@ from .member import *
 from .reputation import *
 from .action import *
 from .recipe import *
-from .inventory import *
+from .item import *
 from .account import *
 
 Invalid = colander.Invalid

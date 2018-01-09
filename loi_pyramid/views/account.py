@@ -8,7 +8,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from . import BaseView
 from ..models import Account
 from ..decorators import set_authorized
-from ..schemas import AccountUpdateSchema, Invalid
+from ..schemas import AccountAdminUpdate, AccountOwnerUpdate, Invalid
 
 
 log = logging.getLogger(__name__)
