@@ -26,6 +26,7 @@ class Account(Base):
     #Is it worth doing backpopulation? It's only useful for chained deletes
     characters  = relationship('Character', back_populates='account')
 
+    @property
     def owned_payload(self):
         return {
             'username'  : self.username,
@@ -39,6 +40,7 @@ class Account(Base):
             'updated'   : self.updated
         }
 
+    @property
     def public_payload(self):
         return {
             'username'  : self.username,

@@ -20,6 +20,7 @@ class Item(Base):
     #Is it worth doing backpopulation? It's only useful for chained deletes
     character   = relationship('Character', back_populates='items')
 
+    @property
     def owned_payload(self):
         return {
             'id'            : self.id,

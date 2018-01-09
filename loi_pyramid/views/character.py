@@ -32,10 +32,10 @@ class CharacterViews(BaseView):
             #if they own it or they're an admin
             #infuriatingly, unittest does not recognize the valid character.account relationship
             if self.request.account.is_owner(character) or self.request.account.is_admin():
-                response = Response(json=character.owned_payload(), content_type='application/json')
+                response = Response(json=character.owned_payload, content_type='application/json')
 
             else:
-                response = Response(json=character.public_payload(), content_type='application/json')
+                response = Response(json=character.public_payload, content_type='application/json')
 
         except NoResultFound:
             log.error(
@@ -68,7 +68,7 @@ class CharacterViews(BaseView):
                     character.area = area
                 character.set_updated()
 
-                response = Response(json=character.owned_payload(), content_type='application/json')
+                response = Response(json=character.owned_payload, content_type='application/json')
 
                 log.info(
                     'update: character/id {}/{} with new data {}'.format(
@@ -116,7 +116,7 @@ class CharacterViews(BaseView):
 
                 get_all_data = []
                 for character in characters:
-                    get_all_data.append(character.owned_payload())
+                    get_all_data.append(character.owned_payload)
 
                 response = Response(json=get_all_data, content_type='application/json')
 
@@ -150,9 +150,9 @@ class CharactersViews(BaseView):
             for character in characters:
                 #if they're an admin they can see everything
                 if self.request.account.is_admin():
-                    get_all_data.append(character.owned_payload())
+                    get_all_data.append(character.owned_payload)
                 else:
-                    get_all_data.append(character.public_payload())
+                    get_all_data.append(character.public_payload)
 
             response = Response(json=get_all_data, content_type='application/json')
 
@@ -185,8 +185,7 @@ class CharacterItemViews(BaseView):
                         'get: item {}/{} of character/id {}/{}'.format(
                             item.blueprintId, item.id, character.name, character.id))
 
-                    print(item.owned_payload())
-                    response = Response(json=item.owned_payload(), content_type='application/json')
+                    response = Response(json=item.owned_payload, content_type='application/json')
 
                 else:
                     log.error(
@@ -236,7 +235,7 @@ class CharacterItemViews(BaseView):
                         item.amount = amount
                     item.set_updated()
 
-                    response = Response(json=item.owned_payload(), content_type='application/json')
+                    response = Response(json=item.owned_payload, content_type='application/json')
 
                 else:
                     log.error(
@@ -288,7 +287,7 @@ class CharacterItemViews(BaseView):
 
                     get_all_data = []
                     for item in items:
-                        get_all_data.append(item.owned_payload())
+                        get_all_data.append(item.owned_payload)
 
                     response = Response(json=get_all_data, content_type='application/json')
 
@@ -334,7 +333,7 @@ class CharacterItemsViews(BaseView):
 
                 get_all_data = []
                 for item in items:
-                    get_all_data.append(item.owned_payload())
+                    get_all_data.append(item.owned_payload)
 
                 response = Response(json=get_all_data, content_type='application/json')
 
@@ -381,7 +380,7 @@ class CharacterItemsViews(BaseView):
                     'create: item/amount {}/{} from character/id {}/{}'.format(
                         newItem.blueprintId, newItem.amount, character.name, character.id))
 
-                response = Response(json=newItem.owned_payload(), content_type='application/json')
+                response = Response(json=newItem.owned_payload, content_type='application/json')
 
             else:
                 log.error(

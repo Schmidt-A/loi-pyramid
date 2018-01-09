@@ -22,6 +22,7 @@ class Character(Base):
     account     = relationship('Account', back_populates='characters')
     items       = relationship('Item', back_populates='character')
 
+    @property
     def owned_payload(self):
         return {
             'id'        : self.id,
@@ -33,6 +34,7 @@ class Character(Base):
             'updated'   : self.updated
         }
 
+    @property
     def public_payload(self):
         return {
             'id'        : self.id,
