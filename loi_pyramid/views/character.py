@@ -72,8 +72,7 @@ class CharacterViews(BaseView):
 
                 log.info(
                     'update: character/id {}/{} with new data {}'.format(
-                    character.name, character.id, [put_data['accountId'],
-                    put_data['name'], put_data['exp'], put_data['area']]))
+                    character.name, character.id, [put_data['exp'], put_data['area']]))
 
             else:
                 log.error(

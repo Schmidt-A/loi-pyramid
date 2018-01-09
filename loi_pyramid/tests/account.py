@@ -37,8 +37,7 @@ class TestAccountViews(BaseTest):
         account_view = AccountViews(testing.DummyResource(), request)
         account_view.url = url_params
 
-        account_result = account_view.get().__json__(request)
-        return account_result
+        return account_view.get().json_body
 
     #Helper method for get all calls to /accounts
     def accounts_get_all(self, user_account):
@@ -47,11 +46,18 @@ class TestAccountViews(BaseTest):
 
         account_view = AccountsViews(testing.DummyResource(), request)
 
-        accounts_get = []
-        for account in account_view.get():
-            accounts_get.append(account.__json__(request))
+        return account_view.get().json_body
 
-        return accounts_get
+    #Helper method for get all calls to /account/{username}/characters
+    def account_characters_get_all(self, account, user_account):
+        resource = '/account/{}/characters'.format(account['username'])
+        url_params = {'username': account['username']}
+        request = self.dummy_request(self.session, (self.host+resource), user_account)
+
+        account_view = AccountCharactersViews(testing.DummyResource(), request)
+        account_view.url = url_params
+
+        return account_view.get().json_body
 
     #Test that we can get Tweek via get call
     def test_get(self):
@@ -74,28 +80,19 @@ class TestAccountViews(BaseTest):
     def test_get_all(self):
         accounts_result = self.accounts_get_all(self.accounts['tweek'])
 
-        self.assertEqual(len(accounts_result), 3)
-        tweek = accounts_result[0]
-        aez = accounts_result[1]
-        noob = accounts_result[2]
+        compare_items = []
+        for key, item in self.items.items():
+            if item['characterId'] == self.characters['jilin']['id']:
+                compare_items.append(item)
 
-        self.assertEqual(tweek['username'], self.accounts['tweek']['username'])
-        self.assertEqual(tweek['password'], self.accounts['tweek']['password'])
-        self.assertEqual(tweek['cdkey'], self.accounts['tweek']['cdkey'])
-        self.assertEqual(tweek['role'], self.accounts['tweek']['role'])
-        self.assertEqual(tweek['approved'], self.accounts['tweek']['approved'])
-        self.assertEqual(tweek['banned'], self.accounts['tweek']['banned'])
-
-        self.assertEqual(aez['username'], self.accounts['aez']['username'])
-        self.assertEqual(aez['password'], self.accounts['aez']['password'])
-        self.assertEqual(aez['cdkey'], self.accounts['aez']['cdkey'])
-        self.assertEqual(aez['role'], self.accounts['aez']['role'])
-        self.assertEqual(aez['approved'], self.accounts['aez']['approved'])
-        self.assertEqual(aez['banned'], self.accounts['aez']['banned'])
-
-        self.assertEqual(noob['username'], self.accounts['noob']['username'])
-        self.assertEqual(noob['password'], self.accounts['noob']['password'])
-        self.assertEqual(noob['cdkey'], self.accounts['noob']['cdkey'])
-        self.assertEqual(noob['role'], self.accounts['noob']['role'])
-        self.assertEqual(noob['approved'], self.accounts['noob']['approved'])
-        self.assertEqual(tweek['banned'], self.accounts['tweek']['banned'])
+        self.assertEqual(len(items_result), len(compare_items))
+        i = 0
+        for item in items_result:
+            compare_item = compare_items[i]
+            self.assertEqual(item['username'], compare_item['username'])
+            self.assertEqual(item['username'], compare_item['password'])
+            self.assertEqual(item['username'], compare_item['cdkey'])
+            self.assertEqual(item['username'], compare_item['role'])
+            self.assertEqual(item['username'], compare_item['approved'])
+            self.assertEqual(item['username'], compare_item['banned'])
+            i += 1
