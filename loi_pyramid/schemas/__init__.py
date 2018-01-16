@@ -10,5 +10,6 @@ from .action import *
 from .recipe import *
 from .item import *
 from .account import *
+from .ingredient import *
 
 Invalid = colander.Invalid

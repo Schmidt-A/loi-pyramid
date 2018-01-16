@@ -47,7 +47,7 @@ class TestRecipeViews(BaseTest):
 
         return recipe_view.get().json_body
 
-    #Test that we can get Tweek via get call
+    #Test that we can get the recipe to mine Iron via get call
     def test_get(self):
         recipe_result = self.recipe_get(self.recipes['iron'], self.accounts['tweek'])
 
@@ -58,8 +58,8 @@ class TestRecipeViews(BaseTest):
         self.assertEqual(recipe_result['cost'], self.recipes['iron']['cost'])
         self.assertEqual(recipe_result['requirement'], self.recipes['iron']['requirement'])
 
-    #Test that we cannot get Tam via get call
-    #Because he'll never nut up and log on
+    #Test that we cannot get Uranium via get call
+    #Because it's not a real thing in Faerun
     def test_get_not_found(self):
         with self.assertRaises(HTTPNotFound):
             self.recipe_get(self.fake_recipes['uranium'], self.accounts['tweek'])
