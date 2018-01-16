@@ -214,31 +214,31 @@ class FixtureHelper():
                 actions     = 1,
                 time        = 300,
                 cost        = '',
-                requirement = ''),
+                building    = 'gym'),
             'longsword': Recipe(
                 blueprint   = 'longsword',
-                name        = 'Craft Longsword',
+                name        = 'Craft {material} Longsword',
                 category    = 'melee',
                 actions     = 5,
                 time        = 3000,
                 cost        = 'metal:10',
-                requirement = ''),
-            'iron': Recipe(
-                blueprint   = 'iron',
-                name        = 'Mine for Iron Ore',
-                category    = 'metal',
+                building    = 'smith'),
+            'metal': Recipe(
+                blueprint   = 'metal',
+                name        = 'Mine for {material} Ore',
+                category    = 'ingredient',
                 actions     = 1,
                 time        = 300,
                 cost        = '',
-                requirement = ''),
-            'cold_iron': Recipe(
-                blueprint   = 'cold_iron',
-                name        = 'Mine for Cold Iron',
-                category    = 'metal',
-                actions     = 3,
-                time        = 900,
+                building    = 'mine'),
+            'wood': Recipe(
+                blueprint   = 'wood',
+                name        = 'Chop {material} Wood',
+                category    = 'ingredient',
+                actions     = 1,
+                time        = 300,
                 cost        = '',
-                requirement = 'mining:2')
+                building    = 'forest')
         }
         self.session.add_all(list(recipes.values()))
         test_recipes = self.convert_to_json(recipes)
@@ -246,14 +246,14 @@ class FixtureHelper():
 
     def fake_recipe_data(self):
         recipes = {
-            'uranium': Recipe(
-                blueprint   = 'uranium',
-                name        = 'Mine for Uranium',
-                category    = 'metal',
+            'lyrium': Recipe(
+                blueprint   = 'lyrium',
+                name        = 'Extract Lyrium',
+                category    = 'ingredient',
                 actions     = 10,
                 time        = 1,
                 cost        = '',
-                requirement = '')
+                building    = 'mine')
         }
         fake_recipes = self.convert_to_json(recipes)
         return fake_recipes

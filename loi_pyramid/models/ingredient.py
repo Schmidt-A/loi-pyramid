@@ -16,8 +16,8 @@ class Ingredient(Base):
     tier                = Column(Integer)
     melee_stats         = Column(String)
     half_melee_stats    = Column(String)
-    armor_stats        = Column(String)
-    half_armor_stats   = Column(String)
+    armor_stats         = Column(String)
+    half_armor_stats    = Column(String)
 
     @property
     def public_payload(self):
