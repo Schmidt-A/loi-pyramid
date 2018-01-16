@@ -14,7 +14,7 @@ class Item(Base):
     __tablename__ = 'items'
     id          = Column(Integer, primary_key=True)
     characterId = Column(Integer, ForeignKey('characters.id'))
-    blueprintId = Column(String)
+    resref      = Column(String)
     amount      = Column(Integer)
 
     #Is it worth doing backpopulation? It's only useful for chained deletes
@@ -25,7 +25,7 @@ class Item(Base):
         return {
             'id'            : self.id,
             'characterId'   : self.characterId,
-            'blueprintId'   : self.blueprintId,
+            'resref'        : self.resref,
             'amount'        : self.amount,
             'created'       : self.created,
             'updated'       : self.updated

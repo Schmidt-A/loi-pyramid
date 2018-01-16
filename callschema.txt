@@ -48,7 +48,7 @@ response
 //Do we want a data driven way of displaying the available econo actions (recipes?)
 {
     id: 2
-    blueprintId: cotton_shirt
+    resref: cotton_shirt
     actions: 1
     time: 10 minutes
     cost: 5 cotton_fabric

@@ -19,13 +19,13 @@ class TestCharacterViews(BaseTest):
 
         self.accounts = self.fixture_helper.account_data()
         self.characters = self.fixture_helper.character_data()
-        self.items = self.fixture_helper.items_data()
+        self.items = self.fixture_helper.item_data()
 
         self.session.flush()
 
         self.fake_characters = self.fixture_helper.fake_character_data()
         self.fake_accounts = self.fixture_helper.fake_account_data()
-        self.fake_items = self.fixture_helper.fake_items_data()
+        self.fake_items = self.fixture_helper.fake_item_data()
 
     #Helper method for get calls to /character/{id}
     def character_get(self, character, account):
@@ -100,7 +100,7 @@ class TestCharacterViews(BaseTest):
 
         item_payload = {
             'characterId' : item['characterId'],
-            'blueprintId' : item['blueprintId'],
+            'resref' : item['resref'],
             'amount'      : item['amount']
         }
 
@@ -145,7 +145,7 @@ class TestCharacterViews(BaseTest):
 
         item_payload = {
             'characterId' : item['characterId'],
-            'blueprintId' : item['blueprintId'],
+            'resref' : item['resref'],
             'amount'      : item['amount']
         }
 
@@ -310,7 +310,7 @@ class TestCharacterViews(BaseTest):
         money = self.item_get(self.characters['jilin'], self.items['noob_money'], self.accounts['noob'])
 
         self.assertEqual(money['characterId'], self.characters['jilin']['id'])
-        self.assertEqual(money['blueprintId'], self.items['noob_money']['blueprintId'])
+        self.assertEqual(money['resref'], self.items['noob_money']['resref'])
         self.assertEqual(money['amount'], self.items['noob_money']['amount'])
         self.assertEqual(money['created'], self.items['noob_money']['created'])
         self.assertEqual(money['updated'], self.items['noob_money']['updated'])
@@ -327,7 +327,7 @@ class TestCharacterViews(BaseTest):
         money = self.item_get(self.characters['jilin'], self.items['noob_money'], self.accounts['aez'])
 
         self.assertEqual(money['characterId'], self.characters['jilin']['id'])
-        self.assertEqual(money['blueprintId'], self.items['noob_money']['blueprintId'])
+        self.assertEqual(money['resref'], self.items['noob_money']['resref'])
         self.assertEqual(money['amount'], self.items['noob_money']['amount'])
         self.assertEqual(money['created'], self.items['noob_money']['created'])
         self.assertEqual(money['updated'], self.items['noob_money']['updated'])
@@ -351,7 +351,7 @@ class TestCharacterViews(BaseTest):
         item_result = self.item_update(self.characters['alrunden'], test_money, self.accounts['aez'])
 
         self.assertEqual(item_result['characterId'], test_money['characterId'])
-        self.assertEqual(item_result['blueprintId'], test_money['blueprintId'])
+        self.assertEqual(item_result['resref'], test_money['resref'])
         self.assertEqual(item_result['amount'], test_money['amount'])
         self.assertEqual(item_result['created'], test_money['created'])
         self.assertEqual(item_result['updated'], test_money['updated'])
@@ -434,7 +434,7 @@ class TestCharacterViews(BaseTest):
         for item in items_result:
             compare_item = compare_items[i]
             self.assertEqual(item['characterId'], compare_item['characterId'])
-            self.assertEqual(item['blueprintId'], compare_item['blueprintId'])
+            self.assertEqual(item['resref'], compare_item['resref'])
             self.assertEqual(item['amount'], compare_item['amount'])
             self.assertEqual(item['created'], compare_item['created'])
             self.assertEqual(item['updated'], compare_item['updated'])
@@ -461,7 +461,7 @@ class TestCharacterViews(BaseTest):
         for item in items_result:
             compare_item = compare_items[i]
             self.assertEqual(item['characterId'], compare_item['characterId'])
-            self.assertEqual(item['blueprintId'], compare_item['blueprintId'])
+            self.assertEqual(item['resref'], compare_item['resref'])
             self.assertEqual(item['amount'], compare_item['amount'])
             self.assertEqual(item['created'], compare_item['created'])
             self.assertEqual(item['updated'], compare_item['updated'])
@@ -479,7 +479,7 @@ class TestCharacterViews(BaseTest):
         item_result = self.items_create(self.characters['alrunden'], self.fake_items['op_armor'], self.accounts['aez'])
 
         self.assertEqual(item_result['characterId'], self.fake_items['op_armor']['characterId'])
-        self.assertEqual(item_result['blueprintId'], self.fake_items['op_armor']['blueprintId'])
+        self.assertEqual(item_result['resref'], self.fake_items['op_armor']['resref'])
         self.assertEqual(item_result['amount'], self.fake_items['op_armor']['amount'])
         #TODO:Created and updated tests
 

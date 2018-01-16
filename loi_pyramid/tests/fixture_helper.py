@@ -4,6 +4,7 @@ from ..models import Faction
 from ..models import Reputation
 from ..models import Item
 from ..models import Account
+from ..models import Recipe
 
 #TODO: Fix flask rules for indentation
 class FixtureHelper():
@@ -117,54 +118,54 @@ class FixtureHelper():
         fake_characters = self.convert_to_json(characters)
         return fake_characters
 
-    def items_data(self):
+    def item_data(self):
         items = {
             'al_grain': Item(
                 id          = 1,
                 characterId = 2,
-                blueprintId = 'grain',
+                resref      = 'grain',
                 amount      = 10,
                 created     = None,
                 updated     = None),
             'al_cow': Item(
                 id          = 2,
                 characterId = 2,
-                blueprintId = 'cow',
+                resref      = 'cow',
                 amount      = 5,
                 created     = None,
                 updated     = None),
             'al_sheep': Item(
                 id          = 3,
                 characterId = 2,
-                blueprintId = 'sheep',
+                resref      = 'sheep',
                 amount      = 20,
                 created     = None,
                 updated     = None),
             'al_money': Item(
                 id          = 4,
                 characterId = 2,
-                blueprintId = 'gp',
+                resref      = 'gp',
                 amount      = 400,
                 created     = None,
                 updated     = None),
             'sio_money': Item(
                 id          = 5,
                 characterId = 1,
-                blueprintId = 'gp',
+                resref      = 'gp',
                 amount      = 50,
                 created     = None,
                 updated     = None),
             'noob_money': Item(
                 id          = 6,
                 characterId = 4,
-                blueprintId = 'gp',
+                resref      = 'gp',
                 amount      = 11,
                 created     = None,
                 updated     = None),
             'noob_copper': Item(
                 id          = 7,
                 characterId = 4,
-                blueprintId = 'copper',
+                resref      = 'copper',
                 amount      = 3,
                 created     = None,
                 updated     = None)
@@ -173,13 +174,13 @@ class FixtureHelper():
         test_items = self.convert_to_json(items)
         return test_items
 
-    def fake_items_data(self):
+    def fake_item_data(self):
         items = {
             #not yet added, to be used for create
             'op_armor': Item(
                 id          = 20,
                 characterId = 2,
-                blueprintId = 'op_armor',
+                resref      = 'op_armor',
                 amount      = 1,
                 created     = None,
                 updated     = None),
@@ -187,7 +188,7 @@ class FixtureHelper():
             'al_zombie': Item(
                 id          = 21,
                 characterId = 2,
-                blueprintId = 'zombie_guard',
+                resref      = 'zombie_guard',
                 amount      = 2,
                 created     = None,
                 updated     = None),
@@ -195,13 +196,66 @@ class FixtureHelper():
             'cheat_sword': Item(
                 id          = 22,
                 characterId = 4,
-                blueprintId = 'scimitar_plus_5',
+                resref      = 'scimitar_plus_5',
                 amount      = 1,
                 created     = None,
                 updated     = None),
         }
         fake_items = self.convert_to_json(items)
         return fake_items
+
+    def recipe_data(self):
+        recipes = {
+            'exp': Recipe(
+                blueprint   = 'exp',
+                name        = 'Train Yourself',
+                category    = 'exp',
+                actions     = 1,
+                time        = 300,
+                cost        = '',
+                requirement = ''),
+            'longsword': Recipe(
+                blueprint   = 'longsword',
+                name        = 'Craft Longsword',
+                category    = 'melee',
+                actions     = 5,
+                time        = 3000,
+                cost        = 'metal:10',
+                requirement = ''),
+            'iron': Recipe(
+                blueprint   = 'iron',
+                name        = 'Mine for Iron Ore',
+                category    = 'metal',
+                actions     = 1,
+                time        = 300,
+                cost        = '',
+                requirement = ''),
+            'cold_iron': Recipe(
+                blueprint   = 'cold_iron',
+                name        = 'Mine for Cold Iron',
+                category    = 'metal',
+                actions     = 3,
+                time        = 900,
+                cost        = '',
+                requirement = 'mining:2')
+        }
+        self.session.add_all(list(recipes.values()))
+        test_recipes = self.convert_to_json(recipes)
+        return test_recipes
+
+    def fake_recipe_data(self):
+        recipes = {
+            'uranium': Recipe(
+                blueprint   = 'uranium',
+                name        = 'Mine for Uranium',
+                category    = 'metal',
+                actions     = 10,
+                time        = 1,
+                cost        = '',
+                requirement = '')
+        }
+        fake_recipes = self.convert_to_json(recipes)
+        return fake_recipes
 
     def faction_data(self):
         factions = {
