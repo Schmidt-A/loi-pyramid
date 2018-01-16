@@ -17,7 +17,6 @@ class Recipe(Base):
     time        = Column(Integer)
     cost        = Column(String)
     building    = Column(String)
-    skill       = Column(Integer)
 
     @property
     def public_payload(self):
