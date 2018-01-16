@@ -5,6 +5,7 @@ from ..models import Reputation
 from ..models import Item
 from ..models import Account
 from ..models import Recipe
+from ..models import Ingredient
 
 #TODO: Fix flask rules for indentation
 class FixtureHelper():
@@ -256,6 +257,46 @@ class FixtureHelper():
         }
         fake_recipes = self.convert_to_json(recipes)
         return fake_recipes
+
+    def ingredient_data(self):
+        ingredients = {
+            'iron': Ingredient(
+                material            = 'iron',
+                name                = 'Iron Ore',
+                category            = 'metal',
+                tier                = 0,
+                melee_stats         = 'damage:2',
+                half_melee_stats    = 'damage:1',
+                armor_stats         = 'slash_reduce:2/1',
+                half_armor_stats    = 'slash_reduce:2/1'),
+            'cold_iron': Ingredient(
+                material            = 'cold_iron',
+                name                = 'Cold Iron',
+                category            = 'metal',
+                tier                = 2,
+                melee_stats         = 'damage_demon:2d6',
+                half_melee_stats    = 'damage_demon:1d6',
+                armor_stats         = 'armor_demon:4',
+                half_armor_stats    = 'armor_demon:3')
+        }
+        self.session.add_all(list(ingredients.values()))
+        test_ingredients = self.convert_to_json(ingredients)
+        return test_ingredients
+
+    def fake_ingredient_data(self):
+        ingredients = {
+            'uranium': Ingredient(
+                material            = 'uranium',
+                name                = 'Uranium Ore',
+                category            = 'metal',
+                tier                = 5,
+                melee_stats         = 'enhance:10',
+                half_melee_stats    = 'enhance:5',
+                armor_stats         = 'armor:10',
+                half_armor_stats    = 'armor:5')
+        }
+        fake_ingredients = self.convert_to_json(ingredients)
+        return fake_ingredients
 
     def faction_data(self):
         factions = {
