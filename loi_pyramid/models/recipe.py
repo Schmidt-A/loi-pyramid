@@ -16,7 +16,8 @@ class Recipe(Base):
     actions     = Column(Integer)
     time        = Column(Integer)
     cost        = Column(String)
-    requirement = Column(String)
+    building    = Column(String)
+    skill       = Column(Integer)
 
     @property
     def public_payload(self):
@@ -27,5 +28,5 @@ class Recipe(Base):
             'actions'       : self.actions,
             'time'          : self.time,
             'cost'          : self.cost,
-            'requirement'   : self.requirement
+            'building'      : self.building
         }

@@ -49,20 +49,20 @@ class TestRecipeViews(BaseTest):
 
     #Test that we can get the recipe to mine Iron via get call
     def test_get(self):
-        recipe_result = self.recipe_get(self.recipes['iron'], self.accounts['tweek'])
+        recipe_result = self.recipe_get(self.recipes['metal'], self.accounts['tweek'])
 
-        self.assertEqual(recipe_result['name'], self.recipes['iron']['name'])
-        self.assertEqual(recipe_result['category'], self.recipes['iron']['category'])
-        self.assertEqual(recipe_result['actions'], self.recipes['iron']['actions'])
-        self.assertEqual(recipe_result['time'], self.recipes['iron']['time'])
-        self.assertEqual(recipe_result['cost'], self.recipes['iron']['cost'])
-        self.assertEqual(recipe_result['requirement'], self.recipes['iron']['requirement'])
+        self.assertEqual(recipe_result['name'], self.recipes['metal']['name'])
+        self.assertEqual(recipe_result['category'], self.recipes['metal']['category'])
+        self.assertEqual(recipe_result['actions'], self.recipes['metal']['actions'])
+        self.assertEqual(recipe_result['time'], self.recipes['metal']['time'])
+        self.assertEqual(recipe_result['cost'], self.recipes['metal']['cost'])
+        self.assertEqual(recipe_result['building'], self.recipes['metal']['building'])
 
-    #Test that we cannot get Uranium via get call
+    #Test that we cannot get Lyrium via get call
     #Because it's not a real thing in Faerun
     def test_get_not_found(self):
         with self.assertRaises(HTTPNotFound):
-            self.recipe_get(self.fake_recipes['uranium'], self.accounts['tweek'])
+            self.recipe_get(self.fake_recipes['lyrium'], self.accounts['tweek'])
 
     #Test that we can get all recipes via get all call
     #As those are the only two created recipes
@@ -80,5 +80,5 @@ class TestRecipeViews(BaseTest):
             self.assertEqual(recipe['actions'], compare_recipe['actions'])
             self.assertEqual(recipe['time'], compare_recipe['time'])
             self.assertEqual(recipe['cost'], compare_recipe['cost'])
-            self.assertEqual(recipe['requirement'], compare_recipe['requirement'])
+            self.assertEqual(recipe['building'], compare_recipe['building'])
             i += 1
