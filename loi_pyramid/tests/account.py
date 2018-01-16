@@ -6,7 +6,6 @@ from pyramid import testing
 
 from .base_test import BaseTest
 from ..views.account import AccountViews, AccountsViews, AccountCharactersView
-from ..security import hash_password
 
 
 class TestAccountViews(BaseTest):

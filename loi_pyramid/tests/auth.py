@@ -1,7 +1,6 @@
 # flake8: noqa
 from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized, HTTPForbidden
 from pyramid import testing
-from ..security import hash_password
 import copy
 
 from .base_test import BaseTest

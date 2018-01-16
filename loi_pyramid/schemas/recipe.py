@@ -1,6 +1,8 @@
 import colander
 
-class RecipeUpdateSchema(colander.MappingSchema):
+class RecipeAdminUpdate(colander.MappingSchema):
+    name        = colander.SchemaNode(colander.String())
+    category    = colander.SchemaNode(colander.String())
     actions     = colander.SchemaNode(colander.Integer())
     time        = colander.SchemaNode(colander.Integer())
     cost        = colander.SchemaNode(colander.String())

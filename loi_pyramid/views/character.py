@@ -182,7 +182,7 @@ class CharacterItemViews(BaseView):
                 if character.id == item.characterId:
                     log.info(
                         'get: item {}/{} of character/id {}/{}'.format(
-                            item.blueprintId, item.id, character.name, character.id))
+                            item.resref, item.id, character.name, character.id))
 
                     response = Response(json=item.owned_payload, content_type='application/json')
 
@@ -227,7 +227,7 @@ class CharacterItemViews(BaseView):
                 if character.id == item.characterId:
                     log.info(
                         'update: item/amount {}/{} from character/id {}/{} with new data {}'.format(
-                            item.blueprintId, item.amount, character.name, character.id, put_data['amount']))
+                            item.resref, item.amount, character.name, character.id, put_data['amount']))
 
                     #should we allow this api to update all more things like transferring api ownership?
                     if amount:
@@ -278,7 +278,7 @@ class CharacterItemViews(BaseView):
                     item_query.filter(Item.id == self.url['itemId']).delete()
                     log.info(
                         'delete: item/amount {}/{} from character/id {}/{}'.format(
-                            item.blueprintId, item.amount, character.name, character.id))
+                            item.resref, item.amount, character.name, character.id))
 
                     #we should return the full list of characters for a delete attempt
                     inv_query = self.request.dbsession.query(Item)
@@ -362,14 +362,14 @@ class CharacterItemsViews(BaseView):
                 schema = ItemAdminCreate()
                 post_data = schema.deserialize(self.request.POST)
 
-                #TODO: Create a way to check if the character already owns an item of the same blueprintId
+                #TODO: Create a way to check if the character already owns an item of the same resref
                 characterId = character.id
-                blueprintId = post_data['blueprintId']
+                resref = post_data['resref']
                 amount = post_data['amount']
 
                 newItem = Item(
                     characterId = characterId,
-                    blueprintId = blueprintId,
+                    resref = resref,
                     amount      = amount)
                 self.request.dbsession.add(newItem)
                 newItem.set_created()
@@ -377,7 +377,7 @@ class CharacterItemsViews(BaseView):
 
                 log.info(
                     'create: item/amount {}/{} from character/id {}/{}'.format(
-                        newItem.blueprintId, newItem.amount, character.name, character.id))
+                        newItem.resref, newItem.amount, character.name, character.id))
 
                 response = Response(json=newItem.owned_payload, content_type='application/json')
 
