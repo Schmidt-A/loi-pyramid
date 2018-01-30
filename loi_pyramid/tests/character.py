@@ -5,6 +5,7 @@ import copy
 
 from .base_test import BaseTest
 from ..views.character import CharacterViews, CharactersViews, CharacterItemsViews, CharacterItemViews
+from ..views.character import CharacterActionViews, CharacterActionsViews
 
 
 class TestCharacterViews(BaseTest):
@@ -20,12 +21,14 @@ class TestCharacterViews(BaseTest):
         self.accounts = self.fixture_helper.account_data()
         self.characters = self.fixture_helper.character_data()
         self.items = self.fixture_helper.item_data()
+        self.actions = self.fixture_helper.action_data()
 
         self.session.flush()
 
         self.fake_characters = self.fixture_helper.fake_character_data()
         self.fake_accounts = self.fixture_helper.fake_account_data()
         self.fake_items = self.fixture_helper.fake_item_data()
+        self.fake_actions = self.fixture_helper.fake_action_data()
 
     #Helper method for get calls to /character/{id}
     def character_get(self, character, account):
@@ -99,7 +102,6 @@ class TestCharacterViews(BaseTest):
         url_params = {'charId': character['id'], 'itemId': item['id']}
 
         item_payload = {
-            'characterId' : item['characterId'],
             'resref' : item['resref'],
             'amount'      : item['amount']
         }
@@ -156,6 +158,62 @@ class TestCharacterViews(BaseTest):
                 account)
 
         char_view = CharacterItemsViews(testing.DummyResource(), request)
+        char_view.url = url_params
+
+        return char_view.create().json_body
+
+    #Helper method for get calls for /character/{id}/action/{id}
+    def action_get(self, character, action, account):
+        resource = '/character/{}/action/{}'.format(character['id'], action['id'])
+        url_params = {'charId': character['id'], 'actionId': action['id']}
+
+        request = self.dummy_request(self.session, (self.host+resource), account)
+
+        char_view = CharacterActionViews(testing.DummyResource(), request)
+        char_view.url = url_params
+
+        return char_view.get().json_body
+
+    #Helper method for get all calls to /character/{id}/actions
+    def actions_get_all(self, character, account):
+        resource = '/character/{}/actions'.format(character['id'])
+        url_params = {'id': character['id']}
+
+        request = self.dummy_request(self.session, (self.host+resource), account)
+
+        char_view = CharacterActionsViews(testing.DummyResource(), request)
+        char_view.url = url_params
+
+        return char_view.get().json_body
+
+    #Helper method for delete calls for /character/{id}/action/{id}
+    def action_delete(self, character, action, account):
+        resource = '/character/{}/action/{}'.format(character['id'],action['id'])
+        url_params = {'charId': character['id'], 'actionId': action['id']}
+        request = self.dummy_delete_request(self.session, (self.host+resource), account)
+
+        char_view = CharacterActionViews(testing.DummyResource(), request)
+        char_view.url = url_params
+
+        return char_view.delete().json_body
+
+    #Helper method for create calls to /character/{id}/actions
+    def actions_create(self, character, action, account):
+        resource = '/character/{}'.format(character['id'])
+        url_params = {'id': character['id']}
+
+        action_payload = {
+            'amount'      : action['amount'],
+            'recipeId' : action['recipeId']
+        }
+
+        request = self.dummy_post_request(
+                self.session,
+                (self.host+resource),
+                action_payload,
+                account)
+
+        char_view = CharacterActionsViews(testing.DummyResource(), request)
         char_view.url = url_params
 
         return char_view.create().json_body
@@ -315,7 +373,7 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(money['created'], self.items['noob_money']['created'])
         self.assertEqual(money['updated'], self.items['noob_money']['updated'])
 
-    #Test that we cannot get the Jilin's money via get call when not owner
+    #Test that we cannot get the Al's money via get call when not owner
     #Because the noob account doesn't own alrunden
     def test_not_own_get_item(self):
         with self.assertRaises(HTTPClientError):
@@ -427,8 +485,6 @@ class TestCharacterViews(BaseTest):
         for key, item in self.items.items():
             if item['characterId'] == self.characters['jilin']['id']:
                 compare_items.append(item)
-        print(items_result)
-        print(compare_items)
         self.assertEqual(len(items_result), len(compare_items))
         i = 0
         for item in items_result:
@@ -440,7 +496,7 @@ class TestCharacterViews(BaseTest):
             self.assertEqual(item['updated'], compare_item['updated'])
             i += 1
 
-    #Test that we can get Jilin's items via get all call when not owner
+    #Test that we can't get Al's items via get all call when not owner
     #Because you can't see other people's shit
     def test_not_own_get_all_item(self):
         with self.assertRaises(HTTPForbidden):
@@ -494,3 +550,132 @@ class TestCharacterViews(BaseTest):
     def test_not_admin_create_item(self):
         with self.assertRaises(HTTPForbidden):
             self.items_create(self.characters['jilin'], self.fake_items['cheat_sword'], self.accounts['noob'])
+
+    #Test that we can get the Jilin's training via get call when owner
+    #Because the noob account owns jilin
+    def test_own_get_action(self):
+        train = self.action_get(self.characters['jilin'], self.actions['noob_train'], self.accounts['noob'])
+
+        self.assertEqual(train['characterId'], self.characters['jilin']['id'])
+        self.assertEqual(train['resref'], self.actions['noob_train']['resref'])
+        self.assertEqual(train['amount'], self.actions['noob_train']['amount'])
+        self.assertEqual(train['recipeId'], self.actions['noob_train']['recipeId'])
+        self.assertEqual(train['ingredients'], self.actions['noob_train']['ingredients'])
+        self.assertEqual(train['completed'], self.actions['noob_train']['completed'])
+
+    #Test that we cannot get Al's crafting via get call when not owner
+    #Because the noob account doesn't own alrunden
+    def test_not_own_get_action(self):
+        with self.assertRaises(HTTPClientError):
+            self.action_get(self.characters['alrunden'], self.actions['al_craft'], self.accounts['noob'])
+
+    #Test that we can see the Jilin's mining via get call when admin
+    #Because admins can access any character
+    def test_admin_get_action(self):
+        mining = self.action_get(self.characters['jilin'], self.actions['noob_mine'], self.accounts['aez'])
+
+        self.assertEqual(mining['characterId'], self.characters['jilin']['id'])
+        self.assertEqual(mining['resref'], self.actions['noob_mine']['resref'])
+        self.assertEqual(mining['amount'], self.actions['noob_mine']['amount'])
+        self.assertEqual(mining['recipeId'], self.actions['noob_mine']['recipeId'])
+        self.assertEqual(mining['ingredients'], self.actions['noob_mine']['ingredients'])
+        self.assertEqual(mining['completed'], self.actions['noob_mine']['completed'])
+
+    #Test that we cannot get Al's crafting with Siobhan's id via get call when admin
+    #Because those are owned by Al's character, not Siobhan's
+    def test_admin_get_action_not_assoc(self):
+        with self.assertRaises(HTTPClientError):
+            self.action_get(self.characters.get('siobhan'), self.actions['al_craft'], self.accounts['aez'])
+
+    #Test that we cannot get the noob's cheating via get call when admin
+    #Because it ain't created, because the noob can't cheat
+    def test_admin_get_action_not_found(self):
+        with self.assertRaises(HTTPNotFound):
+            self.action_get(self.characters['jilin'], self.fake_actions['noob_cheat'], self.accounts['aez'])
+
+    #Test that we can remove Al's crafting via delete call when admin
+    #Test that crafting is not accessible via get call
+    #Because the noob doens't know what he's doing
+    def test_owner_delete_action(self):
+        actions_result = self.action_delete(self.characters['jilin'], self.actions['noob_mine'], self.accounts['noob'])
+
+        compare_actions = []
+        for key, action in self.actions.items():
+            if action['characterId'] == self.characters['jilin']['id']:
+                compare_actions.append(action)
+
+        self.assertEqual(len(actions_result), len(compare_actions) - 1)
+        with self.assertRaises(HTTPNotFound):
+            self.action_get(self.characters['jilin'], self.actions['noob_mine'], self.accounts['noob'])
+
+    #Test that we cannot delete noob's mining with Siobhan's id via get call when admin
+    #Because those are owned by noob's character, not Siobhan's
+    def test_admin_delete_action_not_assoc(self):
+        with self.assertRaises(HTTPClientError):
+            self.action_delete(self.characters.get('siobhan'), self.actions['noob_mine'], self.accounts['aez'])
+
+    #Test that we cannot delete noob's cheat via delete call when admin
+    #Because it ain't created, because the noob can't cheat
+    def test_admin_delete_action_not_found(self):
+        with self.assertRaises(HTTPNotFound):
+            self.action_delete(self.characters['alrunden'], self.fake_actions['noob_cheat'], self.accounts['aez'])
+
+    #Test that we cannot remove crafing from Al's actions via delete call when not admin
+    #Because they don't own Al's character
+    def test_not_owner_delete_action(self):
+        with self.assertRaises(HTTPForbidden):
+            self.action_delete(self.characters['alrunden'], self.actions['al_craft'], self.accounts['noob'])
+
+    #Test that we can get Jilin's actions via get all call when owner
+    def test_own_get_all_action(self):
+        actions_result = self.actions_get_all(self.characters['jilin'], self.accounts['noob'])
+
+        compare_actions = []
+        for key, action in self.actions.items():
+            if action['characterId'] == self.characters['jilin']['id']:
+                compare_actions.append(action)
+        self.assertEqual(len(actions_result), len(compare_actions))
+        i = 0
+        for action in actions_result:
+            compare_action = compare_actions[i]
+            self.assertEqual(action['characterId'], compare_action['characterId'])
+            self.assertEqual(action['resref'], compare_action['resref'])
+            self.assertEqual(action['amount'], compare_action['amount'])
+            self.assertEqual(action['recipeId'], compare_action['recipeId'])
+            self.assertEqual(action['ingredients'], compare_action['ingredients'])
+            self.assertEqual(action['completed'], compare_action['completed'])
+            i += 1
+
+    #Test that we can't get Al's actions via get all call when not owner
+    #Because you can't see other people's shit
+    def test_not_own_get_all_action(self):
+        with self.assertRaises(HTTPForbidden):
+            self.actions_get_all(self.characters['alrunden'], self.accounts['noob'])
+
+    #Test that we can get Jilin's actions via get all call when admin
+    #Because admins can see everything
+    def test_admin_get_all_action(self):
+        actions_result = self.actions_get_all(self.characters['jilin'], self.accounts['aez'])
+
+        compare_actions = []
+        for key, action in self.actions.items():
+            if action['characterId'] == self.characters['jilin']['id']:
+                compare_actions.append(action)
+
+        self.assertEqual(len(actions_result), len(compare_actions))
+        i = 0
+        for action in actions_result:
+            compare_action = compare_actions[i]
+            self.assertEqual(action['characterId'], compare_action['characterId'])
+            self.assertEqual(action['resref'], compare_action['resref'])
+            self.assertEqual(action['amount'], compare_action['amount'])
+            self.assertEqual(action['recipeId'], compare_action['recipeId'])
+            self.assertEqual(action['ingredients'], compare_action['ingredients'])
+            self.assertEqual(action['completed'], compare_action['completed'])
+            i += 1
+
+    #Test that we cannot get Meero's actions via get all call when admin
+    #Because she ain't created
+    def test_admin_get_all_actions_not_found(self):
+        with self.assertRaises(HTTPNotFound):
+            self.actions_get_all(self.fake_characters['meero'], self.accounts['aez'])

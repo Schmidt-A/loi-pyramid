@@ -49,3 +49,4 @@ def main(argv=sys.argv):
         fixture_helper.item_data()
         fixture_helper.recipe_data()
         fixture_helper.ingredient_data()
+        fixture_helper.action_data()

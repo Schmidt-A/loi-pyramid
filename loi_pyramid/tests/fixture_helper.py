@@ -6,6 +6,7 @@ from ..models import Item
 from ..models import Account
 from ..models import Recipe
 from ..models import Ingredient
+from ..models import Action
 
 #TODO: Fix flask rules for indentation
 class FixtureHelper():
@@ -193,7 +194,7 @@ class FixtureHelper():
                 amount      = 2,
                 created     = None,
                 updated     = None),
-            #not yet added, to be used for create
+            #non existent item, to be used for negative testing
             'cheat_sword': Item(
                 id          = 22,
                 characterId = 4,
@@ -297,6 +298,51 @@ class FixtureHelper():
         }
         fake_ingredients = self.convert_to_json(ingredients)
         return fake_ingredients
+
+    def action_data(self):
+        actions = {
+            'al_craft': Action(
+                id          = 1,
+                characterId = 2,
+                amount      = 1,
+                resref      = 'longsword_damage_2',
+                recipeId    = 'longsword',
+                ingredients = 'iron:10',
+                completed   = '3000'),
+            'noob_train': Action(
+                id          = 2,
+                characterId = 4,
+                amount      = 5,
+                resref      = 'exp_10',
+                recipeId    = 'exp',
+                ingredients = '',
+                completed   = '1500'),
+            'noob_mine': Action(
+                id          = 3,
+                characterId = 4,
+                amount      = 3,
+                resref      = 'iron',
+                recipeId    = 'iron',
+                ingredients = '',
+                completed   = '900')
+        }
+        self.session.add_all(list(actions.values()))
+        test_actions = self.convert_to_json(actions)
+        return test_actions
+
+    def fake_action_data(self):
+        actions = {
+            'noob_cheat': Action(
+                id          = 14,
+                characterId = 4,
+                amount      = 2,
+                resref      = 'longsword_of_boners',
+                recipeId    = 'longsword',
+                ingredients = 'boner:10',
+                completed   = '1'),
+        }
+        fake_actions = self.convert_to_json(actions)
+        return fake_actions
 
     def faction_data(self):
         factions = {

@@ -7,7 +7,7 @@ from pyramid.response import Response
 from sqlalchemy.orm.exc import NoResultFound
 
 from . import BaseView
-from ..models import Character, Item, Account
+from ..models import Character, Item, Account, Action
 from ..decorators import set_authorized
 from ..schemas import CharacterAdminUpdate, ItemAdminUpdate, ItemAdminCreate, Invalid
 
@@ -369,7 +369,7 @@ class CharacterItemsViews(BaseView):
 
                 newItem = Item(
                     characterId = characterId,
-                    resref = resref,
+                    resref      = resref,
                     amount      = amount)
                 self.request.dbsession.add(newItem)
                 newItem.set_created()
@@ -396,5 +396,141 @@ class CharacterItemsViews(BaseView):
             log.error(
                 'update: could not deserialize {}'.format(self.request.POST))
             raise HTTPClientError
+
+        return response
+
+
+#Govern calls to an action of a character /character/{id}/action/{id}
+@set_authorized
+@view_defaults(route_name='character_action', renderer='json')
+class CharacterActionViews(BaseView):
+
+    @view_config(request_method='GET')
+    def get(self):
+        try:
+            query = self.request.dbsession.query(Character)
+            character = query.filter(Character.id == self.url['charId']).one()
+
+            #if they own it or they're an admin
+            #infuriatingly, unittest does not recognize the valid character.account relationship
+            if self.request.account.is_owner(character) or self.request.account.is_admin():
+
+                action_query = self.request.dbsession.query(Action)
+                action = action_query.filter(Action.id == self.url['actionId']).one()
+
+                if character.id == action.characterId:
+                    log.info(
+                        'get: action {}/{} of character/id {}/{}'.format(
+                            action.resref, action.id, character.name, character.id))
+
+                    response = Response(json=action.owned_payload, content_type='application/json')
+
+                else:
+                    log.error(
+                        'update: action id \'{}\' not associated with char id \'{}\''.format(
+                            self.url['actionId'], self.url['charId']))
+                    raise HTTPClientError
+
+            else:
+                log.error(
+                    'update: character id {} is not associated with account {}'.format(
+                        self.url['charId'], self.request.account.username))
+                raise HTTPForbidden
+
+        except NoResultFound:
+            log.error(
+                'get: action id \'{}\', char id \'{}\', or account \'{}\' not found'.format(
+                    self.url['actionId'], self.url['charId'], self.request.authenticated_userid))
+            raise HTTPNotFound
+
+        return response
+
+    @view_config(request_method='DELETE')
+    def delete(self):
+        try:
+            #Maybe remove the char lookup?
+            query = self.request.dbsession.query(Character)
+            character = query.filter(Character.id == self.url['charId']).one()
+
+            #if they own it or they're an admin
+            #infuriatingly, unittest does not recognize the valid character.account relationship
+            if self.request.account.is_owner(character) or self.request.account.is_admin():
+
+                action_query = self.request.dbsession.query(Action)
+                action = action_query.filter(Action.id == self.url['actionId']).one()
+
+                if character.id == action.characterId:
+                    action_query.filter(Action.id == self.url['actionId']).delete()
+                    log.info(
+                        'delete: action/amount {}/{} from character/id {}/{}'.format(
+                            action.resref, action.amount, character.name, character.id))
+
+                    #we should return the full list of characters for a delete attempt
+                    inv_query = self.request.dbsession.query(Action)
+                    actions = inv_query.filter(Action.characterId == self.url['charId']).all()
+
+                    get_all_data = []
+                    for action in actions:
+                        get_all_data.append(action.owned_payload)
+
+                    response = Response(json=get_all_data, content_type='application/json')
+
+                else:
+                    log.error(
+                        'update: action id \'{}\' not associated with char id \'{}\''.format(
+                            self.url['actionId'], self.url['charId']))
+                    raise HTTPClientError
+
+            else:
+                log.error(
+                    'delete: account/role {}/{} is not allowed to do this'.format(
+                        self.request.account.username, self.request.account.role))
+                raise HTTPForbidden
+
+        except NoResultFound:
+            log.error(
+                'get: action id \'{}\' or char id \'{}\' not found'.format(
+                    self.url['actionId'], self.url['charId']))
+            raise HTTPNotFound
+
+        return response
+
+
+#Govern calls to a character's actions /character/{id}/actions
+@set_authorized
+@view_defaults(route_name='character_actions', renderer='json')
+class CharacterActionsViews(BaseView):
+
+    @view_config(request_method='GET')
+    def get(self):
+        try:
+            query = self.request.dbsession.query(Character)
+            character = query.filter(Character.id == self.url['id']).one()
+
+            #if they own it or they're an admin
+            #infuriatingly, unittest does not recognize the valid character.account relationship
+            if self.request.account.is_owner(character) or self.request.account.is_admin():
+
+                action_query = self.request.dbsession.query(Action)
+                actions = action_query.filter(Action.characterId == self.url['id']).all()
+                log.info(
+                    'get: actions of character/id {}/{}'.format(character.name, character.id))
+
+                get_all_data = []
+                for action in actions:
+                    get_all_data.append(action.owned_payload)
+
+                response = Response(json=get_all_data, content_type='application/json')
+
+            else:
+                log.error(
+                    'update: character id {} is not associated with account {}'.format(
+                        self.url['id'], self.request.account.username))
+                raise HTTPForbidden
+
+        except NoResultFound:
+            log.error(
+                'get: character id \'{}\' not found'.format(self.url['id']))
+            raise HTTPNotFound
 
         return response
