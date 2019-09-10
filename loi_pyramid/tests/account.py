@@ -47,7 +47,7 @@ class TestAccountViews(BaseTest):
 
         return account_view.get().json_body
 
-    #Helper method for get all calls to /account/{username}/characters
+    #Helper method for get all calls to /accounts/{username}/characters
     def characters_get_all(self, account, user_account):
         resource = '/accounts/{}/characters'.format(account['username'])
         url_params = {'username': account['username']}
