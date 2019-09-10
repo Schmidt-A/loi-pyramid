@@ -18,5 +18,7 @@ def includeme(config):
     config.add_route('account_characters', '/account/{username}/characters')
 
     config.add_route('recipe', '/recipe/{blueprint}')
+    config.add_route('recipes', '/recipes')
 
     config.add_route('ingredient', '/ingredient/{material}')
+    config.add_route('ingredients', '/ingredients')
