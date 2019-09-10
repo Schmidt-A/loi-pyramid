@@ -27,9 +27,9 @@ class TestIngredientViews(BaseTest):
         #non existent ingredients, to be used for negative testing
         self.fake_ingredients = self.fixture_helper.fake_ingredient_data()
 
-    #Helper method for get calls to /ingredient/{material}
+    #Helper method for get calls to /ingredients/{material}
     def ingredient_get(self, ingredient, user_account):
-        resource = '/ingredient/{}'.format(ingredient['material'])
+        resource = '/ingredients/{}'.format(ingredient['material'])
         url_params = {'material': ingredient['material']}
         request = self.dummy_request(self.session, (self.host+resource), user_account)
 

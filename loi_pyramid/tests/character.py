@@ -30,9 +30,9 @@ class TestCharacterViews(BaseTest):
         self.fake_items = self.fixture_helper.fake_item_data()
         self.fake_actions = self.fixture_helper.fake_action_data()
 
-    #Helper method for get calls to /character/{id}
+    #Helper method for get calls to /characters/{id}
     def character_get(self, character, account):
-        resource = '/character/{}'.format(character['id'])
+        resource = '/characters/{}'.format(character['id'])
         url_params = {'id': character['id']}
         request = self.dummy_request(self.session, (self.host+resource), account)
 
@@ -41,9 +41,9 @@ class TestCharacterViews(BaseTest):
 
         return char_view.get().json_body
 
-    #Helper method for delete calls to /character/{id}
+    #Helper method for delete calls to /characters/{id}
     def character_delete(self, character, account):
-        resource = '/character/{}'.format(character['id'])
+        resource = '/characters/{}'.format(character['id'])
         url_params = {'id': character['id']}
         request = self.dummy_delete_request(self.session, (self.host+resource), account)
 
@@ -52,9 +52,9 @@ class TestCharacterViews(BaseTest):
 
         return char_view.delete().json_body
 
-    #Helper method for update calls to /character/{id}
+    #Helper method for update calls to /characters/{id}
     def character_update(self, character, account):
-        resource = '/character/{}'.format(character['id'])
+        resource = '/characters/{}'.format(character['id'])
         url_params = {'id': character['id']}
 
         character_payload = {
@@ -84,9 +84,9 @@ class TestCharacterViews(BaseTest):
 
         return char_view.get().json_body
 
-    #Helper method for get calls for /character/{id}/item/{id}
+    #Helper method for get calls for /characters/{id}/item/{id}
     def item_get(self, character, item, account):
-        resource = '/character/{}/item/{}'.format(character['id'], item['id'])
+        resource = '/characters/{}/item/{}'.format(character['id'], item['id'])
         url_params = {'charId': character['id'], 'itemId': item['id']}
 
         request = self.dummy_request(self.session, (self.host+resource), account)
@@ -96,9 +96,9 @@ class TestCharacterViews(BaseTest):
 
         return char_view.get().json_body
 
-    #Helper method for update calls for /character/{id}/item/{id}
+    #Helper method for update calls for /characters/{id}/item/{id}
     def item_update(self, character, item, account):
-        resource = '/character/{}/item/{}'.format(character['id'],item['id'])
+        resource = '/characters/{}/item/{}'.format(character['id'],item['id'])
         url_params = {'charId': character['id'], 'itemId': item['id']}
 
         item_payload = {
@@ -117,9 +117,9 @@ class TestCharacterViews(BaseTest):
 
         return char_view.update().json_body
 
-    #Helper method for delete calls for /character/{id}/item/{id}
+    #Helper method for delete calls for /characters/{id}/item/{id}
     def item_delete(self, character, item, account):
-        resource = '/character/{}/item/{}'.format(character['id'],item['id'])
+        resource = '/characters/{}/item/{}'.format(character['id'],item['id'])
         url_params = {'charId': character['id'], 'itemId': item['id']}
         request = self.dummy_delete_request(self.session, (self.host+resource), account)
 
@@ -128,9 +128,9 @@ class TestCharacterViews(BaseTest):
 
         return char_view.delete().json_body
 
-    #Helper method for get all calls to /character/{id}/items
+    #Helper method for get all calls to /characters/{id}/items
     def items_get_all(self, character, account):
-        resource = '/character/{}/items'.format(character['id'])
+        resource = '/characters/{}/items'.format(character['id'])
         url_params = {'id': character['id']}
 
         request = self.dummy_request(self.session, (self.host+resource), account)
@@ -140,9 +140,9 @@ class TestCharacterViews(BaseTest):
 
         return char_view.get().json_body
 
-    #Helper method for create calls to /character/{id}/items
+    #Helper method for create calls to /characters/{id}/items
     def items_create(self, character, item, account):
-        resource = '/character/{}'.format(character['id'])
+        resource = '/characters/{}'.format(character['id'])
         url_params = {'id': character['id']}
 
         item_payload = {
@@ -162,9 +162,9 @@ class TestCharacterViews(BaseTest):
 
         return char_view.create().json_body
 
-    #Helper method for get calls for /character/{id}/action/{id}
+    #Helper method for get calls for /characters/{id}/action/{id}
     def action_get(self, character, action, account):
-        resource = '/character/{}/action/{}'.format(character['id'], action['id'])
+        resource = '/characters/{}/action/{}'.format(character['id'], action['id'])
         url_params = {'charId': character['id'], 'actionId': action['id']}
 
         request = self.dummy_request(self.session, (self.host+resource), account)
@@ -174,9 +174,9 @@ class TestCharacterViews(BaseTest):
 
         return char_view.get().json_body
 
-    #Helper method for get all calls to /character/{id}/actions
+    #Helper method for get all calls to /characters/{id}/actions
     def actions_get_all(self, character, account):
-        resource = '/character/{}/actions'.format(character['id'])
+        resource = '/characters/{}/actions'.format(character['id'])
         url_params = {'id': character['id']}
 
         request = self.dummy_request(self.session, (self.host+resource), account)
@@ -186,9 +186,9 @@ class TestCharacterViews(BaseTest):
 
         return char_view.get().json_body
 
-    #Helper method for delete calls for /character/{id}/action/{id}
+    #Helper method for delete calls for /characters/{id}/action/{id}
     def action_delete(self, character, action, account):
-        resource = '/character/{}/action/{}'.format(character['id'],action['id'])
+        resource = '/characters/{}/action/{}'.format(character['id'],action['id'])
         url_params = {'charId': character['id'], 'actionId': action['id']}
         request = self.dummy_delete_request(self.session, (self.host+resource), account)
 
@@ -197,9 +197,9 @@ class TestCharacterViews(BaseTest):
 
         return char_view.delete().json_body
 
-    #Helper method for create calls to /character/{id}/actions
+    #Helper method for create calls to /characters/{id}/actions
     def actions_create(self, character, action, account):
-        resource = '/character/{}'.format(character['id'])
+        resource = '/characters/{}'.format(character['id'])
         url_params = {'id': character['id']}
 
         action_payload = {

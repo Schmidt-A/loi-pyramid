@@ -27,9 +27,9 @@ class TestRecipeViews(BaseTest):
         #non existent recipes, to be used for negative testing
         self.fake_recipes = self.fixture_helper.fake_recipe_data()
 
-    #Helper method for get calls to /recipe/{blueprint}
+    #Helper method for get calls to /recipes/{blueprint}
     def recipe_get(self, recipe, user_account):
-        resource = '/recipe/{}'.format(recipe['blueprint'])
+        resource = '/recipes/{}'.format(recipe['blueprint'])
         url_params = {'blueprint': recipe['blueprint']}
         request = self.dummy_request(self.session, (self.host+resource), user_account)
 

@@ -14,7 +14,7 @@ from ..schemas import RecipeAdminUpdate, Invalid
 
 log = logging.getLogger(__name__)
 
-#Govern calls to a single recipe object /recipe/{blueprint}
+#Govern calls to a single recipe object /recipes/{blueprint}
 @set_authorized
 @view_defaults(route_name='recipe', renderer='json')
 class RecipeViews(BaseView):

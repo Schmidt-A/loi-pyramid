@@ -14,7 +14,7 @@ from ..schemas import CharacterAdminUpdate, ItemAdminUpdate, ItemAdminCreate, In
 
 log = logging.getLogger(__name__)
 
-#Govern calls to a single character object /character/{id}
+#Govern calls to a single character object /characters/{id}
 @set_authorized
 @view_defaults(route_name='character', renderer='json')
 class CharacterViews(BaseView):
@@ -400,7 +400,7 @@ class CharacterItemsViews(BaseView):
         return response
 
 
-#Govern calls to an action of a character /character/{id}/action/{id}
+#Govern calls to an action of a character /character/{id}/actions/{id}
 @set_authorized
 @view_defaults(route_name='character_action', renderer='json')
 class CharacterActionViews(BaseView):

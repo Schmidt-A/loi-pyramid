@@ -27,9 +27,9 @@ class TestAccountViews(BaseTest):
         #non existent accounts, to be used for negative testing
         self.fake_accounts = self.fixture_helper.fake_account_data()
 
-    #Helper method for get calls to /account/{username}
+    #Helper method for get calls to /accounts/{username}
     def account_get(self, account, user_account):
-        resource = '/account/{}'.format(account['username'])
+        resource = '/accounts/{}'.format(account['username'])
         url_params = {'username': account['username']}
         request = self.dummy_request(self.session, (self.host+resource), user_account)
 
@@ -49,7 +49,7 @@ class TestAccountViews(BaseTest):
 
     #Helper method for get all calls to /account/{username}/characters
     def characters_get_all(self, account, user_account):
-        resource = '/account/{}/characters'.format(account['username'])
+        resource = '/accounts/{}/characters'.format(account['username'])
         url_params = {'username': account['username']}
         request = self.dummy_request(self.session, (self.host+resource), user_account)
 

@@ -14,7 +14,7 @@ from ..schemas import AccountAdminUpdate, AccountOwnerUpdate, Invalid
 
 log = logging.getLogger(__name__)
 
-#Govern calls to a single account object /account/{username}
+#Govern calls to a single account object /accounts/{username}
 @set_authorized
 @view_defaults(route_name='account', renderer='json')
 class AccountViews(BaseView):
