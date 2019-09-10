@@ -1,0 +1,35 @@
+<html>
+  <head>
+  </head>
+  <body>
+
+    <table id="characters">
+      <tr id="characters_header">
+        <th>Name</th>
+        <th>Exp</th>
+        <th>Area</th>
+        <th>Created</th>
+        <th>Updated</th>
+      </tr>
+    </table>
+
+    <script>
+      fetch('http://sundred.com:6543/characters')
+        .then(response => {
+          response.json().then( characters => {
+            let table = document.getElementById("characters");
+
+            characters.forEach( character => {
+              let row = table.insertRow();
+              for (key in character) {
+                let cell = row.insertCell();
+                let text = document.createTextNode(character[key]);
+                cell.appendChild(text);
+              }
+            })
+          })  
+        });
+    </script>
+
+  </body>
+</html>

@@ -1,7 +1,15 @@
+
+
 def includeme(config):
-    config.add_static_view('static', 'static', cache_max_age=3600)
+    #including CORS
+    config.include('.cors')
+    config.add_cors_preflight_handler()
+
+    config.add_static_view(name='static', path='loi_pyramid:static', cache_max_age=3600)
 
     config.add_route('login_stub', '/login_stub')
+    config.add_route('login', '/login')
+    config.add_route('logout', '/logout')
 
     config.add_route('characters', '/characters')
     config.add_route('character', '/characters/{id}')
@@ -13,8 +21,6 @@ def includeme(config):
 
     config.add_route('account', '/accounts/{username}')
     config.add_route('accounts', '/accounts')
-    config.add_route('login', '/accounts/{username}/login')
-    config.add_route('logout', '/accounts/{username}/logout')
     config.add_route('account_characters', '/accounts/{username}/characters')
 
     config.add_route('recipe', '/recipe/{blueprint}')
