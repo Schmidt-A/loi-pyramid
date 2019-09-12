@@ -14,8 +14,7 @@ from ..schemas import AccountAdminUpdate, AccountOwnerUpdate, Invalid
 log = logging.getLogger(__name__)
 
 #Govern calls to a single account object /accounts/{username}
-@set_authorized
-@view_defaults(route_name='account', renderer='json', permission='authenticated')
+@view_defaults(route_name='account', renderer='json')
 class AccountViews(BaseView):
 
     @view_config(request_method='GET')
@@ -43,8 +42,7 @@ class AccountViews(BaseView):
 
 
 #Govern calls to all account objects /accounts
-@set_authorized
-@view_defaults(route_name='accounts', renderer='json', permission='authenticated')
+@view_defaults(route_name='accounts', renderer='json')
 class AccountsViews(BaseView):
 
     @view_config(request_method='GET')
@@ -71,9 +69,7 @@ class AccountsViews(BaseView):
 
         return response
 
-
-@set_authorized
-@view_defaults(route_name='account_characters', renderer='json', permission='authenticated')
+@view_defaults(route_name='account_characters', renderer='json')
 class AccountCharactersView(BaseView):
 
     @view_config(request_method='GET')

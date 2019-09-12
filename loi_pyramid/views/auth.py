@@ -8,7 +8,7 @@ from pyramid.view import view_config, view_defaults
 from sqlalchemy.orm.exc import NoResultFound
 
 from . import BaseView
-from ..security import check_password
+from ..utils.security import check_password
 from ..schemas import LoginSchema, AccountAdminUpdate, Invalid
 from ..models import Account
 
@@ -55,7 +55,7 @@ class AuthViews(BaseView):
         return HTTPUnauthorized()
 
     # TODO: this should be a POST but for facilitating testing, GET for now
-    @view_config(route_name='logout', request_method='GET', permission='authenticated')
+    @view_config(route_name='logout', request_method='GET')
     def logout(self):
         headers = forget(self.request)
         return Response(headers=headers)

@@ -2,7 +2,7 @@
 
 def includeme(config):
     #including CORS
-    config.include('.cors')
+    config.include('.utils.cors')
     config.add_cors_preflight_handler()
 
     config.add_static_view(name='static', path='loi_pyramid:static', cache_max_age=3600)

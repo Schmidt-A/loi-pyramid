@@ -6,7 +6,7 @@ from pyramid.security import (
     Deny,
     Everyone,
 )
-from .models import Account
+from ..models import Account
 
 
 def hash_password(pw):

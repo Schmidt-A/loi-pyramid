@@ -14,7 +14,7 @@ from ..schemas import CharacterAdminUpdate, ItemAdminUpdate, ItemAdminCreate, In
 log = logging.getLogger(__name__)
 
 #Govern calls to a single character object /characters/{id}
-@view_defaults(route_name='character', renderer='json', permission='authenticated')
+@view_defaults(route_name='character', renderer='json')
 class CharacterViews(BaseView):
 
     @view_config(request_method='GET')
@@ -46,7 +46,7 @@ class CharacterViews(BaseView):
     #This method will be locked down since we should not allow any of this to be editable
     #Only admins or nwn (via db) should be able to create new characters or edit new characters
     #I'm not going to expose a new api for making new characters, that should be done by NWN only
-    @view_config(request_method='PUT')
+    @view_config(request_method='PUT', permission='admin')
     def update(self):
         try:
             #if they're an admin they can do everything
@@ -94,7 +94,7 @@ class CharacterViews(BaseView):
 
     #This method will almost certainly be locked down since we should not allow any of this to be editable
     #Only admin server or nwn (via db) should be able to delete characters
-    @view_config(request_method='DELETE')
+    @view_config(request_method='DELETE', permission='admin')
     def delete(self):
         try:
             #if they're an admin they can do everything
@@ -132,7 +132,6 @@ class CharacterViews(BaseView):
         return response
 
 #Govern calls to all character objects /characters
-@set_authorized
 @view_defaults(route_name='characters', renderer='json')
 class CharactersViews(BaseView):
 
@@ -160,7 +159,7 @@ class CharactersViews(BaseView):
         return response
 
 #Govern calls to an item on a character /character/{id}/item/{id}
-@view_defaults(route_name='character_item', renderer='json', permission='authenticated')
+@view_defaults(route_name='character_item', renderer='json')
 class CharacterItemViews(BaseView):
 
     @view_config(request_method='GET')
@@ -205,7 +204,7 @@ class CharacterItemViews(BaseView):
 
     #This method will be locked down since we should not allow any of this to be editable
     #Only admins or nwn (via db) should be able to create new characters or edit new characters
-    @view_config(request_method='PUT')
+    @view_config(request_method='PUT', permission='admin')
     def update(self):
         try:
             #if they own it or they're an admin
@@ -259,7 +258,7 @@ class CharacterItemViews(BaseView):
 
     #This method will be locked down since we should not allow any of this to be editable
     #Only admin server or nwn (via db) should be able to delete characters
-    @view_config(request_method='DELETE')
+    @view_config(request_method='DELETE', permission='admin')
     def delete(self):
         try:
             #if they own it or they're an admin
@@ -308,7 +307,6 @@ class CharacterItemViews(BaseView):
         return response
 
 #Govern calls to a character's items /character/{id}/items
-@set_authorized
 @view_defaults(route_name='character_items', renderer='json')
 class CharacterItemsViews(BaseView):
 
@@ -348,7 +346,7 @@ class CharacterItemsViews(BaseView):
 
     #This method will be locked down since we should not allow any of this to be editable
     #Only admin server or nwn (via db) should be able to create items
-    @view_config(request_method='POST')
+    @view_config(request_method='POST', permission='admin')
     def create(self):
         try:
             #if they own it or they're an admin
@@ -398,7 +396,6 @@ class CharacterItemsViews(BaseView):
 
 
 #Govern calls to an action of a character /character/{id}/actions/{id}
-@set_authorized
 @view_defaults(route_name='character_action', renderer='json')
 class CharacterActionViews(BaseView):
 
@@ -442,7 +439,7 @@ class CharacterActionViews(BaseView):
 
         return response
 
-    @view_config(request_method='DELETE')
+    @view_config(request_method='DELETE', permission='admin')
     def delete(self):
         try:
             #Maybe remove the char lookup?
@@ -494,7 +491,6 @@ class CharacterActionViews(BaseView):
 
 
 #Govern calls to a character's actions /character/{id}/actions
-@set_authorized
 @view_defaults(route_name='character_actions', renderer='json')
 class CharacterActionsViews(BaseView):
 
