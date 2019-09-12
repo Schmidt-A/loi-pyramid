@@ -1,5 +1,7 @@
 <html>
   <head>
+    <script src="../js/tables.js"></script>
+    <script src="../js/xhr.js"></script>
   </head>
   <body>
 
@@ -23,35 +25,12 @@
       fetch('http://sundred.com:6543/characters')
         .then(response => {
           parseResponse(response).then( characters => {
-            fillTable(document.querySelector("#characters"), characters);
+            fillTableFromHeader(document.querySelector("#characters"), characters);
           })
         })
         .catch(error => {
-          fillTable(document.querySelector("#characters"), characterFixture);
+          fillTableFromHeader(document.querySelector("#characters"), characterFixture);
         });
-
-      function fillTable(table, dataList) {
-        //that's the row within the thead
-        let headerRow = table.tHead.children[0]
-
-        dataList.forEach( data => {
-          let row = table.insertRow();
-          Array.from(headerRow.children).forEach( column => {
-            let cell = row.insertCell();
-            let text = document.createTextNode(data[column.dataset.key]);
-            cell.appendChild(text);
-          });
-        })
-      }
-
-      function parseResponse(response) {
-        if (response.ok) {
-          return response.json();
-        } else {
-          console.error(response.status);
-          throw new Error(response);
-        }
-      }
     </script>
 
   </body>
