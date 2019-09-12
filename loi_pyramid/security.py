@@ -1,6 +1,13 @@
 import bcrypt
-
+from pyramid.security import (
+    ALL_PERMISSIONS,
+    Allow,
+    Authenticated,
+    Deny,
+    Everyone,
+)
 from .models import Account
+
 
 def hash_password(pw):
     pwhash = bcrypt.hashpw(pw.encode('utf8'), bcrypt.gensalt())
@@ -25,3 +32,13 @@ def get_account(request):
     account = query.filter(Account.username == request.authenticated_userid).one()
 
     return account
+
+class LoIACL(object):
+    __acl__ = [
+        (Allow, Everyone, 'login'),
+        (Allow, Authenticated, 'authenticated'),
+        (Allow, 'group:admin', 'admin')
+    ]
+
+    def __init__(self, request):
+        pass

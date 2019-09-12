@@ -8,7 +8,6 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from . import BaseView
 from ..models import Account, Character
-from ..decorators import set_authorized
 from ..schemas import AccountAdminUpdate, AccountOwnerUpdate, Invalid
 
 
@@ -16,7 +15,7 @@ log = logging.getLogger(__name__)
 
 #Govern calls to a single account object /accounts/{username}
 @set_authorized
-@view_defaults(route_name='account', renderer='json')
+@view_defaults(route_name='account', renderer='json', permission='authenticated')
 class AccountViews(BaseView):
 
     @view_config(request_method='GET')
@@ -45,7 +44,7 @@ class AccountViews(BaseView):
 
 #Govern calls to all account objects /accounts
 @set_authorized
-@view_defaults(route_name='accounts', renderer='json')
+@view_defaults(route_name='accounts', renderer='json', permission='authenticated')
 class AccountsViews(BaseView):
 
     @view_config(request_method='GET')
@@ -74,7 +73,7 @@ class AccountsViews(BaseView):
 
 
 @set_authorized
-@view_defaults(route_name='account_characters', renderer='json')
+@view_defaults(route_name='account_characters', renderer='json', permission='authenticated')
 class AccountCharactersView(BaseView):
 
     @view_config(request_method='GET')

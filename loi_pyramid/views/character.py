@@ -8,15 +8,13 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from . import BaseView
 from ..models import Character, Item, Account, Action
-from ..decorators import set_authorized
 from ..schemas import CharacterAdminUpdate, ItemAdminUpdate, ItemAdminCreate, Invalid
 
 
 log = logging.getLogger(__name__)
 
 #Govern calls to a single character object /characters/{id}
-@set_authorized
-@view_defaults(route_name='character', renderer='json')
+@view_defaults(route_name='character', renderer='json', permission='authenticated')
 class CharacterViews(BaseView):
 
     @view_config(request_method='GET')
@@ -162,8 +160,7 @@ class CharactersViews(BaseView):
         return response
 
 #Govern calls to an item on a character /character/{id}/item/{id}
-@set_authorized
-@view_defaults(route_name='character_item', renderer='json')
+@view_defaults(route_name='character_item', renderer='json', permission='authenticated')
 class CharacterItemViews(BaseView):
 
     @view_config(request_method='GET')

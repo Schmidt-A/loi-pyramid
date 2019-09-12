@@ -8,15 +8,13 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from . import BaseView
 from ..models import Recipe
-from ..decorators import set_authorized
 from ..schemas import RecipeAdminUpdate, Invalid
 
 
 log = logging.getLogger(__name__)
 
 #Govern calls to a single recipe object /recipes/{blueprint}
-@set_authorized
-@view_defaults(route_name='recipe', renderer='json')
+@view_defaults(route_name='recipe', renderer='json', permission='authenticated')
 class RecipeViews(BaseView):
 
     @view_config(request_method='GET')
@@ -38,8 +36,7 @@ class RecipeViews(BaseView):
 
 
 #Govern calls to all recipe objects /recipes
-@set_authorized
-@view_defaults(route_name='recipes', renderer='json')
+@view_defaults(route_name='recipes', renderer='json', permission='authenticated')
 class RecipesViews(BaseView):
 
     @view_config(request_method='GET')
