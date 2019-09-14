@@ -7,7 +7,7 @@
 
     <table id="characters">
       <thead>
-        <tr id="characters_header">
+        <tr>
           <th data-key="name">Name</th>
           <th data-key="accountId">Owner</th>
           <th data-key="exp">Exp</th>
@@ -20,8 +20,6 @@
     </table>
 
     <script>
-      let characterFixture = [{"id":1,"accountId":"Tweek","name":"Siobhan Faulkner","exp":10000,"area":"Hlammach Docks","created":"23/11/2017","updated":"29/11/2017"},{"id":2,"accountId":"Aez","name":"Alrunden Peralt","exp":12000,"area":"Dreyen Inn","created":"26/6/2017","updated":"29/11/2017"},{"id":3,"accountId":null,"name":"Arthen Relindar","exp":20000,"area":"Relindar Green","created":null,"updated":null},{"id":4,"accountId":"XxDrizzitxX","name":"Ji'Lin Thri'quen","exp":1050,"area":"Dreyen Inn","created":"29/11/2017","updated":"29/11/2017"}];
-
       fetch('http://sundred.com:6543/characters')
         .then(response => {
           parseResponse(response).then( characters => {
@@ -29,7 +27,7 @@
           })
         })
         .catch(error => {
-          fillTableFromHeader(document.querySelector("#characters"), characterFixture);
+          window.location = "login_stub.html"
         });
     </script>
 

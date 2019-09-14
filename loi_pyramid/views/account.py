@@ -98,6 +98,7 @@ class AccountCharactersView(BaseView):
         except NoResultFound:
             log.debug(
                 'get: no characters found with account {}'.format(self.url['username']))
-            raise HTTPNotFound
+            get_all_data = []
+            response = Response(json=get_all_data, content_type='application/json')
 
         return response

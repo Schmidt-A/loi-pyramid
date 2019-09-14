@@ -22,7 +22,9 @@ def role_lookup(username, request):
     account = query.filter(Account.username == username).one()
 
     role = []
-    if account.role == 3:
+    if account.role > 0:
+        role.append('g:authenticated')
+    if account.role > 1:
         role.append('g:admin')
 
     return role
@@ -33,11 +35,11 @@ def get_account(request):
 
     return account
 
-class LoIACL(object):
+class Root(object):
     __acl__ = [
         (Allow, Everyone, 'login'),
         (Allow, Authenticated, 'authenticated'),
-        (Allow, 'group:admin', 'admin')
+        (Allow, 'g:admin', 'admin')
     ]
 
     def __init__(self, request):

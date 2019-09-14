@@ -116,5 +116,9 @@ class TestAccountViews(BaseTest):
     #Test that we cannot get Tam's characters via get all call
     #Because he never nutted up and logged on
     def test_get_all_chars_not_found(self):
-        with self.assertRaises(HTTPNotFound):
-            self.characters_get_all(self.fake_accounts['tam'], self.accounts['tweek'])
+        characters_result = self.characters_get_all(self.fake_accounts['tam'], self.accounts['tweek'])
+
+        compare_chars = []
+        self.assertEqual(len(characters_result), len(compare_chars))
+
+

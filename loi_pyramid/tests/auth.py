@@ -54,8 +54,15 @@ class TestAuthViews(BaseTest):
     #Test that logging in with the correct username and password works
     def test_login_success(self):
         resp = self.login(self.accounts['noob'], 'drizzit4ever')
+        account_result = resp.json_body
 
         self.assertEqual(resp.status_code, 200)
+        self.assertEqual(account_result['username'], self.accounts['noob']['username'])
+        self.assertEqual(account_result['role'], self.accounts['noob']['role'])
+        self.assertEqual(account_result['approved'], self.accounts['noob']['approved'])
+        self.assertEqual(account_result['banned'], self.accounts['noob']['banned'])
+        self.assertEqual(account_result['created'], self.accounts['noob']['created'])
+        self.assertEqual(account_result['updated'], self.accounts['noob']['updated'])
 
     #Test that logging out works with a preexisting login
     def test_logout_success(self):
