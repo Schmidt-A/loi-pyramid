@@ -67,6 +67,8 @@ class TestAccountViews(BaseTest):
         self.assertEqual(account_result['role'], self.accounts['tweek']['role'])
         self.assertEqual(account_result['approved'], self.accounts['tweek']['approved'])
         self.assertEqual(account_result['banned'], self.accounts['tweek']['banned'])
+        self.assertEqual(account_result['created'], self.accounts['tweek']['created'])
+        self.assertEqual(account_result['updated'], self.accounts['tweek']['updated'])
 
     #Test that we cannot get Tam via get call
     #Because he'll never nut up and log on
