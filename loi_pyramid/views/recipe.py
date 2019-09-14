@@ -22,13 +22,13 @@ class RecipeViews(BaseView):
         try:
             query = self.request.dbsession.query(Recipe)
             recipe = query.filter(Recipe.blueprint == self.url['blueprint']).one()
-            log.info(
+            log.debug(
                 'get: blueprint {}'.format(recipe.blueprint))
 
             response = Response(json=recipe.public_payload, content_type='application/json')
 
         except NoResultFound:
-            log.error(
+            log.debug(
                 'get: recipe \'{}\' not found'.format(self.url['blueprint']))
             raise HTTPNotFound
 
@@ -44,7 +44,7 @@ class RecipesViews(BaseView):
         try:
             query = self.request.dbsession.query(Recipe)
             recipes = query.all()
-            log.info('get: all recipes')
+            log.debug('get: all recipes')
 
             get_all_data = []
             for recipe in recipes:

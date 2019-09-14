@@ -22,7 +22,7 @@ class AccountViews(BaseView):
         try:
             query = self.request.dbsession.query(Account)
             account = query.filter(Account.username == self.url['username']).one()
-            log.info(
+            log.debug(
                 'get: username {}'.format(account.username))
 
             #if they own it or they're an admin
@@ -34,7 +34,7 @@ class AccountViews(BaseView):
                 response = Response(json=account.public_payload, content_type='application/json')
 
         except NoResultFound:
-            log.error(
+            log.debug(
                 'get: account \'{}\' not found'.format(self.url['username']))
             raise HTTPNotFound
 
@@ -50,7 +50,7 @@ class AccountsViews(BaseView):
         try:
             query = self.request.dbsession.query(Account)
             accounts = query.all()
-            log.info('get: all accounts')
+            log.debug('get: all accounts')
 
             get_all_data = []
             for account in accounts:
@@ -82,7 +82,7 @@ class AccountCharactersView(BaseView):
             char_query = self.request.dbsession.query(Character)
             characters = char_query.filter(Character.accountId == self.url['username']).all()
 
-            log.info(
+            log.debug(
                 'get: characters of {}'.format(self.url['username']))
 
             get_all_data = []
@@ -96,7 +96,7 @@ class AccountCharactersView(BaseView):
             response = Response(json=get_all_data, content_type='application/json')
 
         except NoResultFound:
-            log.error(
+            log.debug(
                 'get: no characters found with account {}'.format(self.url['username']))
             raise HTTPNotFound
 

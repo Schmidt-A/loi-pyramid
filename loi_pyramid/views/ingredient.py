@@ -22,13 +22,13 @@ class IngredientViews(BaseView):
         try:
             query = self.request.dbsession.query(Ingredient)
             ingredient = query.filter(Ingredient.material == self.url['material']).one()
-            log.info(
+            log.debug(
                 'get: material {}'.format(ingredient.material))
 
             response = Response(json=ingredient.public_payload, content_type='application/json')
 
         except NoResultFound:
-            log.error(
+            log.debug(
                 'get: ingredient \'{}\' not found'.format(self.url['material']))
             raise HTTPNotFound
 
@@ -44,7 +44,7 @@ class IngredientsViews(BaseView):
         try:
             query = self.request.dbsession.query(Ingredient)
             ingredients = query.all()
-            log.info('get: all ingredients')
+            log.debug('get: all ingredients')
 
             get_all_data = []
             for ingredient in ingredients:

@@ -23,7 +23,7 @@ class CharacterViews(BaseView):
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['id']).one()
 
-            log.info(
+            log.debug(
                 'get: character/id {}/{} by account {}'.format(
                     character.name, character.id, self.request.account.username))
 
@@ -36,7 +36,7 @@ class CharacterViews(BaseView):
                 response = Response(json=character.public_payload, content_type='application/json')
 
         except NoResultFound:
-            log.error(
+            log.debug(
                 'get: character id \'{}\' or account \'{}\' not found'.format(
                     self.url['id'], self.request.authenticated_userid))
             raise HTTPNotFound
@@ -73,7 +73,7 @@ class CharacterViews(BaseView):
                     character.name, character.id, [put_data['exp'], put_data['area']]))
 
             else:
-                log.error(
+                log.warning(
                     'update: account/role {}/{} is not allowed to do this'.format(
                         self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
@@ -118,7 +118,7 @@ class CharacterViews(BaseView):
                 response = Response(json=get_all_data, content_type='application/json')
 
             else:
-                log.error(
+                log.warning(
                     'delete: account/role {}/{} is not allowed to do this'.format(
                         self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
@@ -140,7 +140,7 @@ class CharactersViews(BaseView):
         try:
             query = self.request.dbsession.query(Character)
             characters = query.all()
-            log.info('get: all characters')
+            log.debug('get: all characters')
 
             get_all_data = []
             for character in characters:
@@ -183,19 +183,19 @@ class CharacterItemViews(BaseView):
                     response = Response(json=item.owned_payload, content_type='application/json')
 
                 else:
-                    log.error(
-                        'update: item id \'{}\' not associated with char id \'{}\''.format(
+                    log.warning(
+                        'get: item id \'{}\' not associated with char id \'{}\''.format(
                             self.url['itemId'], self.url['charId']))
                     raise HTTPClientError
 
             else:
-                log.error(
-                    'update: character id {} is not associated with account {}'.format(
+                log.warning(
+                    'get: character id {} is not associated with account {}'.format(
                         self.url['charId'], self.request.account.username))
                 raise HTTPForbidden
 
         except NoResultFound:
-            log.error(
+            log.debug(
                 'get: item id \'{}\', char id \'{}\', or account \'{}\' not found'.format(
                     self.url['itemId'], self.url['charId'], self.request.authenticated_userid))
             raise HTTPNotFound
@@ -233,14 +233,15 @@ class CharacterItemViews(BaseView):
                     response = Response(json=item.owned_payload, content_type='application/json')
 
                 else:
-                    log.error(
+                    log.warning(
                         'update: item id \'{}\' not associated with char id \'{}\''.format(
                             self.url['itemId'], self.url['charId']))
                     raise HTTPClientError
 
             else:
-                'update: account/role {}/{} is not allowed to do this'.format(
-                    self.request.account.username, self.request.account.role)
+                log.warning(
+                    'update: account/role {}/{} is not allowed to do this'.format(
+                        self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -287,13 +288,13 @@ class CharacterItemViews(BaseView):
                     response = Response(json=get_all_data, content_type='application/json')
 
                 else:
-                    log.error(
+                    log.warning(
                         'update: item id \'{}\' not associated with char id \'{}\''.format(
                             self.url['itemId'], self.url['charId']))
                     raise HTTPClientError
 
             else:
-                log.error(
+                log.warning(
                     'delete: account/role {}/{} is not allowed to do this'.format(
                         self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
@@ -322,7 +323,7 @@ class CharacterItemsViews(BaseView):
 
                 inv_query = self.request.dbsession.query(Item)
                 items = inv_query.filter(Item.characterId == self.url['id']).all()
-                log.info(
+                log.debug(
                     'get: items of character/id {}/{}'.format(character.name, character.id))
 
                 get_all_data = []
@@ -332,13 +333,13 @@ class CharacterItemsViews(BaseView):
                 response = Response(json=get_all_data, content_type='application/json')
 
             else:
-                log.error(
+                log.warning(
                     'update: character id {} is not associated with account {}'.format(
                         self.url['id'], self.request.account.username))
                 raise HTTPForbidden
 
         except NoResultFound:
-            log.error(
+            log.debug(
                 'get: character id \'{}\' not found'.format(self.url['id']))
             raise HTTPNotFound
 
@@ -377,7 +378,7 @@ class CharacterItemsViews(BaseView):
                 response = Response(json=newItem.owned_payload, content_type='application/json')
 
             else:
-                log.error(
+                log.warning(
                     'create: account/role {}/{} is not allowed to do this'.format(
                         self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
@@ -506,7 +507,7 @@ class CharacterActionsViews(BaseView):
 
                 action_query = self.request.dbsession.query(Action)
                 actions = action_query.filter(Action.characterId == self.url['id']).all()
-                log.info(
+                log.debug(
                     'get: actions of character/id {}/{}'.format(character.name, character.id))
 
                 get_all_data = []
@@ -516,13 +517,13 @@ class CharacterActionsViews(BaseView):
                 response = Response(json=get_all_data, content_type='application/json')
 
             else:
-                log.error(
+                log.warning(
                     'update: character id {} is not associated with account {}'.format(
                         self.url['id'], self.request.account.username))
                 raise HTTPForbidden
 
         except NoResultFound:
-            log.error(
+            log.debug(
                 'get: character id \'{}\' not found'.format(self.url['id']))
             raise HTTPNotFound
 

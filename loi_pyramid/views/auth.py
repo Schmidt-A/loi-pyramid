@@ -43,12 +43,12 @@ class AuthViews(BaseView):
                     'login: username {}'.format(account.username))
                 return response
             else:
-                log.warn(
+                log.info(
                     'login: username {} or password incorrect'.format(user))
                 raise HTTPUnauthorized
 
         except NoResultFound as e:
-            log.warn(
+            log.info(
                 'login: account \'{}\' not found'.format(user))
             raise HTTPUnauthorized
 
