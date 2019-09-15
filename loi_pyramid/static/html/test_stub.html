@@ -2,49 +2,64 @@
   <head>
     <script src="../js/tables.js"></script>
     <script src="../js/xhr.js"></script>
+
+    <script src="login_form.js"></script>
+    <script src="account_table.js"></script>
+    <script src="character_table.js"></script>
+
+    <script src="../js/template.js"></script>
   </head>
   <body>
 
-    <form id="login">
-      <label for="user">Username</label> 
-      <input type="text" name="user"></input>
-      <label for="pw">Password</label>
-      <input type="password" name="pw"></input>
-      <input type="submit"></input>
-    </form>
+    <select id="templateOptions">
+      <option value="">Pick a template</option>
+      <option value="loginForm">Login Form</option>
+      <option value="accountTable">Account Table</option>
+      <option value="characterTable">Character Table</option>
+    </select>
 
-    <table id="accountInfo">
-      <tbody>
-        <tr>
-          <th data-key="username"></th>
-          <th data-key="role"></th>
-          <th data-key="approved"></th>
-          <th data-key="banned"></th>
-          <th data-key="created"></th>
-          <th data-key="updated"></th>
-        </tr>
-      </tbody>
-    </table>
-
-    <table id="characters">
-      <thead>
-        <tr>
-          <th data-key="name">Name</th>
-          <th data-key="accountId">Owner</th>
-          <th data-key="exp">Exp</th>
-          <th data-key="area">Area</th>
-          <th data-key="created">Created</th>
-          <th data-key="updated">Updated</th>
-        </tr>
-      </thead>
-      </tbody> 
-    </table>
+    <div id="contentContainer"></div>
 
     <script>
       let accountFixture = {"username": "Tweek", "password": "dragon4ever", "cdkey": "efgh5678", "role": 3, "approved": 1, "banned": 0, "created": "23/11/2017","updated": "29/11/2017"};
       sessionStorage.setItem('account', JSON.stringify(accountFixture));
 
-      window.addEventListener('load', () => {
+      let characterFixture = [{"id":1,"accountId":"Tweek","name":"Siobhan Faulkner","exp":10000,"area":"Hlammach Docks","created":"23/11/2017","updated":"29/11/2017"},{"id":2,"accountId":"Aez","name":"Alrunden Peralt","exp":12000,"area":"Dreyen Inn","created":"26/6/2017","updated":"29/11/2017"},{"id":3,"accountId":null,"name":"Arthen Relindar","exp":20000,"area":"Relindar Green","created":null,"updated":null},{"id":4,"accountId":"XxDrizzitxX","name":"Ji'Lin Thri'quen","exp":1050,"area":"Dreyen Inn","created":"29/11/2017","updated":"29/11/2017"}];
+
+      window.addEventListener('load', event => {
+        let contentContainer = document.querySelector("#contentContainer");
+        let templateOptions = document.querySelector("#templateOptions")
+        templateOptions.addEventListener('change', event => {
+          switch (event.target.value) {
+            case 'loginForm':
+              drawLoginForm();
+              break;
+            case 'accountTable':
+              drawAccountTable();
+              break;
+            case 'characterTable':
+              drawCharacterTable();
+              break;
+          }
+        })
+      });
+
+      function drawCharacterTable() {
+        renderTemplate(contentContainer, "characterContainer", characterTable);
+
+        fillTableFromHeader(document.querySelector("#characters"), characterFixture);
+      }
+
+      function drawAccountTable() {
+        renderTemplate(contentContainer, "accountContainer", accountTable);
+
+        let account = JSON.parse(sessionStorage.getItem('account'));
+        fillOneRowTable(document.querySelector("#accountInfo"), account);
+      }
+
+      function drawLoginForm() {
+        renderTemplate(contentContainer, "loginContainer", loginForm);
+
         let form = document.querySelector('#login');
         let user = document.querySelector("#login input[name='user']");
         let pw = document.querySelector("#login input[name='pw']");
@@ -53,11 +68,6 @@
         user.value = account.username;
         pw.value = account.password;
 
-        fillOneRowTable(document.querySelector("#accountInfo"), account);
-
-        let characterFixture = [{"id":1,"accountId":"Tweek","name":"Siobhan Faulkner","exp":10000,"area":"Hlammach Docks","created":"23/11/2017","updated":"29/11/2017"},{"id":2,"accountId":"Aez","name":"Alrunden Peralt","exp":12000,"area":"Dreyen Inn","created":"26/6/2017","updated":"29/11/2017"},{"id":3,"accountId":null,"name":"Arthen Relindar","exp":20000,"area":"Relindar Green","created":null,"updated":null},{"id":4,"accountId":"XxDrizzitxX","name":"Ji'Lin Thri'quen","exp":1050,"area":"Dreyen Inn","created":"29/11/2017","updated":"29/11/2017"}];
-        fillTableFromHeader(document.querySelector("#characters"), characterFixture);
-
         form.addEventListener('submit', event => {
           event.preventDefault();
           let formData = new FormData(event.srcElement);
@@ -65,7 +75,7 @@
             console.log(`${input[0]}: ${input[1]}`)
           }
         })
-      });
+      }
     </script>
 
   </body>
