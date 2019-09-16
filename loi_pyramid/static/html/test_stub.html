@@ -1,13 +1,13 @@
 <html>
   <head>
-    <script src="../js/tables.js"></script>
+    <script type="module" src="../js/tables.js"></script>
     <script src="../js/xhr.js"></script>
+    <script type="module" src="../js/template.js"></script>
 
-    <script src="login_form.js"></script>
-    <script src="account_table.js"></script>
-    <script src="character_table.js"></script>
+    <script type="module" src="account_table.js"></script>
+    <script type="module" src="character_table.js"></script>
+    <script type="module" src="login_form.js"></script>
 
-    <script src="../js/template.js"></script>
   </head>
   <body>
 
@@ -20,11 +20,25 @@
 
     <div id="contentContainer"></div>
 
-    <script>
-      let accountFixture = {"username": "Tweek", "password": "dragon4ever", "cdkey": "efgh5678", "role": 3, "approved": 1, "banned": 0, "created": "23/11/2017","updated": "29/11/2017"};
+    <script type="module">
+      import Template from '../js/template.js';
+      import characterTable from './character_table.js';
+      import accountTable from './account_table.js';
+      import loginForm from './login_form.js';
+
+      const accountFixture = {"username": "Tweek", "password": "dragon4ever", "cdkey": "efgh5678", "role": 3, "approved": 1, "banned": 0, "created": "23/11/2017","updated": "29/11/2017"};
       sessionStorage.setItem('account', JSON.stringify(accountFixture));
 
-      let characterFixture = [{"id":1,"accountId":"Tweek","name":"Siobhan Faulkner","exp":10000,"area":"Hlammach Docks","created":"23/11/2017","updated":"29/11/2017"},{"id":2,"accountId":"Aez","name":"Alrunden Peralt","exp":12000,"area":"Dreyen Inn","created":"26/6/2017","updated":"29/11/2017"},{"id":3,"accountId":null,"name":"Arthen Relindar","exp":20000,"area":"Relindar Green","created":null,"updated":null},{"id":4,"accountId":"XxDrizzitxX","name":"Ji'Lin Thri'quen","exp":1050,"area":"Dreyen Inn","created":"29/11/2017","updated":"29/11/2017"}];
+      const characterFixture = [{"id":1,"accountId":"Tweek","name":"Siobhan Faulkner","exp":10000,"area":"Hlammach Docks","created":"23/11/2017","updated":"29/11/2017"},{"id":2,"accountId":"Aez","name":"Alrunden Peralt","exp":12000,"area":"Dreyen Inn","created":"26/6/2017","updated":"29/11/2017"},{"id":3,"accountId":null,"name":"Arthen Relindar","exp":20000,"area":"Relindar Green","created":null,"updated":null},{"id":4,"accountId":"XxDrizzitxX","name":"Ji'Lin Thri'quen","exp":1050,"area":"Dreyen Inn","created":"29/11/2017","updated":"29/11/2017"}];
+
+      const testLoginFormMarkup = 
+        `<form>
+          <label for="user">Username</label> 
+          <input type="text" name="user"></input>
+          <label for="pw">Password</label>
+          <input type="password" name="pw"></input>
+          <input type="submit"></input>
+        </form>`;
 
       window.addEventListener('load', event => {
         let contentContainer = document.querySelector("#contentContainer");
@@ -32,30 +46,36 @@
         templateOptions.addEventListener('change', event => {
           switch (event.target.value) {
             case 'loginForm':
-              drawLoginForm();
+              let testLoginForm = new Template.Content(
+                'loginForm', 
+                function () {},
+                testLoginFormMarkup,
+                function () {
+                  let form = document.querySelector('#loginForm form');
+                  form.addEventListener('submit', event => {
+                    event.preventDefault();
+                      let formData = new FormData(event.srcElement);
+                      for (let input of formData.entries()) {
+                        console.log(`${input[0]}: ${input[1]}`)
+                      }
+                    })
+                  });
+              testLoginForm.render(contentContainer);
+              testLoginForm.afterRender();
               break;
             case 'accountTable':
-              drawAccountTable();
+              accountTable.render(contentContainer);
+
+              let account = JSON.parse(sessionStorage.getItem('account'));
+              accountTable.afterRender(account);
               break;
             case 'characterTable':
-              drawCharacterTable();
+              characterTable.render(contentContainer);
+              characterTable.afterRender(characterFixture);
               break;
           }
         })
       });
-
-      function drawCharacterTable() {
-        renderTemplate(contentContainer, "characterContainer", characterTable);
-
-        fillTableFromHeader(document.querySelector("#characters"), characterFixture);
-      }
-
-      function drawAccountTable() {
-        renderTemplate(contentContainer, "accountContainer", accountTable);
-
-        let account = JSON.parse(sessionStorage.getItem('account'));
-        fillOneRowTable(document.querySelector("#accountInfo"), account);
-      }
 
       function drawLoginForm() {
         renderTemplate(contentContainer, "loginContainer", loginForm);
@@ -64,17 +84,8 @@
         let user = document.querySelector("#login input[name='user']");
         let pw = document.querySelector("#login input[name='pw']");
 
-        let account = JSON.parse(sessionStorage.getItem('account'));
-        user.value = account.username;
-        pw.value = account.password;
 
-        form.addEventListener('submit', event => {
-          event.preventDefault();
-          let formData = new FormData(event.srcElement);
-          for (let input of formData.entries()) {
-            console.log(`${input[0]}: ${input[1]}`)
-          }
-        })
+        
       }
     </script>
 
