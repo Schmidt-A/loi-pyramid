@@ -10,11 +10,10 @@ const loginFormMarkup =
 	</form>`;
 
 const loginForm = new Template.Content(
-  'loginForm', 
   function () {},
   loginFormMarkup,
   function () {
-    let form = document.querySelector('#loginForm form');
+    let form = document.querySelector(`#${this.container.id} form`);
     form.addEventListener('submit', event => {
       event.preventDefault();
       let formData = new FormData(event.srcElement);
@@ -25,10 +24,10 @@ const loginForm = new Template.Content(
       .then(response => {
         parseResponse(response).then( account => {
           sessionStorage.setItem('account', JSON.stringify(account));
+          console.log(JSON.stringify(account));
         })
       })
       .catch(error => {
-        
       })
     })
   });

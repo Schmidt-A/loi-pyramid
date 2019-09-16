@@ -17,11 +17,10 @@ let characterTableMarkup =
   </table>`;
 
 const characterTable = new Template.Content(
-  'characterTable', 
   function () {},
   characterTableMarkup,
   function (dataList) {
-    Tables.fillTableFromHeader(document.querySelector(`#characterTable table`), dataList);
+    Tables.fillTableFromHeader(document.querySelector(`#${this.container.id} table`), dataList);
   });
 
 export default characterTable;

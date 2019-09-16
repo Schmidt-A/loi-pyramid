@@ -17,10 +17,9 @@ let accountTableMarkup =
 
 
 const accountTable = new Template.Content(
-  'accountTable', 
   function () {},
   accountTableMarkup,
   function (data) {
-    Tables.fillOneRowTable(document.querySelector(`#accountTable table`), data);
+    Tables.fillOneRowTable(document.querySelector(`#${this.container.id} table`), data);
   });
 export default accountTable; 

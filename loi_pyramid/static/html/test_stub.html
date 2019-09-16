@@ -1,7 +1,7 @@
 <html>
   <head>
     <script type="module" src="../js/tables.js"></script>
-    <script src="../js/xhr.js"></script>
+    <script type="module" src="../js/xhr.js"></script>
     <script type="module" src="../js/template.js"></script>
 
     <script type="module" src="account_table.js"></script>
@@ -46,12 +46,11 @@
         templateOptions.addEventListener('change', event => {
           switch (event.target.value) {
             case 'loginForm':
-              let testLoginForm = new Template.Content(
-                'loginForm', 
+              let testLoginForm = new Template.Content( 
                 function () {},
                 testLoginFormMarkup,
                 function () {
-                  let form = document.querySelector('#loginForm form');
+                  let form = document.querySelector(`#${this.container.id} form`);
                   form.addEventListener('submit', event => {
                     event.preventDefault();
                       let formData = new FormData(event.srcElement);
@@ -76,17 +75,6 @@
           }
         })
       });
-
-      function drawLoginForm() {
-        renderTemplate(contentContainer, "loginContainer", loginForm);
-
-        let form = document.querySelector('#login');
-        let user = document.querySelector("#login input[name='user']");
-        let pw = document.querySelector("#login input[name='pw']");
-
-
-        
-      }
     </script>
 
   </body>
