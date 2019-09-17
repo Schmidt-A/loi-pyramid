@@ -1,0 +1,34 @@
+<html>
+  <head>
+    <script type="module" src="../js/tables.js"></script>
+    <script type="module" src="../js/xhr.js"></script>
+    <script type="module" src="../js/templates.js"></script>
+
+    <script type="module" src="account_table.js"></script>
+    <script type="module" src="character_table.js"></script>
+    <script type="module" src="login_form.js"></script>
+
+		<script type="module" src="login_page.js"></script>    
+		<script type="module" src="account_characters_page.js"></script>    
+
+  </head>
+  <body>
+
+  	<div id="pageContainer"></div>
+
+  	<script type="module">
+  		import loginPage from './login_page.js';
+  		import accountCharacterPage from './account_characters_page.js';
+
+  		window.addEventListener('load', event => {
+  			window.addEventListener('triggerPage', event => {
+  				accountCharacterPage.render()
+  			});
+
+  			sessionStorage.clear();
+  			loginPage.render();
+  		});
+  	</script>
+
+  </body>
+</html>

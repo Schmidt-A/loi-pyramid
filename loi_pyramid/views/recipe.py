@@ -8,14 +8,12 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from . import BaseView
 from ..models import Recipe
-from ..decorators import set_authorized
 from ..schemas import RecipeAdminUpdate, Invalid
 
 
 log = logging.getLogger(__name__)
 
 #Govern calls to a single recipe object /recipes/{blueprint}
-@set_authorized
 @view_defaults(route_name='recipe', renderer='json')
 class RecipeViews(BaseView):
 
@@ -24,13 +22,13 @@ class RecipeViews(BaseView):
         try:
             query = self.request.dbsession.query(Recipe)
             recipe = query.filter(Recipe.blueprint == self.url['blueprint']).one()
-            log.info(
+            log.debug(
                 'get: blueprint {}'.format(recipe.blueprint))
 
             response = Response(json=recipe.public_payload, content_type='application/json')
 
         except NoResultFound:
-            log.error(
+            log.debug(
                 'get: recipe \'{}\' not found'.format(self.url['blueprint']))
             raise HTTPNotFound
 
@@ -38,7 +36,6 @@ class RecipeViews(BaseView):
 
 
 #Govern calls to all recipe objects /recipes
-@set_authorized
 @view_defaults(route_name='recipes', renderer='json')
 class RecipesViews(BaseView):
 
@@ -47,7 +44,7 @@ class RecipesViews(BaseView):
         try:
             query = self.request.dbsession.query(Recipe)
             recipes = query.all()
-            log.info('get: all recipes')
+            log.debug('get: all recipes')
 
             get_all_data = []
             for recipe in recipes:

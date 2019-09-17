@@ -1,6 +1,13 @@
 import bcrypt
+from pyramid.security import (
+    ALL_PERMISSIONS,
+    Allow,
+    Authenticated,
+    Deny,
+    Everyone,
+)
+from ..models import Account
 
-from .models import Account
 
 def hash_password(pw):
     pwhash = bcrypt.hashpw(pw.encode('utf8'), bcrypt.gensalt())
@@ -15,7 +22,9 @@ def role_lookup(username, request):
     account = query.filter(Account.username == username).one()
 
     role = []
-    if account.role == 3:
+    if account.role > 0:
+        role.append('g:authenticated')
+    if account.role > 1:
         role.append('g:admin')
 
     return role
@@ -25,3 +34,13 @@ def get_account(request):
     account = query.filter(Account.username == request.authenticated_userid).one()
 
     return account
+
+class Root(object):
+    __acl__ = [
+        (Allow, Everyone, 'login'),
+        (Allow, Authenticated, 'authenticated'),
+        (Allow, 'g:admin', 'admin')
+    ]
+
+    def __init__(self, request):
+        pass

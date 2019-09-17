@@ -1,0 +1,54 @@
+<html>
+  <head>
+    <script src="../js/tables.js"></script>
+    <script src="../js/xhr.js"></script>
+  </head>
+  <body>
+
+    <table id="accountInfo">
+      <tbody>
+        <tr>
+          <th data-key="username"></th>
+          <th data-key="role"></th>
+          <th data-key="approved"></th>
+          <th data-key="banned"></th>
+          <th data-key="created"></th>
+          <th data-key="updated"></th>
+        </tr>
+      </tbody>
+    </table>
+
+    <table id="accountCharacters">
+      <thead>
+        <tr>
+          <th data-key="name">Name</th>
+          <th data-key="exp">Exp</th>
+          <th data-key="area">Area</th>
+          <th data-key="created">Created</th>
+          <th data-key="updated">Updated</th>
+        </tr>
+      </thead>
+      </tbody> 
+    </table>
+
+    <script>
+      let account = JSON.parse(sessionStorage.getItem('account'));
+      if (account && account.username) {
+        fillOneRowTable(document.querySelector("#accountInfo"), account);
+        
+        fetch(`http://sundred.com:6543/accounts/${account.username}/characters`)
+          .then(response => {
+            parseResponse(response).then( characters => {
+              fillTableFromHeader(document.querySelector("#accountCharacters"), characters)
+            })
+          })
+          .catch(error => {
+            window.location = "login_stub.html"
+          })
+      } else {
+        window.location = "login_stub.html"
+      }
+    </script>
+
+  </body>
+</html>

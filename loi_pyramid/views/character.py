@@ -8,14 +8,12 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from . import BaseView
 from ..models import Character, Item, Account, Action
-from ..decorators import set_authorized
 from ..schemas import CharacterAdminUpdate, ItemAdminUpdate, ItemAdminCreate, Invalid
 
 
 log = logging.getLogger(__name__)
 
 #Govern calls to a single character object /characters/{id}
-@set_authorized
 @view_defaults(route_name='character', renderer='json')
 class CharacterViews(BaseView):
 
@@ -25,7 +23,7 @@ class CharacterViews(BaseView):
             query = self.request.dbsession.query(Character)
             character = query.filter(Character.id == self.url['id']).one()
 
-            log.info(
+            log.debug(
                 'get: character/id {}/{} by account {}'.format(
                     character.name, character.id, self.request.account.username))
 
@@ -38,7 +36,7 @@ class CharacterViews(BaseView):
                 response = Response(json=character.public_payload, content_type='application/json')
 
         except NoResultFound:
-            log.error(
+            log.debug(
                 'get: character id \'{}\' or account \'{}\' not found'.format(
                     self.url['id'], self.request.authenticated_userid))
             raise HTTPNotFound
@@ -48,7 +46,7 @@ class CharacterViews(BaseView):
     #This method will be locked down since we should not allow any of this to be editable
     #Only admins or nwn (via db) should be able to create new characters or edit new characters
     #I'm not going to expose a new api for making new characters, that should be done by NWN only
-    @view_config(request_method='PUT')
+    @view_config(request_method='PUT', permission='admin')
     def update(self):
         try:
             #if they're an admin they can do everything
@@ -75,7 +73,7 @@ class CharacterViews(BaseView):
                     character.name, character.id, [put_data['exp'], put_data['area']]))
 
             else:
-                log.error(
+                log.warning(
                     'update: account/role {}/{} is not allowed to do this'.format(
                         self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
@@ -96,7 +94,7 @@ class CharacterViews(BaseView):
 
     #This method will almost certainly be locked down since we should not allow any of this to be editable
     #Only admin server or nwn (via db) should be able to delete characters
-    @view_config(request_method='DELETE')
+    @view_config(request_method='DELETE', permission='admin')
     def delete(self):
         try:
             #if they're an admin they can do everything
@@ -120,7 +118,7 @@ class CharacterViews(BaseView):
                 response = Response(json=get_all_data, content_type='application/json')
 
             else:
-                log.error(
+                log.warning(
                     'delete: account/role {}/{} is not allowed to do this'.format(
                         self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
@@ -134,7 +132,6 @@ class CharacterViews(BaseView):
         return response
 
 #Govern calls to all character objects /characters
-@set_authorized
 @view_defaults(route_name='characters', renderer='json')
 class CharactersViews(BaseView):
 
@@ -143,7 +140,7 @@ class CharactersViews(BaseView):
         try:
             query = self.request.dbsession.query(Character)
             characters = query.all()
-            log.info('get: all characters')
+            log.debug('get: all characters')
 
             get_all_data = []
             for character in characters:
@@ -162,7 +159,6 @@ class CharactersViews(BaseView):
         return response
 
 #Govern calls to an item on a character /character/{id}/item/{id}
-@set_authorized
 @view_defaults(route_name='character_item', renderer='json')
 class CharacterItemViews(BaseView):
 
@@ -187,19 +183,19 @@ class CharacterItemViews(BaseView):
                     response = Response(json=item.owned_payload, content_type='application/json')
 
                 else:
-                    log.error(
-                        'update: item id \'{}\' not associated with char id \'{}\''.format(
+                    log.warning(
+                        'get: item id \'{}\' not associated with char id \'{}\''.format(
                             self.url['itemId'], self.url['charId']))
                     raise HTTPClientError
 
             else:
-                log.error(
-                    'update: character id {} is not associated with account {}'.format(
+                log.warning(
+                    'get: character id {} is not associated with account {}'.format(
                         self.url['charId'], self.request.account.username))
                 raise HTTPForbidden
 
         except NoResultFound:
-            log.error(
+            log.debug(
                 'get: item id \'{}\', char id \'{}\', or account \'{}\' not found'.format(
                     self.url['itemId'], self.url['charId'], self.request.authenticated_userid))
             raise HTTPNotFound
@@ -208,7 +204,7 @@ class CharacterItemViews(BaseView):
 
     #This method will be locked down since we should not allow any of this to be editable
     #Only admins or nwn (via db) should be able to create new characters or edit new characters
-    @view_config(request_method='PUT')
+    @view_config(request_method='PUT', permission='admin')
     def update(self):
         try:
             #if they own it or they're an admin
@@ -237,14 +233,15 @@ class CharacterItemViews(BaseView):
                     response = Response(json=item.owned_payload, content_type='application/json')
 
                 else:
-                    log.error(
+                    log.warning(
                         'update: item id \'{}\' not associated with char id \'{}\''.format(
                             self.url['itemId'], self.url['charId']))
                     raise HTTPClientError
 
             else:
-                'update: account/role {}/{} is not allowed to do this'.format(
-                    self.request.account.username, self.request.account.role)
+                log.warning(
+                    'update: account/role {}/{} is not allowed to do this'.format(
+                        self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
 
         except NoResultFound:
@@ -262,7 +259,7 @@ class CharacterItemViews(BaseView):
 
     #This method will be locked down since we should not allow any of this to be editable
     #Only admin server or nwn (via db) should be able to delete characters
-    @view_config(request_method='DELETE')
+    @view_config(request_method='DELETE', permission='admin')
     def delete(self):
         try:
             #if they own it or they're an admin
@@ -291,13 +288,13 @@ class CharacterItemViews(BaseView):
                     response = Response(json=get_all_data, content_type='application/json')
 
                 else:
-                    log.error(
+                    log.warning(
                         'update: item id \'{}\' not associated with char id \'{}\''.format(
                             self.url['itemId'], self.url['charId']))
                     raise HTTPClientError
 
             else:
-                log.error(
+                log.warning(
                     'delete: account/role {}/{} is not allowed to do this'.format(
                         self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
@@ -311,7 +308,6 @@ class CharacterItemViews(BaseView):
         return response
 
 #Govern calls to a character's items /character/{id}/items
-@set_authorized
 @view_defaults(route_name='character_items', renderer='json')
 class CharacterItemsViews(BaseView):
 
@@ -327,7 +323,7 @@ class CharacterItemsViews(BaseView):
 
                 inv_query = self.request.dbsession.query(Item)
                 items = inv_query.filter(Item.characterId == self.url['id']).all()
-                log.info(
+                log.debug(
                     'get: items of character/id {}/{}'.format(character.name, character.id))
 
                 get_all_data = []
@@ -337,13 +333,13 @@ class CharacterItemsViews(BaseView):
                 response = Response(json=get_all_data, content_type='application/json')
 
             else:
-                log.error(
+                log.warning(
                     'update: character id {} is not associated with account {}'.format(
                         self.url['id'], self.request.account.username))
                 raise HTTPForbidden
 
         except NoResultFound:
-            log.error(
+            log.debug(
                 'get: character id \'{}\' not found'.format(self.url['id']))
             raise HTTPNotFound
 
@@ -351,7 +347,7 @@ class CharacterItemsViews(BaseView):
 
     #This method will be locked down since we should not allow any of this to be editable
     #Only admin server or nwn (via db) should be able to create items
-    @view_config(request_method='POST')
+    @view_config(request_method='POST', permission='admin')
     def create(self):
         try:
             #if they own it or they're an admin
@@ -382,7 +378,7 @@ class CharacterItemsViews(BaseView):
                 response = Response(json=newItem.owned_payload, content_type='application/json')
 
             else:
-                log.error(
+                log.warning(
                     'create: account/role {}/{} is not allowed to do this'.format(
                         self.request.account.username, self.request.account.role))
                 raise HTTPForbidden
@@ -401,7 +397,6 @@ class CharacterItemsViews(BaseView):
 
 
 #Govern calls to an action of a character /character/{id}/actions/{id}
-@set_authorized
 @view_defaults(route_name='character_action', renderer='json')
 class CharacterActionViews(BaseView):
 
@@ -445,7 +440,7 @@ class CharacterActionViews(BaseView):
 
         return response
 
-    @view_config(request_method='DELETE')
+    @view_config(request_method='DELETE', permission='admin')
     def delete(self):
         try:
             #Maybe remove the char lookup?
@@ -497,7 +492,6 @@ class CharacterActionViews(BaseView):
 
 
 #Govern calls to a character's actions /character/{id}/actions
-@set_authorized
 @view_defaults(route_name='character_actions', renderer='json')
 class CharacterActionsViews(BaseView):
 
@@ -513,7 +507,7 @@ class CharacterActionsViews(BaseView):
 
                 action_query = self.request.dbsession.query(Action)
                 actions = action_query.filter(Action.characterId == self.url['id']).all()
-                log.info(
+                log.debug(
                     'get: actions of character/id {}/{}'.format(character.name, character.id))
 
                 get_all_data = []
@@ -523,13 +517,13 @@ class CharacterActionsViews(BaseView):
                 response = Response(json=get_all_data, content_type='application/json')
 
             else:
-                log.error(
+                log.warning(
                     'update: character id {} is not associated with account {}'.format(
                         self.url['id'], self.request.account.username))
                 raise HTTPForbidden
 
         except NoResultFound:
-            log.error(
+            log.debug(
                 'get: character id \'{}\' not found'.format(self.url['id']))
             raise HTTPNotFound
 

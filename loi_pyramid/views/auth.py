@@ -8,20 +8,16 @@ from pyramid.view import view_config, view_defaults
 from sqlalchemy.orm.exc import NoResultFound
 
 from . import BaseView
-from ..decorators import set_authorized, no_auth
-from ..security import check_password
+from ..utils.security import check_password
 from ..schemas import LoginSchema, AccountAdminUpdate, Invalid
 from ..models import Account
 
 
 log = logging.getLogger(__name__)
 
-
-@set_authorized
 class AuthViews(BaseView):
 
-    @no_auth
-    @view_config(route_name='login', request_method='POST')
+    @view_config(route_name='login', request_method='POST', permission='login')
     def login(self):
         schema = LoginSchema()
         info = {}
@@ -41,18 +37,18 @@ class AuthViews(BaseView):
 
             if hashed_pw and check_password(pw, hashed_pw):
                 headers = remember(self.request, user)
-                response = Response(headers=headers)
+                response = Response(headers=headers, json=account.owned_payload, content_type='application/json')
 
                 log.info(
                     'login: username {}'.format(account.username))
                 return response
             else:
-                log.warn(
+                log.info(
                     'login: username {} or password incorrect'.format(user))
                 raise HTTPUnauthorized
 
         except NoResultFound as e:
-            log.warn(
+            log.info(
                 'login: account \'{}\' not found'.format(user))
             raise HTTPUnauthorized
 

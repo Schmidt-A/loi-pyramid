@@ -67,6 +67,8 @@ class TestAccountViews(BaseTest):
         self.assertEqual(account_result['role'], self.accounts['tweek']['role'])
         self.assertEqual(account_result['approved'], self.accounts['tweek']['approved'])
         self.assertEqual(account_result['banned'], self.accounts['tweek']['banned'])
+        self.assertEqual(account_result['created'], self.accounts['tweek']['created'])
+        self.assertEqual(account_result['updated'], self.accounts['tweek']['updated'])
 
     #Test that we cannot get Tam via get call
     #Because he'll never nut up and log on
@@ -116,5 +118,9 @@ class TestAccountViews(BaseTest):
     #Test that we cannot get Tam's characters via get all call
     #Because he never nutted up and logged on
     def test_get_all_chars_not_found(self):
-        with self.assertRaises(HTTPNotFound):
-            self.characters_get_all(self.fake_accounts['tam'], self.accounts['tweek'])
+        characters_result = self.characters_get_all(self.fake_accounts['tam'], self.accounts['tweek'])
+
+        compare_chars = []
+        self.assertEqual(len(characters_result), len(compare_chars))
+
+

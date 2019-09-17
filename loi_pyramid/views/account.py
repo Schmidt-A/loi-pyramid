@@ -8,14 +8,12 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from . import BaseView
 from ..models import Account, Character
-from ..decorators import set_authorized
 from ..schemas import AccountAdminUpdate, AccountOwnerUpdate, Invalid
 
 
 log = logging.getLogger(__name__)
 
 #Govern calls to a single account object /accounts/{username}
-@set_authorized
 @view_defaults(route_name='account', renderer='json')
 class AccountViews(BaseView):
 
@@ -24,7 +22,7 @@ class AccountViews(BaseView):
         try:
             query = self.request.dbsession.query(Account)
             account = query.filter(Account.username == self.url['username']).one()
-            log.info(
+            log.debug(
                 'get: username {}'.format(account.username))
 
             #if they own it or they're an admin
@@ -36,7 +34,7 @@ class AccountViews(BaseView):
                 response = Response(json=account.public_payload, content_type='application/json')
 
         except NoResultFound:
-            log.error(
+            log.debug(
                 'get: account \'{}\' not found'.format(self.url['username']))
             raise HTTPNotFound
 
@@ -44,7 +42,6 @@ class AccountViews(BaseView):
 
 
 #Govern calls to all account objects /accounts
-@set_authorized
 @view_defaults(route_name='accounts', renderer='json')
 class AccountsViews(BaseView):
 
@@ -53,7 +50,7 @@ class AccountsViews(BaseView):
         try:
             query = self.request.dbsession.query(Account)
             accounts = query.all()
-            log.info('get: all accounts')
+            log.debug('get: all accounts')
 
             get_all_data = []
             for account in accounts:
@@ -72,8 +69,6 @@ class AccountsViews(BaseView):
 
         return response
 
-
-@set_authorized
 @view_defaults(route_name='account_characters', renderer='json')
 class AccountCharactersView(BaseView):
 
@@ -87,7 +82,7 @@ class AccountCharactersView(BaseView):
             char_query = self.request.dbsession.query(Character)
             characters = char_query.filter(Character.accountId == self.url['username']).all()
 
-            log.info(
+            log.debug(
                 'get: characters of {}'.format(self.url['username']))
 
             get_all_data = []
@@ -101,8 +96,9 @@ class AccountCharactersView(BaseView):
             response = Response(json=get_all_data, content_type='application/json')
 
         except NoResultFound:
-            log.error(
+            log.debug(
                 'get: no characters found with account {}'.format(self.url['username']))
-            raise HTTPNotFound
+            get_all_data = []
+            response = Response(json=get_all_data, content_type='application/json')
 
         return response

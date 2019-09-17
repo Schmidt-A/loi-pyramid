@@ -6,3 +6,5 @@ function parseResponse(response) {
 		throw new Error(response);
 	}
 }
+
+export default parseResponse;
