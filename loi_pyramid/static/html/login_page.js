@@ -1,12 +1,12 @@
-import Template from '../js/template.js';
+import Template from '../js/templates.js';
 import loginForm from './login_form.js';
 
-let loginPageMarkup = 
+let markup = 
   `<div id="login"></div>`;
 
-let loginTemplateMap = {
+let templateMap = {
   'login': loginForm
-}
+};
   
 let logout = function () {
   let account = sessionStorage.getItem('account');
@@ -19,12 +19,9 @@ let logout = function () {
 }
 
 const loginPage = new Template.Page(
+  document.querySelector('#pageContainer'),
   'login',
-  logout,
-  loginPageMarkup,
-  loginTemplateMap,
-  function () {
-    loginForm.afterRender();
-  });
+  markup,
+  templateMap);
 
 export default loginPage;

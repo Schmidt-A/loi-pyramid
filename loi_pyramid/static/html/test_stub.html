@@ -2,7 +2,7 @@
   <head>
     <script type="module" src="../js/tables.js"></script>
     <script type="module" src="../js/xhr.js"></script>
-    <script type="module" src="../js/template.js"></script>
+    <script type="module" src="../js/templates.js"></script>
 
     <script type="module" src="account_table.js"></script>
     <script type="module" src="character_table.js"></script>
@@ -11,70 +11,122 @@
   </head>
   <body>
 
-    <select id="templateOptions">
-      <option value="">Pick a template</option>
-      <option value="loginForm">Login Form</option>
-      <option value="accountTable">Account Table</option>
-      <option value="characterTable">Character Table</option>
+    <select id="pageOptions">
+      <option value="">Pick a page</option>
+      <option value="templateTester">Template Tester</option>
     </select>
 
-    <div id="contentContainer"></div>
+    <div id="pageContainer"> </div>
 
     <script type="module">
-      import Template from '../js/template.js';
+      import Templates from '../js/templates.js';
       import characterTable from './character_table.js';
       import accountTable from './account_table.js';
       import loginForm from './login_form.js';
+      import Datasets from '../js/datasets.js';
 
-      const accountFixture = {"username": "Tweek", "password": "dragon4ever", "cdkey": "efgh5678", "role": 3, "approved": 1, "banned": 0, "created": "23/11/2017","updated": "29/11/2017"};
-      sessionStorage.setItem('account', JSON.stringify(accountFixture));
+      sessionStorage.clear();
+
+      const accountFixture = {"username": "Tweek", "password": "dragon4ever", "cdkey": "efgh5678", "role": 3, "approved": 1, "banned": 0, "created": "23/11/2017","updated": "29/11/2017"};      
 
       const characterFixture = [{"id":1,"accountId":"Tweek","name":"Siobhan Faulkner","exp":10000,"area":"Hlammach Docks","created":"23/11/2017","updated":"29/11/2017"},{"id":2,"accountId":"Aez","name":"Alrunden Peralt","exp":12000,"area":"Dreyen Inn","created":"26/6/2017","updated":"29/11/2017"},{"id":3,"accountId":null,"name":"Arthen Relindar","exp":20000,"area":"Relindar Green","created":null,"updated":null},{"id":4,"accountId":"XxDrizzitxX","name":"Ji'Lin Thri'quen","exp":1050,"area":"Dreyen Inn","created":"29/11/2017","updated":"29/11/2017"}];
 
-      const testLoginFormMarkup = 
-        `<form>
-          <label for="user">Username</label> 
-          <input type="text" name="user"></input>
-          <label for="pw">Password</label>
-          <input type="password" name="pw"></input>
-          <input type="submit"></input>
-        </form>`;
+      let templatePageMarkup = 
+      `<div id="templateChoiceContainer"></div>`;
 
-      window.addEventListener('load', event => {
-        let contentContainer = document.querySelector("#contentContainer");
-        let templateOptions = document.querySelector("#templateOptions")
-        templateOptions.addEventListener('change', event => {
+      let templateChoiceMarkup = 
+        `<select id="templateOptions">
+          <option value="">Pick a template</option>
+          <option value="loginForm">Login Form</option>
+          <option value="accountTable">Account Table</option>
+          <option value="characterTable">Character Table</option>
+        </select>
+
+        <div id="contentContainer"></div>`;
+
+      let pageOptions = document.querySelector('#pageOptions');
+
+      let templateChoiceListener = new Templates.Listener(
+        'select',
+        'change',
+        function (event) {
           switch (event.target.value) {
-            case 'loginForm':
-              let testLoginForm = new Template.Content( 
-                function () {},
-                testLoginFormMarkup,
+          case 'loginForm':
+            let testLoginForm = new Templates.Content( 
+              loginForm.dataset,
+              loginForm.markup,
+              loginForm.renderData,
+              [new Templates.Listener(
+                'form',
+                'submit',
+                function (event) {
+                  event.preventDefault();
+                    let formData = new FormData(event.srcElement);
+                    for (let input of formData.entries()) {
+                      console.log(`${input[0]}: ${input[1]}`)
+                    }
+                  },
+                )],
+              document.querySelector('#contentContainer'));
+            testLoginForm.renderContent();
+            break;
+          case 'accountTable':
+            let testAccountTable = new Templates.Content( 
+              new Datasets.Dataset(
+                'account',
                 function () {
-                  let form = document.querySelector(`#${this.container.id} form`);
-                  form.addEventListener('submit', event => {
-                    event.preventDefault();
-                      let formData = new FormData(event.srcElement);
-                      for (let input of formData.entries()) {
-                        console.log(`${input[0]}: ${input[1]}`)
-                      }
-                    })
-                  });
-              testLoginForm.render(contentContainer);
-              testLoginForm.afterRender();
-              break;
-            case 'accountTable':
-              accountTable.render(contentContainer);
-
-              let account = JSON.parse(sessionStorage.getItem('account'));
-              accountTable.afterRender(account);
-              break;
-            case 'characterTable':
-              characterTable.render(contentContainer);
-              characterTable.afterRender(characterFixture);
-              break;
+                  return accountFixture
+                }),
+              accountTable.markup,
+              accountTable.renderData,
+              accountTable.listeners,
+              document.querySelector('#contentContainer'));
+            testAccountTable.renderContent();
+            break;
+          case 'characterTable':
+            let testCharacterTable = new Templates.Content( 
+              new Datasets.Dataset(
+                'accountCharacters',
+                function () {
+                  return characterFixture
+                }),
+              characterTable.markup,
+              characterTable.renderData,
+              characterTable.listeners,
+              document.querySelector('#contentContainer'));
+            testCharacterTable.renderContent();
+            break;
           }
-        })
+        });
+
+      let templateChoiceTemplate = new Templates.Template(
+        null,
+        templateChoiceMarkup,
+        function () {},
+        [templateChoiceListener]
+        );
+
+      let templatePageMap = {
+        'templateChoiceContainer': templateChoiceTemplate
+      };
+
+      let templateChoicePage = new Templates.Page(
+        document.querySelector('#pageContainer'),
+        'template_test',
+        templatePageMarkup,
+        templatePageMap
+        );
+
+      pageOptions.addEventListener('change', event => {
+        event.preventDefault();
+        switch (event.target.value) {
+          case 'templateTester':
+            templateChoicePage.render();
+            break;
+        }
       });
+
+
     </script>
 
   </body>

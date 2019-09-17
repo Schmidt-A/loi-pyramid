@@ -1,7 +1,8 @@
-import Template from '../js/template.js';
+import Templates from '../js/templates.js';
 import Tables from '../js/tables.js';
+import Datasets from '../js/datasets.js';
 
-let accountTableMarkup = 
+let markup = 
   `<table>
     <tbody>
       <tr>
@@ -16,10 +17,14 @@ let accountTableMarkup =
   </table>`;
 
 
-const accountTable = new Template.Content(
-  function () {},
-  accountTableMarkup,
-  function (data) {
-    Tables.fillOneRowTable(document.querySelector(`#${this.container.id} table`), data);
-  });
+const accountTable = new Templates.Template(
+  Datasets.account,
+  markup,
+  function () {
+    this.dataset.getData()
+    .then( data => {
+      Tables.fillOneRowTable(document.querySelector(`#${this.container.id} table`), data);
+    })
+  },
+  []);
 export default accountTable; 

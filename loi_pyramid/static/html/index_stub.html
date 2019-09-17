@@ -2,7 +2,7 @@
   <head>
     <script type="module" src="../js/tables.js"></script>
     <script type="module" src="../js/xhr.js"></script>
-    <script type="module" src="../js/template.js"></script>
+    <script type="module" src="../js/templates.js"></script>
 
     <script type="module" src="account_table.js"></script>
     <script type="module" src="character_table.js"></script>
@@ -18,12 +18,15 @@
 
   	<script type="module">
   		import loginPage from './login_page.js';
+  		import accountCharacterPage from './account_characters_page.js';
 
   		window.addEventListener('load', event => {
-  			let pageContainer = document.querySelector("#pageContainer");
-  			loginPage.beforeRender();
-  			loginPage.render(pageContainer);
-  			loginPage.afterRender(pageContainer);
+  			window.addEventListener('triggerPage', event => {
+  				accountCharacterPage.render()
+  			});
+
+  			sessionStorage.clear();
+  			loginPage.render();
   		});
   	</script>
 
