@@ -1,6 +1,6 @@
-import Templates from '../util/templates.js';
-import Tables from '../util/tables.js';
-import Datasets from '../util/datasets.js';
+import Templates from '../utils/templates.js';
+import Tables from '../utils/tables.js';
+import Datasets from '../utils/datasets.js';
 
 let markup = 
   `<table>

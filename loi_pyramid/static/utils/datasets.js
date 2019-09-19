@@ -1,4 +1,4 @@
-import parseResponse from '../util/xhr.js';
+import parseResponse from '../utils/xhr.js';
 
 class Dataset {
 	constructor(name, retrieve) {
@@ -34,10 +34,13 @@ var accountCharacters = new Dataset(
 	'accountCharacters',
 	function (account) {
 		if (account && account.username) {
+			console.log('fuck1');
 			return fetch(`http://sundred.com:6543/accounts/${account.username}/characters`)
 			.then( response => { 
+				console.log('fuck2');
 				return parseResponse(response)
 				.then( characters => { 
+					console.log('fuck4');
 					return characters 
 				}) 
 			})

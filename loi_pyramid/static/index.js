@@ -1,5 +1,5 @@
 
-import Datasets from './util/datasets.js';
-import Template from './util/templates.js';
-import Tables from './util/tables.js';
-import parseResponse from './util/xhr.js';
+import Datasets from './utils/datasets.js';
+import Template from './utils/templates.js';
+import Tables from './utils/tables.js';
+import parseResponse from './utils/xhr.js';

@@ -6,6 +6,7 @@ class Template {
 		this.listeners = listeners;
 	}
 
+	//spread operator? ...
 	createContent(container) {
 		return new Content(this.dataset, this.markup, this.renderData, this.listeners, container)
 	}
