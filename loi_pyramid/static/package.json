@@ -1,0 +1,10 @@
+{
+  "name": "loi-stub",
+  "version": "1.0.0",
+  "description": "stub experiments for ui on loi apis",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "jsdom": "^15.1.1"
+  }
+}
