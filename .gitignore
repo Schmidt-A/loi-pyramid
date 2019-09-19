@@ -21,6 +21,7 @@ Data.fs*
 .sw?
 .DS_Store
 coverage
-test
 CHANGES.txt
 .*
+node_modules/
+*.lock

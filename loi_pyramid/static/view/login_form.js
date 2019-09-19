@@ -1,5 +1,5 @@
-import Templates from '../js/templates.js';
-import parseResponse from '../js/xhr.js';
+import Templates from '../util/templates.js';
+import parseResponse from '../util/xhr.js';
 
 const markup = 
 	`<form>

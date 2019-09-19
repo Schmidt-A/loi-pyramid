@@ -1,4 +1,4 @@
-import Template from '../js/templates.js';
+import Template from '../util/templates.js';
 import loginForm from './login_form.js';
 
 let markup = 

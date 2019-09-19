@@ -2,9 +2,14 @@
   "name": "loi-stub",
   "version": "1.0.0",
   "description": "stub experiments for ui on loi apis",
-  "main": "index.js",
+  "main": "./index.js",
   "license": "MIT",
-  "dependencies": {
-    "jsdom": "^15.1.1"
-  }
+  "dependencies": {},
+  "devDependencies": {
+    "jest": "^24.9.0"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "type": "module"
 }

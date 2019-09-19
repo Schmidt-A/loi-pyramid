@@ -1,7 +1,7 @@
-import Template from '../js/templates.js';
+import Template from '../util/templates.js';
 import characterTable from './character_table.js';
 import accountTable from './account_table.js';
-import Datasets from '../js/datasets.js';
+import Datasets from '../util/datasets.js';
 
 let markup = 
   `<div id="accountInfo"></div>

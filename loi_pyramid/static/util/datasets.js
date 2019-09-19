@@ -1,4 +1,4 @@
-import parseResponse from '../js/xhr.js';
+import parseResponse from '../util/xhr.js';
 
 class Dataset {
 	constructor(name, retrieve) {

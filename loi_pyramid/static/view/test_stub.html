@@ -1,8 +1,8 @@
 <html>
   <head>
-    <script type="module" src="../js/tables.js"></script>
-    <script type="module" src="../js/xhr.js"></script>
-    <script type="module" src="../js/templates.js"></script>
+    <script type="module" src="../util/tables.js"></script>
+    <script type="module" src="../util/xhr.js"></script>
+    <script type="module" src="../util/templates.js"></script>
 
     <script type="module" src="account_table.js"></script>
     <script type="module" src="character_table.js"></script>
@@ -19,11 +19,11 @@
     <div id="pageContainer"> </div>
 
     <script type="module">
-      import Templates from '../js/templates.js';
+      import Templates from '../util/templates.js';
       import characterTable from './character_table.js';
       import accountTable from './account_table.js';
       import loginForm from './login_form.js';
-      import Datasets from '../js/datasets.js';
+      import Datasets from '../util/datasets.js';
 
       sessionStorage.clear();
 
