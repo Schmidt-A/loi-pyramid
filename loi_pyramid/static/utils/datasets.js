@@ -15,9 +15,7 @@ class Dataset {
 				});
 		} else {
 			return new Promise((resolve, reject) => { 
-				return new Promise((resolve,reject) => { 
-					resolve(JSON.parse(data))
-				})
+				resolve(JSON.parse(data))
 			})
 		}
 	}
@@ -25,24 +23,23 @@ class Dataset {
 
 var account = new Dataset(
 	'account',
-	function () {
-		window.location = "login_stub.html"
-	}
-	);
+	function (username) {
+		if (username) {
+			return fetch(`http://sundred.com:6543/accounts/${username}`)
+			.then( response => { 
+				return parseResponse(response)
+			})
+			.catch( error => {})
+  	}
+	});
 
 var accountCharacters = new Dataset(
 	'accountCharacters',
 	function (account) {
 		if (account && account.username) {
-			console.log('fuck1');
 			return fetch(`http://sundred.com:6543/accounts/${account.username}/characters`)
 			.then( response => { 
-				console.log('fuck2');
 				return parseResponse(response)
-				.then( characters => { 
-					console.log('fuck4');
-					return characters 
-				}) 
 			})
 			.catch( error => {})
   	}

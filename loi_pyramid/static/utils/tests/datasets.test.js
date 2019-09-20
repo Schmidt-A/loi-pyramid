@@ -1,19 +1,54 @@
 import mockFetch from '../../test_utils/mockFetch.js';
 import Datasets from '../datasets.js';
 
-test('new Dataset()', () => {
+test('new Dataset()', async () => {
 	const mockDataset = new Datasets.Dataset(
 		'mock',
-		function () {}
+		function (mock) { return Promise.resolve( mock ) }
 		);
 	expect(mockDataset).toBeTruthy();
-	expect(mockDataset.name).toBe('mock')
-}); 
+	expect(mockDataset.name).toBe('mock');
+	expect(await mockDataset.retrieve('mock')).toBe('mock');
+	expect(await mockDataset.getData('mock')).toBe('mock');
+});
+
+test('getData() sessionData', async () => {
+	const mockDataset = new Datasets.Dataset(
+		'mock',
+		function (mock) { return Promise.resolve( mock ) }
+		);
+
+	let mockData = {'mockKey': 'mockValue'};
+	sessionStorage.setItem('mock', JSON.stringify(mockData));
+
+	expect(mockDataset).toBeTruthy();
+	expect(await mockDataset.retrieve('mock')).toBe('mock');
+
+	let mockResponse = await mockDataset.getData('mock');
+	expect(mockResponse.mockKey).toBe(mockData.mockKey);
+});
 
 import noob_account from './__mocks__/noob_account.json';
 import noob_characters from './__mocks__/noob_characters.json';
 
-test('Dataset getData()', async () => {
+test('account retrieve()', async () => {
+	jest.spyOn(window, 'fetch').mockImplementation( () => {
+    return Promise.resolve({
+      ok: true,
+      json: () => { 
+      	return Promise.resolve(noob_account)
+      }
+    })
+  })
+
+	let characters = await Datasets.account.retrieve(noob_account.username);
+
+	expect(characters).toBeTruthy();
+	expect(characters).toBe(noob_account);
+	expect(window.fetch.mock.calls[0][0]).toBe(`http://sundred.com:6543/accounts/${noob_account.username}`);
+});
+
+test('accountCharacters retrieve()', async () => {
 	jest.spyOn(window, 'fetch').mockImplementation( () => {
     return Promise.resolve({
       ok: true,
@@ -23,12 +58,9 @@ test('Dataset getData()', async () => {
     })
   })
 
-	let response = await Datasets.accountCharacters.getData(noob_account);
-	console.log(response);
-	let characters = await response;
+	let characters = await Datasets.accountCharacters.retrieve(noob_account);
 
 	expect(characters).toBeTruthy();
 	expect(characters).toBe(noob_characters);
-
-	expect(window.fetch).toHaveBeenCalledTimes(1);
+	expect(window.fetch.mock.calls[0][0]).toBe(`http://sundred.com:6543/accounts/${noob_account.username}/characters`);
 });
