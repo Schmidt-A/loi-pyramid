@@ -4,8 +4,9 @@ import Datasets from '../datasets.js';
 test('new Dataset()', async () => {
 	const mockDataset = new Datasets.Dataset(
 		'mock',
-		function (mock) { return Promise.resolve( mock ) }
-		);
+		jest.fn().mockImplementation( mock => {
+			return Promise.resolve(mock)
+		}));
 	expect(mockDataset).toBeTruthy();
 	expect(mockDataset.name).toBe('mock');
 	expect(await mockDataset.retrieve('mock')).toBe('mock');
@@ -32,14 +33,7 @@ import noob_account from './__mocks__/noob_account.json';
 import noob_characters from './__mocks__/noob_characters.json';
 
 test('account retrieve()', async () => {
-	jest.spyOn(window, 'fetch').mockImplementation( () => {
-    return Promise.resolve({
-      ok: true,
-      json: () => { 
-      	return Promise.resolve(noob_account)
-      }
-    })
-  })
+	jest.spyOn(window, 'fetch').mockImplementation( () => { return mockFetch(noob_account) });
 
 	let characters = await Datasets.account.retrieve(noob_account.username);
 
@@ -49,14 +43,7 @@ test('account retrieve()', async () => {
 });
 
 test('accountCharacters retrieve()', async () => {
-	jest.spyOn(window, 'fetch').mockImplementation( () => {
-    return Promise.resolve({
-      ok: true,
-      json: () => { 
-      	return Promise.resolve(noob_characters)
-      }
-    })
-  })
+	jest.spyOn(window, 'fetch').mockImplementation( () => { return mockFetch(noob_characters) });
 
 	let characters = await Datasets.accountCharacters.retrieve(noob_account);
 
