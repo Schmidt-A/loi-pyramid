@@ -15,6 +15,7 @@ const accountCharacterPage = new Template.Page(
   document.querySelector('#pageContainer'),
   'account_characters',
   markup,
-  templateMap);
+  templateMap
+ );
 
 export default accountCharacterPage;

@@ -26,5 +26,7 @@ const accountTable = new Templates.Template(
       Tables.fillOneRowTable(document.querySelector(`#${this.container.id} table`), data);
     })
   },
-  []);
+  []
+);
+
 export default accountTable; 

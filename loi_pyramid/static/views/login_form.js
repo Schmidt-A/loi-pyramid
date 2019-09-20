@@ -34,5 +34,6 @@ const loginForm = new Templates.Template(
       .catch(error => {
       })
   	}
-  )]);
+  )]
+);
 export default loginForm;

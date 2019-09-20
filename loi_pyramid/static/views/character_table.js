@@ -25,6 +25,7 @@ const characterTable = new Templates.Template(
       Tables.fillTableFromHeader(document.querySelector(`#${this.container.id} table`), data)
     })
   },
-  []);
+  []
+);
 
 export default characterTable;

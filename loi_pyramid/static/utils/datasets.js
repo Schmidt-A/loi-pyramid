@@ -31,7 +31,8 @@ var account = new Dataset(
 			})
 			.catch( error => {})
   	}
-	});
+	}
+);
 
 var accountCharacters = new Dataset(
 	'accountCharacters',
@@ -43,6 +44,7 @@ var accountCharacters = new Dataset(
 			})
 			.catch( error => {})
   	}
-  });
+  }
+ );
 
 export default { Dataset, account, accountCharacters };

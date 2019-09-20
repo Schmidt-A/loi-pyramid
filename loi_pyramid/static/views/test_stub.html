@@ -76,7 +76,7 @@
               new Datasets.Dataset(
                 'account',
                 function () {
-                  return accountFixture
+                  return Promise.resolve(accountFixture);
                 }),
               accountTable.markup,
               accountTable.renderData,
@@ -89,7 +89,7 @@
               new Datasets.Dataset(
                 'accountCharacters',
                 function () {
-                  return characterFixture
+                  return Promise.resolve(characterFixture);
                 }),
               characterTable.markup,
               characterTable.renderData,

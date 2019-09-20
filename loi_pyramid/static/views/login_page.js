@@ -22,6 +22,7 @@ const loginPage = new Template.Page(
   document.querySelector('#pageContainer'),
   'login',
   markup,
-  templateMap);
+  templateMap
+);
 
 export default loginPage;

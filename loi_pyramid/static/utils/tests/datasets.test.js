@@ -1,32 +1,34 @@
 import mockFetch from '../../test_utils/mockFetch.js';
 import Datasets from '../datasets.js';
+import mockDataset from './__mocks__/datasets.js';
+
+let mockData1 = {'mockKey': 1};
+let mockData2 = {'mockKey': 2};
 
 test('new Dataset()', async () => {
-	const mockDataset = new Datasets.Dataset(
-		'mock',
-		jest.fn().mockImplementation( mock => {
-			return Promise.resolve(mock)
-		}));
 	expect(mockDataset).toBeTruthy();
 	expect(mockDataset.name).toBe('mock');
-	expect(await mockDataset.retrieve('mock')).toBe('mock');
-	expect(await mockDataset.getData('mock')).toBe('mock');
+
+	let mockRetrieve = await mockDataset.retrieve(mockData1)
+	expect(mockRetrieve.mockKey).toBe(mockData1.mockKey);
+});
+
+test('getData() retrieve()', async () => {
+	let mockRetrieve = await mockDataset.retrieve(mockData1)
+	expect(mockRetrieve.mockKey).toBe(mockData1.mockKey);
+
+	let mockGetData = await mockDataset.getData(mockData1)
+	expect(mockGetData.mockKey).toBe(mockData1.mockKey);
+
+	expect(mockDataset.retrieve).toHaveBeenCalledTimes(2);
 });
 
 test('getData() sessionData', async () => {
-	const mockDataset = new Datasets.Dataset(
-		'mock',
-		function (mock) { return Promise.resolve( mock ) }
-		);
+	sessionStorage.setItem('mock', JSON.stringify(mockData2));
 
-	let mockData = {'mockKey': 'mockValue'};
-	sessionStorage.setItem('mock', JSON.stringify(mockData));
-
-	expect(mockDataset).toBeTruthy();
-	expect(await mockDataset.retrieve('mock')).toBe('mock');
-
-	let mockResponse = await mockDataset.getData('mock');
-	expect(mockResponse.mockKey).toBe(mockData.mockKey);
+	let mockGetData = await mockDataset.getData(mockData2);
+	expect(mockGetData.mockKey).toBe(mockData2.mockKey);
+	expect(mockDataset.retrieve).toHaveBeenCalledTimes(0);
 });
 
 import noob_account from './__mocks__/noob_account.json';
