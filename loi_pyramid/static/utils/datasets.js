@@ -1,6 +1,6 @@
 import parseResponse from '../utils/xhr.js';
 
-class Dataset {
+export class Dataset {
 	constructor(name, retrieve) {
 		this.name = name;
 		this.retrieve = retrieve;
