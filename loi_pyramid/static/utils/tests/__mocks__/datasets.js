@@ -1,9 +1,13 @@
-import Datasets from '../../datasets.js';
+import { Dataset } from '../../datasets.js';
 
-const mockDataset = new Datasets.Dataset(
+const mockDataset = new Dataset(
     'mock',
     jest.fn( mock => {
-        return Promise.resolve(mock)
+        return new Promise((resolve, reject) => {
+            resolve( new Promise((resolve, reject) => {
+            	resolve(mock)
+            }))
+        })
     })
 );
 

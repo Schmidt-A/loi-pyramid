@@ -1,5 +1,4 @@
 import Templates from '../utils/templates.js';
-import parseResponse from '../utils/xhr.js';
 
 const markup = 
 	`<form>
@@ -20,18 +19,19 @@ const loginForm = new Templates.Template(
   	function (event) {
   		event.preventDefault();
       let formData = new FormData(event.srcElement);
-      fetch('http://sundred.com:6543/login', {
+      let fetchRetrieve = fetch('http://sundred.com:6543/login', {
         method: 'POST',
         body: formData
       })
-      .then(response => {
-        parseResponse(response).then( account => {
-          sessionStorage.setItem('account', JSON.stringify(account));
-          console.log(JSON.stringify(account));
-          window.dispatchEvent(new Event('triggerPage'));
-        })
+      .then( response => {
+        return response.json()
       })
-      .catch(error => {
+      .then( account => {
+        sessionStorage.setItem('account', JSON.stringify(account));
+        console.log(JSON.stringify(account));
+        window.dispatchEvent(new Event('triggerPage'));
+      })
+      .catch( error => {
       })
   	}
   )]

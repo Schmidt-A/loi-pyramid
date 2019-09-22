@@ -23,7 +23,7 @@
       import characterTable from './character_table.js';
       import accountTable from './account_table.js';
       import loginForm from './login_form.js';
-      import Datasets from '../utils/datasets.js';
+      import { Dataset } from '../utils/datasets.js';
 
       sessionStorage.clear();
 
@@ -73,7 +73,7 @@
             break;
           case 'accountTable':
             let testAccountTable = new Templates.Content( 
-              new Datasets.Dataset(
+              new Dataset(
                 'account',
                 function () {
                   return Promise.resolve(accountFixture);
@@ -86,7 +86,7 @@
             break;
           case 'characterTable':
             let testCharacterTable = new Templates.Content( 
-              new Datasets.Dataset(
+              new Dataset(
                 'accountCharacters',
                 function () {
                   return Promise.resolve(characterFixture);

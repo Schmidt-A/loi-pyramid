@@ -1,6 +1,7 @@
 import Templates from '../utils/templates.js';
 import Tables from '../utils/tables.js';
-import Datasets from '../utils/datasets.js';
+import { Dataset } from '../utils/datasets.js';
+import accountData from '../models/account.js';
 
 let markup = 
   `<table>
@@ -16,9 +17,8 @@ let markup =
     </tbody>
   </table>`;
 
-
 const accountTable = new Templates.Template(
-  Datasets.account,
+  accountData,
   markup,
   function () {
     this.dataset.getData()

@@ -1,6 +1,7 @@
 import Templates from '../utils/templates.js';
 import Tables from '../utils/tables.js';
-import Datasets from '../utils/datasets.js';
+import { Dataset } from '../utils/datasets.js';
+import accountCharactersData from '../models/account_characters.js';
 
 let markup = 
   `<table>
@@ -17,7 +18,7 @@ let markup =
   </table>`;
 
 const characterTable = new Templates.Template(
-  Datasets.accountCharacters,
+  accountCharactersData,
   markup,
   function () {
     this.dataset.getData(JSON.parse(sessionStorage.getItem('account')))

@@ -74,7 +74,6 @@ test('Content addListeners()', () => {
 
     mockContent.container.children[0].focus();
 
-    console.log(mockContent.listeners[0].eventFunction.mock);
     expect(mockContent.listeners[0].eventFunction).toBeCalled();
     
 });*/

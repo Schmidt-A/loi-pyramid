@@ -1,5 +1,8 @@
+import Templates from './utils/templates.js';
+import loginPage from './views/login_page.js';
+import accountCharacterPage from './views/account_characters_page.js';
 
-import Datasets from './utils/datasets.js';
-import Template from './utils/templates.js';
-import Tables from './utils/tables.js';
-import parseResponse from './utils/xhr.js';
+window.addEventListener('popstate', event => {
+  // let the router know navigation happened!
+}, false);
+
