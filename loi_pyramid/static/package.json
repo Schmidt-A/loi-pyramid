@@ -11,12 +11,13 @@
     "babel-jest": "^24.9.0",
     "core-js": "^3.2.1",
     "jest": "^24.9.0",
-    "jest-puppeteer": "^4.3.0",
     "regenerator-runtime": "^0.13.3",
     "whatwg-fetch": "^3.0.0"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest -c jest.config.js",
+    "integration": "jest -c jest.integration.config.js",
+    "unit": "jest -c jest.unit.config.js"
   },
   "type": "module"
 }

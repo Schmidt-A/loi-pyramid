@@ -43,7 +43,7 @@ beforeEach(() => {
     headerTable.tBodies[0].innerHTML = '';
 });
 
-
+//maybe these should be integration tests
 test('fillTableFromHeader()', () => {
     Tables.fillTableFromHeader(headerTable, mockMultiRows);
 
@@ -60,6 +60,7 @@ test('fillTableFromHeader()', () => {
     }
 });
 
+//maybe these should be integration tests
 test('fillOneRowFromHeader()', () => {
     Tables.fillOneRowTable(oneRowTable, mockOneRow);
 

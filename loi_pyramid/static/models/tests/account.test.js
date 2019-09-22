@@ -2,6 +2,7 @@ import mockFetch from '../../utils/mockFetch.js';
 import accountData from '../account.js';
 import noob_account from './__mocks__/noob_account.json';
 
+//these tests are kinda useless
 test('account retrieve()', async () => {
     jest.spyOn(window, 'fetch').mockImplementation( () => { return mockFetch(true, 200, noob_account) });
 

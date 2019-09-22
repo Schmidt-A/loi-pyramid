@@ -19,7 +19,7 @@ const loginForm = new Templates.Template(
   	function (event) {
   		event.preventDefault();
       let formData = new FormData(event.srcElement);
-      let fetchRetrieve = fetch('http://sundred.com:6543/login', {
+      fetch('http://sundred.com:6543/login', {
         method: 'POST',
         body: formData
       })
@@ -28,7 +28,6 @@ const loginForm = new Templates.Template(
       })
       .then( account => {
         sessionStorage.setItem('account', JSON.stringify(account));
-        console.log(JSON.stringify(account));
         window.dispatchEvent(new Event('triggerPage'));
       })
       .catch( error => {

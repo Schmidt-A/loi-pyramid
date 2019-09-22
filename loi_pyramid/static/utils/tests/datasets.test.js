@@ -4,6 +4,10 @@ import mockDataset from './__mocks__/datasets.js';
 let mockData1 = {'mockKey': 1};
 let mockData2 = {'mockKey': 2};
 
+beforeEach(() => {
+    sessionStorage.clear();
+});
+
 test('new Dataset()', async () => {
     expect(mockDataset).toBeTruthy();
     expect(mockDataset.name).toBe('mock');
