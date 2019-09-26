@@ -1,7 +1,6 @@
 <html>
   <head>
     <script type="module" src="../utils/tables.js"></script>
-    <script type="module" src="../utils/xhr.js"></script>
     <script type="module" src="../utils/templates.js"></script>
 
     <script type="module" src="account_table.js"></script>
@@ -21,11 +20,13 @@
   		import accountCharacterPage from './account_characters_page.js';
 
   		window.addEventListener('load', event => {
+        loginPage.container = document.querySelector('#pageContainer');
+        
   			window.addEventListener('triggerPage', event => {
-  				accountCharacterPage.render()
+          accountCharacterPage.container = document.querySelector('#pageContainer');
+  				accountCharacterPage.render();
   			});
-
-  			sessionStorage.clear();
+        
   			loginPage.render();
   		});
   	</script>

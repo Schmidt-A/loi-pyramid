@@ -24,8 +24,6 @@ document.body.innerHTML =
             <th data-key="b"></th>
         </tr>
     </thead>
-    <tbody>
-    </tbody>
 </table>`;
 
 let oneRowTable = document.querySelector('#oneRowTable');
@@ -40,7 +38,9 @@ beforeEach(() => {
         </tr>
     </tbody>`;
 
-    headerTable.tBodies[0].innerHTML = '';
+    if (headerTable.tBodies[0]) {
+        headerTable.tBodies[0].innerHTML = '';    
+    }
 });
 
 //maybe these should be integration tests

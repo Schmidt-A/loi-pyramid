@@ -3,7 +3,7 @@ import { Dataset } from '../../datasets.js';
 
 let mockData1 = {'mockKey': 1};
 
-//the practice of using the dom for these unit mocks is possibly
+//the practice of using the dom for these unit mocks is possibly problematic
 let mockPageContainer = document.createElement('div');
 mockPageContainer.id = 'pageContainer';
 document.body.appendChild(mockPageContainer);
@@ -22,7 +22,7 @@ export const mockListener = new Templates.Listener(
 export const mockTemplate = new Templates.Template(
     jest.mock('../../datasets.js'),
     `<div class="mock"></div>`,
-    jest.fn( () => {}),
+    jest.fn( () => { return Promise.resolve()}),
     [mockListener]
 );
 
@@ -35,8 +35,8 @@ export const mockContent = new Templates.Content(
 );
 
 export const mockPage = new Templates.Page(
-    mockPageContainer,
     'mock',
     `<div id="sampleContent"></div>`,
-    { 'sampleContent': mockTemplate }
+    { 'sampleContent': mockTemplate },
+    mockPageContainer
 );

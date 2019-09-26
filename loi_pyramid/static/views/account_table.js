@@ -21,7 +21,7 @@ const accountTable = new Templates.Template(
   accountData,
   markup,
   function () {
-    this.dataset.getData()
+    return this.dataset.getData()
     .then( data => {
       Tables.fillOneRowTable(document.querySelector(`#${this.container.id} table`), data);
     })

@@ -21,7 +21,7 @@ const characterTable = new Templates.Template(
   accountCharactersData,
   markup,
   function () {
-    this.dataset.getData(JSON.parse(sessionStorage.getItem('account')))
+    return this.dataset.getData(JSON.parse(sessionStorage.getItem('account')))
     .then( data => {
       Tables.fillTableFromHeader(document.querySelector(`#${this.container.id} table`), data)
     })

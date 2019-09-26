@@ -1,7 +1,6 @@
 <html>
   <head>
     <script type="module" src="../utils/tables.js"></script>
-    <script type="module" src="../utils/xhr.js"></script>
     <script type="module" src="../utils/templates.js"></script>
 
     <script type="module" src="account_table.js"></script>
@@ -103,7 +102,7 @@
       let templateChoiceTemplate = new Templates.Template(
         null,
         templateChoiceMarkup,
-        function () {},
+        function () { return Promise.resolve()},
         [templateChoiceListener]
         );
 
@@ -112,10 +111,10 @@
       };
 
       let templateChoicePage = new Templates.Page(
-        document.querySelector('#pageContainer'),
         'template_test',
         templatePageMarkup,
-        templatePageMap
+        templatePageMap,
+        document.querySelector('#pageContainer')
         );
 
       pageOptions.addEventListener('change', event => {

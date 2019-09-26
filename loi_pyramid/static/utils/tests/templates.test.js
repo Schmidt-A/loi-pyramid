@@ -4,12 +4,20 @@ import { mockListener, mockTemplate, mockContent, mockPage } from './__mocks__/t
 let mockData1 = {'mockKey': 1};
 let mockEvent = new Event('focus', { 'bubbles':false, 'cancelable':true });
 
+let newContainer = document.createElement('div');
+newContainer.id = 'newContent';
+document.body.appendChild(newContainer);
+
 beforeEach( () => {
     mockPage.container.innerHTML = '';
     mockContent.container.innerHTML = '';
+    newContainer.innerHTML = '';
     expect(mockContent.container.children.length).toBe(0);
     expect(mockPage.container.children.length).toBe(0);
+    expect(newContainer.children.length).toBe(0);
 });
+
+//This probably tests too many implementation details
 
 test('new Listener()', () => {
     expect(mockListener).toBeTruthy();
@@ -33,9 +41,7 @@ test('new Template()', () => {
 //Could this be a candidate for an integration test?
 //Or at least to replace container with a non dom object
 test('Template createContent()', () => {
-    let newContainer = document.createElement('div');
-    newContainer.id = 'newContent';
-    document.body.appendChild(newContainer);
+    
 
     let newContent = mockTemplate.createContent(newContainer);
 
@@ -65,23 +71,8 @@ test('Content renderMarkup()', () => {
     expect(mockContent.container.children[0].className).toBe('mock');
 });
 
-/* This is a candidate for an integration test, not a unit test because it is an event mechanism
-test('Content addListeners()', () => {
-    expect(mockContent.container.children.length).toBe(0);
-
-    mockContent.renderMarkup();
-    mockContent.addListeners();
-
-    mockContent.container.children[0].focus();
-
-    expect(mockContent.listeners[0].eventFunction).toBeCalled();
-    
-});*/
-
 test('Content renderContent()', () => {
-    mockContent.renderMarkup();
-    mockContent.renderData();
-    mockContent.addListeners();
+    mockContent.renderContent();
 
     expect(mockContent.container.children[0].className).toBe('mock');
     expect(mockContent.renderData).toBeCalled();
@@ -96,6 +87,7 @@ test('new Page()', () => {
     expect(mockPage.path).toBe('mock');
     expect(mockPage.markup).toBe(`<div id="sampleContent"></div>`);
     expect(mockPage.templateMap.sampleContent).toBe(mockTemplate);
+    expect(mockPage.contentMap).toEqual({});
 });
 
 //Using window pathname expectations here might be better for integration tests
@@ -104,6 +96,8 @@ test('Page render()', () => {
 
     expect(mockPage.container.children[0].id).toBe('sampleContent');
     expect(mockPage.container.children[0].children[0].className).toBe('mock');
+    expect(mockPage.contentMap.sampleContent).toBeInstanceOf(Templates.Content);
+    expect(mockPage.contentMap.sampleContent.container).toBeInstanceOf(HTMLDivElement);
 
     expect(window.location.pathname).toBe('/app/mock');
 });

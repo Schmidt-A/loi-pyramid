@@ -92,7 +92,6 @@ let templatePageMap = {
 };
 
 export let templateChoicePage = new Templates.Page(
-document.querySelector('#pageContainer'),
 'template_test',
 templatePageMarkup,
 templatePageMap

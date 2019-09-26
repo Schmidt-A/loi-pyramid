@@ -1,4 +1,5 @@
 import Templates from '../utils/templates.js';
+import accountData from '../models/account.js';
 
 const markup = 
 	`<form>
@@ -10,9 +11,19 @@ const markup =
 	</form>`;
 
 const loginForm = new Templates.Template(
-  null,
+  accountData,
   markup,
-  function () {},
+  function () {
+    if (sessionStorage.getItem('account')) {
+      return fetch('http://sundred.com:6543/logout')
+      .then(response => {
+        sessionStorage.clear()
+      })
+      .catch(response => {})  
+    } else {
+      return Promise.resolve()
+    }
+  },
   [new Templates.Listener(
   	'form',
   	'submit',

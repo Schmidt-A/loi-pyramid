@@ -1,4 +1,4 @@
-import mockFetch from '../../utils/mockFetch.js';
+import mockFetch from '../../utils/mock_fetch.js';
 import loginForm from '../login_form.js';
 
 beforeEach(() => {
