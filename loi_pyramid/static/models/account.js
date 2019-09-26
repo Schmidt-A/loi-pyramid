@@ -8,9 +8,12 @@ const accountData = new Dataset(
         .then(response => {
           if (response.ok) {
             return response.json()
+          } else {
+            throw new Error(JSON.stringify(response))
           }
         })
-        .catch(error => { throw new Error(error) })
+    } else {
+      throw new TypeError('Username must be a string')
     }
   }
 )

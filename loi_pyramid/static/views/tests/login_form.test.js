@@ -1,5 +1,6 @@
 import mockFetch from '../../utils/mock_fetch.js'
 import loginForm from '../login_form.js'
+import noobAccount from '../../models/tests/__mocks__/noob_account.json'
 
 beforeEach(() => {
   sessionStorage.clear()
@@ -29,4 +30,17 @@ test('loginForm Listener eventFunction() success', () => {
   const data = window.fetch.mock.calls[0][1].body
   expect(data.get('user')).toBe('mockUsername')
   expect(data.get('pw')).toBe('mockPassword')
+})
+
+// this is really about testing that forming of the POST
+test('loginForm renderData() logout', () => {
+  jest.spyOn(window, 'fetch').mockImplementation(() => { return mockFetch(true, 200, {}) })
+
+  sessionStorage.setItem('account', JSON.stringify(noobAccount))
+
+  loginForm.renderData()
+
+  expect(window.fetch.mock.calls[0][0]).toBe('http://sundred.com:6543/logout')
+
+  expect(sessionStorage.getItem('account')).toBeNull()
 })

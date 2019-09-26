@@ -98,3 +98,13 @@ test('Page render()', () => {
 
   expect(window.location.pathname).toBe('/app/mock')
 })
+
+// Using window pathname expectations here might be better for integration tests
+test('Page render() over existing page', () => {
+  mockPage.container.appendChild(newContainer)
+  expect(mockPage.container.children[0]).toBe(newContainer)
+
+  mockPage.render()
+
+  expect(mockPage.container.children[0]).not.toBe(newContainer)
+})

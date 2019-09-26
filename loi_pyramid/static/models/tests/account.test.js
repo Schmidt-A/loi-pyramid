@@ -6,9 +6,17 @@ import noobAccount from './__mocks__/noob_account.json'
 test('account retrieve()', async () => {
   jest.spyOn(window, 'fetch').mockImplementation(() => { return mockFetch(true, 200, noobAccount) })
 
-  const characters = await accountData.retrieve(noobAccount.username)
+  const account = await accountData.retrieve(noobAccount.username)
 
-  expect(characters).toBeTruthy()
-  expect(characters).toBe(noobAccount)
+  expect(account).toBeTruthy()
+  expect(account).toBe(noobAccount)
   expect(window.fetch.mock.calls[0][0]).toBe(`http://sundred.com:6543/accounts/${noobAccount.username}`)
+})
+
+test('account retrieve() bad input', () => {
+  jest.spyOn(window, 'fetch').mockImplementation(() => { return Promise.resolve(Response.error()) })
+
+  expect( () => { accountData.retrieve() }).toThrow()
+  
+  expect(window.fetch).not.toHaveBeenCalled()
 })

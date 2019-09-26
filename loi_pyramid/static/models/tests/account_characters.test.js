@@ -13,3 +13,11 @@ test('accountCharacters retrieve()', async () => {
   expect(characters).toBe(noobCharacters)
   expect(window.fetch.mock.calls[0][0]).toBe(`http://sundred.com:6543/accounts/${noobAccount.username}/characters`)
 })
+
+test('accountCharacters retrieve() bad input', () => {
+  jest.spyOn(window, 'fetch').mockImplementation(() => { return Promise.resolve(Response.error()) })
+
+  expect( () => { accountCharactersData.retrieve() }).toThrow()
+  
+  expect(window.fetch).not.toHaveBeenCalled()
+})

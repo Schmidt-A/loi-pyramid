@@ -15,11 +15,8 @@ const loginForm = new Templates.Template(
   markup,
   function () {
     if (sessionStorage.getItem('account')) {
+      sessionStorage.clear()
       return fetch('http://sundred.com:6543/logout')
-        .then(response => {
-          sessionStorage.clear()
-        })
-        .catch(response => {})
     } else {
       return Promise.resolve()
     }
@@ -35,14 +32,15 @@ const loginForm = new Templates.Template(
         body: formData
       })
         .then(response => {
-          return response.json()
+          if (response.ok) {
+            return response.json()  
+          } else {
+            throw new Error(JSON.stringify(response))
+          }
         })
         .then(account => {
           sessionStorage.setItem('account', JSON.stringify(account))
           window.dispatchEvent(new Event('triggerPage'))
-        })
-        .catch(error => {
-          throw new Error(error)
         })
     }
   )]

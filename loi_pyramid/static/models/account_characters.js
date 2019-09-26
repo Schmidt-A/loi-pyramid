@@ -8,9 +8,12 @@ const accountCharactersData = new Dataset(
         .then(response => {
           if (response.ok) {
             return response.json()
+          } else {
+            throw new Error(JSON.stringify(response))
           }
         })
-        .catch(error => { throw new Error(error) })
+    } else {
+      throw new TypeError('Account must be an object containing a username')
     }
   }
 )
