@@ -1,9 +1,8 @@
-import Templates from '../utils/templates.js';
-import Tables from '../utils/tables.js';
-import { Dataset } from '../utils/datasets.js';
-import accountData from '../models/account.js';
+import Templates from '../utils/templates.js'
+import Tables from '../utils/tables.js'
+import accountData from '../models/account.js'
 
-let markup = 
+const markup =
   `<table>
     <tbody>
       <tr>
@@ -15,18 +14,18 @@ let markup =
         <th data-key="updated"></th>
       </tr>
     </tbody>
-  </table>`;
+  </table>`
 
 const accountTable = new Templates.Template(
   accountData,
   markup,
   function () {
     return this.dataset.getData()
-    .then( data => {
-      Tables.fillOneRowTable(document.querySelector(`#${this.container.id} table`), data);
-    })
+      .then(data => {
+        Tables.fillOneRowTable(document.querySelector(`#${this.container.id} table`), data)
+      })
   },
   []
-);
+)
 
-export default accountTable; 
+export default accountTable

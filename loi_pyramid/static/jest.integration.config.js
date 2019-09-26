@@ -1,4 +1,4 @@
-let integrationConfig = require('./jest.config');
-integrationConfig.testRegex = "integration\\.js$";
+const integrationConfig = require('./jest.config')
+integrationConfig.testRegex = 'integration\\.js$'
 
-module.exports = integrationConfig;
+module.exports = integrationConfig

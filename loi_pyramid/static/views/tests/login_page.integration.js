@@ -1,40 +1,44 @@
-import Templates from '../../utils/templates.js';
-import mockFetch from '../../utils/mock_fetch.js';
-import loginPage from '../login_page.js';
-import accountData from '../../models/account.js';
-import noobAccount from '../../models/tests/__mocks__/noob_account.json';
+import mockFetch from '../../utils/mock_fetch.js'
+import loginPage from '../login_page.js'
+import accountData from '../../models/account.js'
+import noobAccount from '../../models/tests/__mocks__/noob_account.json'
 
-let pageContainer = document.createElement('div');
-pageContainer.id = 'pageContainer';
-document.body.appendChild(pageContainer);
-loginPage.container = document.querySelector('#pageContainer');
+const pageContainer = document.createElement('div')
+pageContainer.id = 'pageContainer'
+document.body.appendChild(pageContainer)
+loginPage.container = document.querySelector('#pageContainer')
 
-beforeEach( () => {
-    sessionStorage.clear();
-    loginPage.container.innerHTML = '';
-    expect(loginPage.container.children.length).toBe(0);
-});
+beforeEach(() => {
+  sessionStorage.clear()
+  loginPage.container.innerHTML = ''
+  expect(loginPage.container.children.length).toBe(0)
+})
 
 test('Page render()', async () => {
-	jest.spyOn(window, 'fetch').mockImplementation( () => { return mockFetch(true, 200, noobAccount) });
+  jest.spyOn(window, 'fetch').mockImplementation(() => { return mockFetch(true, 200, noobAccount) })
 
-    await loginPage.render();
+  await loginPage.render()
 
-    expect(window.location.pathname).toBe('/app/login');
+  expect(window.location.pathname).toBe('/app/login')
 
-    //this indicates that these form fields have no value
-    expect(() => { new FormData(loginPage.contentMap.login)}).toThrow();
+  // this indicates that these form fields have no value
+  const user = document.querySelector("#login input[name='user']")
+  const pw = document.querySelector("#login input[name='pw']")
+  const submit = document.querySelector("#login input[type='submit']")
 
-	document.querySelector("#login input[name='user']").value = noobAccount.username;
-	document.querySelector("#login input[name='pw']").value = 'drizzit4ever';
-	document.querySelector("#login input[type='submit']").click();
+  expect(user.value).toBeFalsy()
+  expect(user.pw).toBeFalsy()
 
-	expect(window.fetch.mock.calls[0][0]).toBe(`http://sundred.com:6543/login`);
-	expect(window.fetch.mock.calls[0][1].method).toBe(`POST`);
+  user.value = noobAccount.username
+  pw.value = 'drizzit4ever'
+  submit.click()
 
-	let postData = window.fetch.mock.calls[0][1].body;
-	expect(postData.get('user')).toBe(noobAccount.username);
-	expect(postData.get('pw')).toBe('drizzit4ever');
-	
-	expect(await accountData.getData(noobAccount.username)).toEqual(noobAccount);
-});
+  expect(window.fetch.mock.calls[0][0]).toBe('http://sundred.com:6543/login')
+  expect(window.fetch.mock.calls[0][1].method).toBe('POST')
+
+  const postData = window.fetch.mock.calls[0][1].body
+  expect(postData.get('user')).toBe(noobAccount.username)
+  expect(postData.get('pw')).toBe('drizzit4ever')
+
+  expect(await accountData.getData(noobAccount.username)).toEqual(noobAccount)
+})

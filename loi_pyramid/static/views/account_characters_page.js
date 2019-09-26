@@ -1,20 +1,20 @@
-import Template from '../utils/templates.js';
-import characterTable from './character_table.js';
-import accountTable from './account_table.js';
+import Template from '../utils/templates.js'
+import characterTable from './character_table.js'
+import accountTable from './account_table.js'
 
-let markup = 
+const markup =
   `<div id="accountInfo"></div>
-  <div id="accountCharacters"></div>`;
+  <div id="accountCharacters"></div>`
 
-let templateMap = {
-  'accountInfo': accountTable,
-  'accountCharacters': characterTable
-};
+const templateMap = {
+  accountInfo: accountTable,
+  accountCharacters: characterTable
+}
 
 const accountCharacterPage = new Template.Page(
   'account_characters',
   markup,
   templateMap
- );
+)
 
-export default accountCharacterPage;
+export default accountCharacterPage

@@ -1,9 +1,8 @@
-import Templates from '../utils/templates.js';
-import Tables from '../utils/tables.js';
-import { Dataset } from '../utils/datasets.js';
-import accountCharactersData from '../models/account_characters.js';
+import Templates from '../utils/templates.js'
+import Tables from '../utils/tables.js'
+import accountCharactersData from '../models/account_characters.js'
 
-let markup = 
+const markup =
   `<table>
     <thead>
       <tr>
@@ -15,18 +14,18 @@ let markup =
       </tr>
     </thead>
     </tbody> 
-  </table>`;
+  </table>`
 
 const characterTable = new Templates.Template(
   accountCharactersData,
   markup,
   function () {
     return this.dataset.getData(JSON.parse(sessionStorage.getItem('account')))
-    .then( data => {
-      Tables.fillTableFromHeader(document.querySelector(`#${this.container.id} table`), data)
-    })
+      .then(data => {
+        Tables.fillTableFromHeader(document.querySelector(`#${this.container.id} table`), data)
+      })
   },
   []
-);
+)
 
-export default characterTable;
+export default characterTable

@@ -1,3 +1,3 @@
-let unitConfig = require('./jest.config');
+const unitConfig = require('./jest.config')
 
-module.exports = unitConfig;
+module.exports = unitConfig
