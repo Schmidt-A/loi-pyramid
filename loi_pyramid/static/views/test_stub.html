@@ -1,8 +1,7 @@
 <html>
   <head>
-    <script type="module" src="../util/tables.js"></script>
-    <script type="module" src="../util/xhr.js"></script>
-    <script type="module" src="../util/templates.js"></script>
+    <script type="module" src="../utils/tables.js"></script>
+    <script type="module" src="../utils/templates.js"></script>
 
     <script type="module" src="account_table.js"></script>
     <script type="module" src="character_table.js"></script>
@@ -19,11 +18,11 @@
     <div id="pageContainer"> </div>
 
     <script type="module">
-      import Templates from '../util/templates.js';
+      import Templates from '../utils/templates.js';
       import characterTable from './character_table.js';
       import accountTable from './account_table.js';
       import loginForm from './login_form.js';
-      import Datasets from '../util/datasets.js';
+      import { Dataset } from '../utils/datasets.js';
 
       sessionStorage.clear();
 
@@ -52,6 +51,7 @@
         function (event) {
           switch (event.target.value) {
           case 'loginForm':
+          // try to use a spread operator for the template conversion
             let testLoginForm = new Templates.Content( 
               loginForm.dataset,
               loginForm.markup,
@@ -72,10 +72,10 @@
             break;
           case 'accountTable':
             let testAccountTable = new Templates.Content( 
-              new Datasets.Dataset(
+              new Dataset(
                 'account',
                 function () {
-                  return accountFixture
+                  return Promise.resolve(accountFixture);
                 }),
               accountTable.markup,
               accountTable.renderData,
@@ -85,10 +85,10 @@
             break;
           case 'characterTable':
             let testCharacterTable = new Templates.Content( 
-              new Datasets.Dataset(
+              new Dataset(
                 'accountCharacters',
                 function () {
-                  return characterFixture
+                  return Promise.resolve(characterFixture);
                 }),
               characterTable.markup,
               characterTable.renderData,
@@ -102,7 +102,7 @@
       let templateChoiceTemplate = new Templates.Template(
         null,
         templateChoiceMarkup,
-        function () {},
+        function () { return Promise.resolve()},
         [templateChoiceListener]
         );
 
@@ -111,10 +111,10 @@
       };
 
       let templateChoicePage = new Templates.Page(
-        document.querySelector('#pageContainer'),
         'template_test',
         templatePageMarkup,
-        templatePageMap
+        templatePageMap,
+        document.querySelector('#pageContainer')
         );
 
       pageOptions.addEventListener('change', event => {

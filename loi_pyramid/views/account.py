@@ -69,6 +69,7 @@ class AccountsViews(BaseView):
 
         return response
 
+#Govern calls to all characters under an account /accounts/{username}/characters
 @view_defaults(route_name='account_characters', renderer='json')
 class AccountCharactersView(BaseView):
 
