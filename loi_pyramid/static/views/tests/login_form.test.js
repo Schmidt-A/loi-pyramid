@@ -1,6 +1,7 @@
 import mockFetch from '../../utils/mock_fetch.js'
 import loginForm from '../login_form.js'
 import noobAccount from '../../models/tests/__mocks__/noob_account.json'
+import { BASE_URL } from '../../environments/dev.js'
 
 beforeEach(() => {
   sessionStorage.clear()
@@ -24,7 +25,7 @@ test('loginForm Listener eventFunction() success', () => {
 
   loginForm.listeners[0].eventFunction(mockEvent)
 
-  expect(window.fetch.mock.calls[0][0]).toBe('http://sundred.com:6543/login')
+  expect(window.fetch.mock.calls[0][0]).toBe(`${BASE_URL}/login`)
   expect(window.fetch.mock.calls[0][1].method).toBe('POST')
 
   const data = window.fetch.mock.calls[0][1].body
@@ -40,7 +41,7 @@ test('loginForm renderData() logout', () => {
 
   loginForm.renderData()
 
-  expect(window.fetch.mock.calls[0][0]).toBe('http://sundred.com:6543/logout')
+  expect(window.fetch.mock.calls[0][0]).toBe(`${BASE_URL}/logout`)
 
   expect(sessionStorage.getItem('account')).toBeNull()
 })

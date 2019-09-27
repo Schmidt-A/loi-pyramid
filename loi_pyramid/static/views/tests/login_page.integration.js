@@ -2,6 +2,7 @@ import mockFetch from '../../utils/mock_fetch.js'
 import loginPage from '../login_page.js'
 import accountData from '../../models/account.js'
 import noobAccount from '../../models/tests/__mocks__/noob_account.json'
+import { BASE_URL } from '../../environments/dev.js'
 
 const pageContainer = document.createElement('div')
 pageContainer.id = 'pageContainer'
@@ -33,7 +34,7 @@ test('Page render()', async () => {
   pw.value = 'drizzit4ever'
   submit.click()
 
-  expect(window.fetch.mock.calls[0][0]).toBe('http://sundred.com:6543/login')
+  expect(window.fetch.mock.calls[0][0]).toBe(`${BASE_URL}/login`)
   expect(window.fetch.mock.calls[0][1].method).toBe('POST')
 
   const postData = window.fetch.mock.calls[0][1].body

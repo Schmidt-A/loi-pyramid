@@ -1,5 +1,6 @@
 import Templates from '../utils/templates.js'
 import accountData from '../models/account.js'
+import { BASE_URL } from '../environments/dev.js'
 
 const markup =
   `<form>
@@ -16,7 +17,7 @@ const loginForm = new Templates.Template(
   function () {
     if (sessionStorage.getItem('account')) {
       sessionStorage.clear()
-      return fetch('http://sundred.com:6543/logout')
+      return fetch(`${BASE_URL}/logout`)
     } else {
       return Promise.resolve()
     }
@@ -27,7 +28,7 @@ const loginForm = new Templates.Template(
     function (event) {
       event.preventDefault()
       const formData = new FormData(event.srcElement)
-      fetch('http://sundred.com:6543/login', {
+      fetch(`${BASE_URL}/login`, {
         method: 'POST',
         body: formData
       })
