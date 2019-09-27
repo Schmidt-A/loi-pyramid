@@ -18,7 +18,7 @@ yarn install
 ```
 
 Rules managed at:
-```/Users/alexmcguigan/dev/loi/loi-pyramid/loi_pyramid/static/.eslintrc.js```
+```.eslintrc.js```
 
 ## Run Tests
 * Run unit tests in jest via jsdom
