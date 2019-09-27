@@ -11,7 +11,7 @@ build/
 dist/
 .tox/
 nosetests.xml
-env*/
+env/
 loi/
 tmp/
 Data.fs*
@@ -24,4 +24,3 @@ coverage
 CHANGES.txt
 .*/
 node_modules/
-*.lock

@@ -17,7 +17,7 @@ test('account retrieve()', async () => {
 test('account retrieve() bad input', () => {
   jest.spyOn(window, 'fetch').mockImplementation(() => { return Promise.resolve(Response.error()) })
 
-  expect( () => { accountData.retrieve() }).toThrow()
-  
+  expect(() => { accountData.retrieve() }).toThrow()
+
   expect(window.fetch).not.toHaveBeenCalled()
 })
