@@ -5,14 +5,14 @@ import zope.sqlalchemy
 
 # import or define all models here to ensure they are attached to the
 # Base.metadata prior to any initialization routines
-from .character import Character # flake8: noqa
-from .member import Member # flake8: noqa
-from .faction import Faction # flake8: noqa
-from .reputation import Reputation # flake8: noqa
-from .action import Action # flake8: noqa
-from .recipe import Recipe # flake8: noqa
-from .item import Item # flake8: noqa
-from .account import Account # flake8: noqa
+from .character import Character  # flake8: noqa
+from .member import Member  # flake8: noqa
+from .faction import Faction  # flake8: noqa
+from .reputation import Reputation  # flake8: noqa
+from .action import Action  # flake8: noqa
+from .recipe import Recipe  # flake8: noqa
+from .item import Item  # flake8: noqa
+from .account import Account  # flake8: noqa
 from .ingredient import Ingredient
 
 # run configure_mappers after defining all of the models to ensure

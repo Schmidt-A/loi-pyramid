@@ -11,16 +11,16 @@ from ..models import Account, Character
 
 log = logging.getLogger(__name__)
 
-#Govern calls to a single account object /accounts/{username}
+# Govern calls to a single account object /accounts/{username}
 @view_defaults(route_name='account', renderer='json')
 class AccountViews(BaseView):
 
     @view_config(request_method='GET')
     def get(self):
-       return self.get_one(Account)
+        return self.get_one(Account)
 
-#Govern calls to all account objects /accounts
-#By default, limit of 10
+# Govern calls to all account objects /accounts
+# By default, limit of 10
 @view_defaults(route_name='accounts', renderer='json')
 class AccountsViews(BaseView):
 
@@ -28,7 +28,8 @@ class AccountsViews(BaseView):
     def get(self):
         return self.get_all(Account)
 
-#Govern calls to all characters under an account /accounts/{username}/characters
+# Govern calls to all characters under an account
+# /accounts/{username}/characters
 @view_defaults(route_name='account_characters', renderer='json')
 class AccountCharactersView(BaseView):
 

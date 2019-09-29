@@ -10,22 +10,22 @@ from .meta import Base
 
 class Recipe(Base):
     __tablename__ = 'recipes'
-    blueprint   = Column(String, primary_key=True)
-    name        = Column(String)
-    category    = Column(String)
-    actions     = Column(Integer)
-    time        = Column(Integer)
-    cost        = Column(String)
-    building    = Column(String)
+    blueprint = Column(String, primary_key=True)
+    name = Column(String)
+    category = Column(String)
+    actions = Column(Integer)
+    time = Column(Integer)
+    cost = Column(String)
+    building = Column(String)
 
     @property
     def public_payload(self):
         return {
-            'blueprint'     : self.blueprint,
-            'name'          : self.name,
-            'category'      : self.category,
-            'actions'       : self.actions,
-            'time'          : self.time,
-            'cost'          : self.cost,
-            'building'      : self.building
+            'blueprint': self.blueprint,
+            'name': self.name,
+            'category': self.category,
+            'actions': self.actions,
+            'time': self.time,
+            'cost': self.cost,
+            'building': self.building
         }

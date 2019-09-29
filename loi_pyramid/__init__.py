@@ -4,6 +4,7 @@ from pyramid.config import Configurator
 
 from .utils.security import role_lookup, get_account, Root
 
+
 def main(global_config, **settings):
     config = Configurator(settings=settings)
 

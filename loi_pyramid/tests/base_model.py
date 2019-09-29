@@ -7,10 +7,11 @@ from ..models import Account, Character, Action, Recipe
 
 log = logging.getLogger(__name__)
 
+
 class TestBaseModels(BaseTest):
 
-    #Initial setup for these tests
-    #Needs to be broken up
+    # Initial setup for these tests
+    # Needs to be broken up
     def setUp(self):
         super(TestBaseModels, self).setUp()
         self.init_database()
@@ -18,7 +19,7 @@ class TestBaseModels(BaseTest):
         self.accounts = self.fixture_helper.account_data()
         self.characters = self.fixture_helper.character_data()
         self.actions = self.fixture_helper.action_data()
-        
+
         self.session.flush()
 
     def test_model_fk(self):

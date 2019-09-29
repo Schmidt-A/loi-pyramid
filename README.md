@@ -21,9 +21,10 @@ source env/bin/activate
 ```
 pip3 install --upgrade pip setuptools
 ```
-* Install the project in editable mode with its testing requirements.
+* Install the project in editable mode with its testing and linting requirements.
 ```
 pip3 install -e ".[testing]"
+pip3 install -e ".[linting]"
 ```
 * Install setup.py requirements
 ```
@@ -42,11 +43,28 @@ Change the db script if you want to alter how the local data is stood up:
 Fixtures are sourced from:
 ```loi_pyramid/tests/fixture_helper.py```
 
+## Linting
+Only run this from ```/loi_pyramid``` or subfolders otherwise it will go through the ```/env``` installs
+```
+pylint .
+```
+
+To see only codestyle
+```
+```
+
+To automatically fix codestyle https://github.com/hhatto/autopep8
+```
+autopep8 --in-place --aggressive --aggressive -r -v .
+```
+
 ## Testing 
 ### Unit Tests
 ```
 pytest
 ```
+
+To check coverage, add ```--cov=loi_pyramid```
 
 ## Running
 Run your project.

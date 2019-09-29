@@ -13,7 +13,7 @@ from ..schemas import RecipeAdminUpdate, Invalid
 
 log = logging.getLogger(__name__)
 
-#Govern calls to a single recipe object /recipes/{blueprint}
+# Govern calls to a single recipe object /recipes/{blueprint}
 @view_defaults(route_name='recipe', renderer='json')
 class RecipeViews(BaseView):
 
@@ -22,7 +22,7 @@ class RecipeViews(BaseView):
         return self.get_one(Recipe)
 
 
-#Govern calls to all recipe objects /recipes
+# Govern calls to all recipe objects /recipes
 @view_defaults(route_name='recipes', renderer='json')
 class RecipesViews(BaseView):
 

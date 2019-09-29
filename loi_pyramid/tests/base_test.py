@@ -11,6 +11,7 @@ from webob.multidict import MultiDict, NestedMultiDict
 
 log = logging.getLogger(__name__)
 
+
 class BaseTest(unittest.TestCase):
     def setUp(self):
         self.config = testing.setUp(settings={
@@ -24,7 +25,7 @@ class BaseTest(unittest.TestCase):
             get_engine,
             get_session_factory,
             get_tm_session,
-            )
+        )
 
         self.engine = get_engine(settings)
         session_factory = get_session_factory(self.engine)
@@ -42,7 +43,15 @@ class BaseTest(unittest.TestCase):
         transaction.abort()
         Base.metadata.drop_all(self.engine)
 
-    def dummy_request(self, dbsession, headers={}, resources=[], query=None, method='GET', body=None, account=None):
+    def dummy_request(
+            self,
+            dbsession,
+            headers={},
+            resources=[],
+            query=None,
+            method='GET',
+            body=None,
+            account=None):
         req = testing.DummyRequest(dbsession=dbsession)
         req.headers = headers
         req.host_url = self.host
@@ -56,7 +65,7 @@ class BaseTest(unittest.TestCase):
                 matchdict[resource[1][0]] = resource[1][1]
 
         req.matchdict = matchdict
-        req.path_url = self.host+path
+        req.path_url = self.host + path
         req.path = path
 
         # WebOb treats querystring as a multidict
@@ -71,24 +80,24 @@ class BaseTest(unittest.TestCase):
             for key, value in query.items():
                 query_dict.add(key, value)
                 query_string += '{}={}&'.format(key, value)
-            query_string = query_string[:-1]    
+            query_string = query_string[:-1]
         req.GET = query_dict
 
         # WebOb only creates the POST object for form bodys with proper content type
         # https://docs.pylonsproject.org/projects/webob/en/stable/reference.html#query-post-variables
         body_dict = MultiDict()
         if body and 'Content-Type' in headers and headers['Content-Type'] == 'application/x-www-form-urlencoded':
-                for key, value in body.items():
-                    body_dict.add(key, value)
+            for key, value in body.items():
+                body_dict.add(key, value)
         req.POST = body_dict
 
         # WebOb creates a params that combines them both
         # https://docs.pylonsproject.org/projects/webob/en/stable/reference.html#query-post-variables
         req.params = NestedMultiDict(query_dict, body_dict)
 
-        req.path_qs = path+query_string
+        req.path_qs = path + query_string
         req.query_string = query_string
-        req.url = self.host+path+query_string
+        req.url = self.host + path + query_string
 
         req.method = method
         req.body = body
@@ -99,22 +108,23 @@ class BaseTest(unittest.TestCase):
         return req
 
     def create_testing_session(self, account):
-        self.config.testing_securitypolicy(userid=account['username'], permissive=True)
+        self.config.testing_securitypolicy(
+            userid=account['username'], permissive=True)
         account = DummyAccount(account)
         return account
 
 
-#Making this because pyramid's request alteration does not translate to unittesting dummy ruquest
-#This means that unittesting just doesn't work for many views that utilize this nifty stuff
-#So I have to mock up a class object that can be passed with the request
-#TODO: honestly, this stuff should probably move to integration tests
+# Making this because pyramid's request alteration does not translate to unittesting dummy ruquest
+# This means that unittesting just doesn't work for many views that utilize this nifty stuff
+# So I have to mock up a class object that can be passed with the request
+# TODO: honestly, this stuff should probably move to integration tests
 class DummyAccount():
 
     def __init__(self, account):
-        self.username   = account['username']
-        self.role       = account['role']
-        self.approved   = account['approved']
-        self.banned     = account['banned']
+        self.username = account['username']
+        self.role = account['role']
+        self.approved = account['approved']
+        self.banned = account['banned']
 
     def is_owner(self, character):
         return self.username == character.accountId

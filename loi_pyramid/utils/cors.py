@@ -1,9 +1,13 @@
 from pyramid.security import NO_PERMISSION_REQUIRED
 
+
 def includeme(config):
-	config.add_directive('add_cors_preflight_handler', add_cors_preflight_handler)
-	config.add_route_predicate('cors_preflight', CorsPreflightPredicate)
-	config.add_subscriber(add_cors_to_response, 'pyramid.events.NewResponse')
+    config.add_directive(
+        'add_cors_preflight_handler',
+        add_cors_preflight_handler)
+    config.add_route_predicate('cors_preflight', CorsPreflightPredicate)
+    config.add_subscriber(add_cors_to_response, 'pyramid.events.NewResponse')
+
 
 class CorsPreflightPredicate(object):
     def __init__(self, val, config):
@@ -23,6 +27,7 @@ class CorsPreflightPredicate(object):
             'Access-Control-Request-Method' in request.headers
         )
 
+
 def add_cors_preflight_handler(config):
     config.add_route(
         'cors-options-preflight', '/{catch_all:.*}',
@@ -34,6 +39,7 @@ def add_cors_preflight_handler(config):
         permission=NO_PERMISSION_REQUIRED,
     )
 
+
 def add_cors_to_response(event):
     request = event.request
     response = event.response
@@ -43,6 +49,7 @@ def add_cors_to_response(event):
         response.headers['Access-Control-Allow-Origin'] = (
             request.headers['Origin'])
         response.headers['Access-Control-Allow-Credentials'] = 'true'
+
 
 def cors_options_view(context, request):
     response = request.response

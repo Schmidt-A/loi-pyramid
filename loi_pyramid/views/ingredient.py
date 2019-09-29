@@ -13,7 +13,7 @@ from ..schemas import IngredientAdminUpdate, Invalid
 
 log = logging.getLogger(__name__)
 
-#Govern calls to a single ingredient object /ingredients/{material}
+# Govern calls to a single ingredient object /ingredients/{material}
 @view_defaults(route_name='ingredient', renderer='json')
 class IngredientViews(BaseView):
 
@@ -22,7 +22,7 @@ class IngredientViews(BaseView):
         return self.get_one(Ingredient)
 
 
-#Govern calls to all ingredient objects /ingredients
+# Govern calls to all ingredient objects /ingredients
 @view_defaults(route_name='ingredients', renderer='json')
 class IngredientsViews(BaseView):
 

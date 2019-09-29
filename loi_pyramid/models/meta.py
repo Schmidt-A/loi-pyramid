@@ -21,7 +21,8 @@ NAMING_CONVENTION = {
 
 metadata = MetaData(naming_convention=NAMING_CONVENTION)
 
-# TOOD: figure out why putting NotImplemented Interface methods causes trouble with hasattr()
+# TOOD: figure out why putting NotImplemented Interface methods causes
+# trouble with hasattr()
 @as_declarative(metadata=metadata)
 class Base(object):
 
@@ -46,4 +47,3 @@ class Base(object):
                     self.__tablename__, foreign_key.parent.name,
                     foreign_key.column.table.name, foreign_key.column.name))
                 return foreign_key
-        

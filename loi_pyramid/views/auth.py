@@ -15,6 +15,7 @@ from ..models import Account
 
 log = logging.getLogger(__name__)
 
+
 class AuthViews(BaseView):
 
     @view_config(route_name='login', request_method='POST', permission='login')
@@ -38,7 +39,10 @@ class AuthViews(BaseView):
 
             if hashed_pw and check_password(pw, hashed_pw):
                 headers = remember(self.request, user)
-                response = Response(headers=headers, json=account.owned_payload, content_type='application/json')
+                response = Response(
+                    headers=headers,
+                    json=account.owned_payload,
+                    content_type='application/json')
 
                 log.info(
                     'login: username {}'.format(account.username))
