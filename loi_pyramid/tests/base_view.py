@@ -5,7 +5,8 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden, HTTPClientError
 from pyramid import testing
 
 from .base_test import BaseTest
-from ..views.mock import MockViews, MocksViews, MocksByMockViews, MockByMockViews
+from ..views import BaseView
+from ..models import Account, Character, Action
 
 log = logging.getLogger(__name__)
 
@@ -32,9 +33,9 @@ class TestBaseViews(BaseTest):
             resources=resources,
             account=user_account)
 
-        mock_view = MockViews(testing.DummyResource(), request)
+        mock_view = BaseView(testing.DummyResource(), request)
 
-        return mock_view.get().json_body
+        return mock_view.get_one(Account).json_body
 
     def mock_get_all(self, user_account, limit=None, offset=None):
         resources = [('accounts', ('username', ''))]
@@ -51,9 +52,9 @@ class TestBaseViews(BaseTest):
             query=query,
             account=user_account)
 
-        account_view = MocksViews(testing.DummyResource(), request)
+        mock_view = BaseView(testing.DummyResource(), request)
 
-        return account_view.get().json_body
+        return mock_view.get_all(Account).json_body
 
     def mock_get_all_by(self, first, user_account, limit=None, offset=None):
         resources = [
@@ -72,9 +73,9 @@ class TestBaseViews(BaseTest):
             query=query,
             account=user_account)
 
-        account_view = MocksByMockViews(testing.DummyResource(), request)
+        mock_view = BaseView(testing.DummyResource(), request)
 
-        return account_view.get().json_body
+        return mock_view.get_all_by_one(Account, Character).json_body
 
     def mock_get_one_by(self, first, second, user_account):
         resources = [
@@ -86,9 +87,9 @@ class TestBaseViews(BaseTest):
             resources=resources,
             account=user_account)
 
-        char_view = MockByMockViews(testing.DummyResource(), request)
+        mock_view = BaseView(testing.DummyResource(), request)
 
-        return char_view.get().json_body
+        return mock_view.get_one_by_one(Character, Action).json_body
 
     #TODO: Make these tests more generic
 

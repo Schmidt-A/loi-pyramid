@@ -19,7 +19,6 @@ class AccountViews(BaseView):
     def get(self):
        return self.get_one(Account)
 
-
 #Govern calls to all account objects /accounts
 #By default, limit of 10
 @view_defaults(route_name='accounts', renderer='json')

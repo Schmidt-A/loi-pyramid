@@ -22,7 +22,7 @@ const characterTable = new Templates.Template(
   function () {
     return this.dataset.getData(JSON.parse(sessionStorage.getItem('account')))
       .then(data => {
-        Tables.fillTableFromHeader(document.querySelector(`#${this.container.id} table`), data)
+        Tables.fillTableFromHeader(document.querySelector(`#${this.container.id} table`), data.characters)
       })
   },
   []
