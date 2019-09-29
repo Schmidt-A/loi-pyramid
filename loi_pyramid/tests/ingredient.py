@@ -1,5 +1,5 @@
 # flake8: noqa
-import copy
+import logging
 
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid import testing
@@ -7,6 +7,7 @@ from pyramid import testing
 from .base_test import BaseTest
 from ..views.ingredient import IngredientViews, IngredientsViews
 
+log = logging.getLogger(__name__)
 
 class TestIngredientViews(BaseTest):
 
@@ -20,28 +21,41 @@ class TestIngredientViews(BaseTest):
 
         self.host = 'http://localhost:6543'
 
-        self.accounts = self.fixture_helper.account_data()
-        self.ingredients = self.fixture_helper.ingredient_data()
+        self.accounts = self.fixture_helper.account_fixture()
+        self.ingredients = self.fixture_helper.ingredient_fixture()
         self.session.flush()
 
         #non existent ingredients, to be used for negative testing
-        self.fake_ingredients = self.fixture_helper.fake_ingredient_data()
+        self.fake_ingredients = self.fixture_helper.fake_ingredient_fixture()
 
     #Helper method for get calls to /ingredients/{material}
-    def ingredient_get(self, ingredient, user_account):
-        resource = '/ingredients/{}'.format(ingredient['material'])
-        url_params = {'material': ingredient['material']}
-        request = self.dummy_request(self.session, (self.host+resource), user_account)
+    def ingredient_get(self, ingredient, account):
+        resources = [('ingredients', ('material', ingredient['material']))]
+        
+        request = self.dummy_request(
+            dbsession=self.session, 
+            resources=resources,
+            account=account)
 
         ingredient_view = IngredientViews(testing.DummyResource(), request)
-        ingredient_view.url = url_params
 
         return ingredient_view.get().json_body
 
     #Helper method for get all calls to /ingredients
-    def ingredients_get_all(self, user_account):
-        resource = '/ingredients'
-        request = self.dummy_request(self.session, (self.host+resource), user_account)
+    def ingredients_get_all(self, account, limit=None, offset=None):
+        resources = [('ingredients', ('material', ''))]
+
+        query = {}
+        if limit != None:
+            query['limit'] = limit
+        if offset != None:
+            query['offset'] = offset
+
+        request = self.dummy_request(
+            dbsession=self.session, 
+            resources=resources,
+            query=query,
+            account=account)
 
         ingredient_view = IngredientsViews(testing.DummyResource(), request)
 
@@ -62,17 +76,19 @@ class TestIngredientViews(BaseTest):
             self.ingredient_get(self.fake_ingredients['uranium'], self.accounts['tweek'])
 
     #Test that we can get all ingredients via get all call
-    #As those are the only two created ingredients
     def test_get_all(self):
+        total = 10
+        offset = 0
         ingredients_result = self.ingredients_get_all(self.accounts['tweek'])
 
-        compare_ingredients = list(self.ingredients.values())
+        compare_ingredients = list(self.ingredients.values())[offset:offset+total]
+        self.assertEqual(len(ingredients_result['ingredients']), len(compare_ingredients))
+        self.assertEqual(ingredients_result['offset'], offset+len(compare_ingredients))
 
-        self.assertEqual(len(ingredients_result), len(compare_ingredients))
-        i = 0
-        for ingredient in ingredients_result:
-            compare_ingredient = compare_ingredients[i]
+        total_ingredients = len(list(self.ingredients.values()))
+        self.assertEqual(ingredients_result['total'], total_ingredients)
+
+        for ingredient, compare_ingredient in zip(ingredients_result['ingredients'], compare_ingredients):
             self.assertEqual(ingredient['name'], compare_ingredient['name'])
             self.assertEqual(ingredient['category'], compare_ingredient['category'])
             self.assertEqual(ingredient['tier'], compare_ingredient['tier'])
-            i += 1

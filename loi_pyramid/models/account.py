@@ -14,6 +14,7 @@ from .meta import Base
 # TODO: Change password to binary because sqlite doesn't support
 class Account(Base):
     __tablename__   = 'accounts'
+    __primary__ = 'username'
     username    = Column(String, primary_key=True)
     password    = Column(LargeBinary)
     cdkey       = Column(String)

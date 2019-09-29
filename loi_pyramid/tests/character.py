@@ -1,12 +1,15 @@
 # flake8: noqa
+import logging
+import copy
+
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden, HTTPClientError
 from pyramid import testing
-import copy
 
 from .base_test import BaseTest
 from ..views.character import CharacterViews, CharactersViews, CharacterItemsViews, CharacterItemViews
 from ..views.character import CharacterActionViews, CharacterActionsViews
 
+log = logging.getLogger(__name__)
 
 class TestCharacterViews(BaseTest):
 
@@ -16,46 +19,48 @@ class TestCharacterViews(BaseTest):
         super(TestCharacterViews, self).setUp()
         self.init_database()
 
-        self.host = 'http://localhost:6543'
-
-        self.accounts = self.fixture_helper.account_data()
-        self.characters = self.fixture_helper.character_data()
-        self.items = self.fixture_helper.item_data()
-        self.actions = self.fixture_helper.action_data()
+        self.accounts = self.fixture_helper.account_fixture()
+        self.characters = self.fixture_helper.character_fixture()
+        self.items = self.fixture_helper.item_fixture()
+        self.actions = self.fixture_helper.action_fixture()
 
         self.session.flush()
 
-        self.fake_characters = self.fixture_helper.fake_character_data()
-        self.fake_accounts = self.fixture_helper.fake_account_data()
-        self.fake_items = self.fixture_helper.fake_item_data()
-        self.fake_actions = self.fixture_helper.fake_action_data()
+        self.fake_characters = self.fixture_helper.fake_character_fixture()
+        self.fake_accounts = self.fixture_helper.fake_account_fixture()
+        self.fake_items = self.fixture_helper.fake_item_fixture()
+        self.fake_actions = self.fixture_helper.fake_action_fixture()
 
     #Helper method for get calls to /characters/{id}
     def character_get(self, character, account):
-        resource = '/characters/{}'.format(character['id'])
-        url_params = {'id': character['id']}
-        request = self.dummy_request(self.session, (self.host+resource), account)
+        resources = [('characters', ('charId', character['id']))]
+        
+        request = self.dummy_request(
+            dbsession=self.session, 
+            resources=resources,
+            account=account)
 
         char_view = CharacterViews(testing.DummyResource(), request)
-        char_view.url = url_params
 
         return char_view.get().json_body
 
     #Helper method for delete calls to /characters/{id}
     def character_delete(self, character, account):
-        resource = '/characters/{}'.format(character['id'])
-        url_params = {'id': character['id']}
-        request = self.dummy_delete_request(self.session, (self.host+resource), account)
+        resources = [('characters', ('charId', character['id']))]
+        
+        request = self.dummy_request(
+            dbsession=self.session, 
+            resources=resources,
+            method='DELETE',
+            account=account)
 
         char_view = CharacterViews(testing.DummyResource(), request)
-        char_view.url = url_params
 
         return char_view.delete().json_body
 
     #Helper method for update calls to /characters/{id}
     def character_update(self, character, account):
-        resource = '/characters/{}'.format(character['id'])
-        url_params = {'id': character['id']}
+        resources = [('characters', ('charId', character['id']))]
 
         character_payload = {
             'accountId' : character['accountId'],
@@ -63,158 +68,207 @@ class TestCharacterViews(BaseTest):
             'exp'       : character['exp'],
             'area'      : character['area'],
         }
-
-        request = self.dummy_put_request(
-                self.session,
-                (self.host+resource),
-                character_payload,
-                account)
+        
+        request = self.dummy_request(
+            dbsession=self.session, 
+            resources=resources,
+            method='PUT',
+            body=character_payload,
+            account=account)
 
         char_view = CharacterViews(testing.DummyResource(), request)
-        char_view.url = url_params
 
         return char_view.update().json_body
 
     #Helper method for get all calls to /characters
-    def characters_get_all(self, account):
-        resource = '/characters'
-        request = self.dummy_request(self.session, (self.host+resource), account)
+    def characters_get_all(self, account, limit=None, offset=None):
+        resources = [('characters', ('charId', ''))]
+
+        query = {}
+        if limit != None:
+            query['limit'] = limit
+        if offset != None:
+            query['offset'] = offset
+
+        request = self.dummy_request(
+            dbsession=self.session, 
+            resources=resources,
+            query=query,
+            account=account)
 
         char_view = CharactersViews(testing.DummyResource(), request)
 
         return char_view.get().json_body
 
-    #Helper method for get calls for /characters/{id}/item/{id}
+    #Helper method for get calls for /characters/{id}/items/{id}
     def item_get(self, character, item, account):
-        resource = '/characters/{}/item/{}'.format(character['id'], item['id'])
-        url_params = {'charId': character['id'], 'itemId': item['id']}
-
-        request = self.dummy_request(self.session, (self.host+resource), account)
+        resources = [
+            ('characters', ('charId', character['id'])),
+            ('items', ('itemId', item['id']))]
+        
+        request = self.dummy_request(
+            dbsession=self.session, 
+            resources=resources,
+            account=account)
 
         char_view = CharacterItemViews(testing.DummyResource(), request)
-        char_view.url = url_params
 
         return char_view.get().json_body
 
-    #Helper method for update calls for /characters/{id}/item/{id}
+    #Helper method for update calls for /characters/{id}/items/{id}
     def item_update(self, character, item, account):
-        resource = '/characters/{}/item/{}'.format(character['id'],item['id'])
-        url_params = {'charId': character['id'], 'itemId': item['id']}
+        resources = [
+            ('characters', ('charId', character['id'])),
+            ('items', ('itemId', item['id']))]
 
         item_payload = {
             'resref' : item['resref'],
-            'amount'      : item['amount']
+            'amount' : item['amount']
         }
-
-        request = self.dummy_put_request(
-                self.session,
-                (self.host+resource),
-                item_payload,
-                account)
+        
+        request = self.dummy_request(
+            dbsession=self.session, 
+            resources=resources,
+            method='PUT',
+            body=item_payload,
+            account=account)
 
         char_view = CharacterItemViews(testing.DummyResource(), request)
-        char_view.url = url_params
 
         return char_view.update().json_body
 
-    #Helper method for delete calls for /characters/{id}/item/{id}
+    #Helper method for delete calls for /characters/{id}/items/{id}
     def item_delete(self, character, item, account):
-        resource = '/characters/{}/item/{}'.format(character['id'],item['id'])
-        url_params = {'charId': character['id'], 'itemId': item['id']}
-        request = self.dummy_delete_request(self.session, (self.host+resource), account)
+        resources = [
+            ('characters', ('charId', character['id'])),
+            ('items', ('itemId', item['id']))]
+        
+        request = self.dummy_request(
+            dbsession=self.session, 
+            resources=resources,
+            method='DELETE',
+            account=account)
 
         char_view = CharacterItemViews(testing.DummyResource(), request)
-        char_view.url = url_params
 
         return char_view.delete().json_body
 
     #Helper method for get all calls to /characters/{id}/items
-    def items_get_all(self, character, account):
-        resource = '/characters/{}/items'.format(character['id'])
-        url_params = {'id': character['id']}
+    def items_get_all(self, character, account, limit=None, offset=None):
+        resources = [
+            ('characters', ('charId', character['id'])),
+            ('items', ('itemId', ''))]
 
-        request = self.dummy_request(self.session, (self.host+resource), account)
+        query = {}
+        if limit != None:
+            query['limit'] = limit
+        if offset != None:
+            query['offset'] = offset
+
+        request = self.dummy_request(
+            dbsession=self.session, 
+            resources=resources,
+            query=query,
+            account=account)
 
         char_view = CharacterItemsViews(testing.DummyResource(), request)
-        char_view.url = url_params
 
         return char_view.get().json_body
 
     #Helper method for create calls to /characters/{id}/items
     def items_create(self, character, item, account):
-        resource = '/characters/{}'.format(character['id'])
-        url_params = {'id': character['id']}
+        resources = [
+            ('characters', ('charId', character['id'])),
+            ('items', ('itemId', ''))]
 
         item_payload = {
             'characterId' : item['characterId'],
-            'resref' : item['resref'],
+            'resref'      : item['resref'],
             'amount'      : item['amount']
         }
 
-        request = self.dummy_post_request(
-                self.session,
-                (self.host+resource),
-                item_payload,
-                account)
+        request = self.dummy_request(
+            dbsession=self.session, 
+            resources=resources,
+            method='POST',
+            body=item_payload,
+            account=account)
 
         char_view = CharacterItemsViews(testing.DummyResource(), request)
-        char_view.url = url_params
 
         return char_view.create().json_body
 
-    #Helper method for get calls for /characters/{id}/action/{id}
+    #Helper method for get calls for /characters/{id}/actions/{id}
     def action_get(self, character, action, account):
-        resource = '/characters/{}/action/{}'.format(character['id'], action['id'])
-        url_params = {'charId': character['id'], 'actionId': action['id']}
-
-        request = self.dummy_request(self.session, (self.host+resource), account)
+        resources = [
+            ('characters', ('charId', character['id'])),
+            ('actions', ('actionId', action['id']))]
+        
+        request = self.dummy_request(
+            dbsession=self.session, 
+            resources=resources,
+            account=account)
 
         char_view = CharacterActionViews(testing.DummyResource(), request)
-        char_view.url = url_params
 
         return char_view.get().json_body
 
     #Helper method for get all calls to /characters/{id}/actions
-    def actions_get_all(self, character, account):
-        resource = '/characters/{}/actions'.format(character['id'])
-        url_params = {'id': character['id']}
+    def actions_get_all(self, character, account, limit=None, offset=None):
+        resources = [
+            ('characters', ('charId', character['id'])),
+            ('actions', ('actionId', ''))]
 
-        request = self.dummy_request(self.session, (self.host+resource), account)
+        query = {}
+        if limit != None:
+            query['limit'] = limit
+        if offset != None:
+            query['offset'] = offset
+        
+        request = self.dummy_request(
+            dbsession=self.session, 
+            resources=resources,
+            query=query,
+            account=account)
 
         char_view = CharacterActionsViews(testing.DummyResource(), request)
-        char_view.url = url_params
 
         return char_view.get().json_body
 
-    #Helper method for delete calls for /characters/{id}/action/{id}
+    #Helper method for delete calls for /characters/{id}/actions/{id}
     def action_delete(self, character, action, account):
-        resource = '/characters/{}/action/{}'.format(character['id'],action['id'])
-        url_params = {'charId': character['id'], 'actionId': action['id']}
-        request = self.dummy_delete_request(self.session, (self.host+resource), account)
+        resources = [
+            ('characters', ('charId', character['id'])),
+            ('actions', ('actionId', action['id']))]
+        
+        request = self.dummy_request(
+            dbsession=self.session, 
+            resources=resources,
+            method='DELETE',
+            account=account)
 
         char_view = CharacterActionViews(testing.DummyResource(), request)
-        char_view.url = url_params
 
         return char_view.delete().json_body
 
     #Helper method for create calls to /characters/{id}/actions
     def actions_create(self, character, action, account):
-        resource = '/characters/{}'.format(character['id'])
-        url_params = {'id': character['id']}
+        resources = [
+            ('characters', ('charId', character['id'])),
+            ('actions', ('actionId', ''))]
 
         action_payload = {
             'amount'      : action['amount'],
-            'recipeId' : action['recipeId']
+            'blueprint' : action['blueprint']
         }
-
-        request = self.dummy_post_request(
-                self.session,
-                (self.host+resource),
-                action_payload,
-                account)
+        
+        request = self.dummy_request(
+            dbsession=self.session, 
+            resources=resources,
+            method='POST',
+            account=account)
 
         char_view = CharacterActionsViews(testing.DummyResource(), request)
-        char_view.url = url_params
 
         return char_view.create().json_body
 
@@ -325,32 +379,41 @@ class TestCharacterViews(BaseTest):
     #And that we get the full info payload
     #Because only admins and owners get full payload
     def test_admin_get_all_char(self):
+        total = 10
+        offset = 0
         characters_result = self.characters_get_all(self.accounts['tweek'])
 
-        compare_chars = list(self.characters.values())
+        compare_characters = list(self.characters.values())[offset:offset+total]
+        self.assertEqual(len(characters_result['characters']), len(compare_characters))
+        self.assertEqual(characters_result['offset'], offset+len(compare_characters))
 
-        self.assertEqual(len(characters_result), len(self.characters.keys()))
-        i = 0
-        for char in characters_result:
-            compare_char = compare_chars[i]
+        total_characters = len(list(self.characters.values()))
+        self.assertEqual(characters_result['total'], total_characters)
+
+        for char, compare_char in zip(characters_result['characters'], compare_characters):
             self.assertEqual(char['accountId'], compare_char['accountId'])
             self.assertEqual(char['name'], compare_char['name'])
             self.assertEqual(char['exp'], compare_char['exp'])
             self.assertEqual(char['area'], compare_char['area'])
             self.assertEqual(char['created'], compare_char['created'])
             self.assertEqual(char['updated'], compare_char['updated'])
-            i += 1
 
     #Test that we can get all characters via get all call when not admin
     #And that we get the partial info payload
     #Because only admins and owners get full payload
     def test_not_admin_get_all_char(self):
+        total = 10
+        offset = 0
         characters_result = self.characters_get_all(self.accounts['noob'])
 
-        self.assertEqual(len(characters_result), len(self.characters.keys()))
-        i = 0
-        for char in characters_result:
-            compare_char = self.characters.get(list(self.characters.keys())[i])
+        compare_characters = list(self.characters.values())[offset:offset+total]
+        self.assertEqual(len(characters_result['characters']), len(compare_characters))
+        self.assertEqual(characters_result['offset'], offset+len(compare_characters))
+
+        total_characters = len(list(self.characters.values()))
+        self.assertEqual(characters_result['total'], total_characters)
+
+        for char, compare_char in zip(characters_result['characters'], compare_characters):
             self.assertEqual(char['accountId'], compare_char['accountId'])
             self.assertEqual(char['name'], compare_char['name'])
             self.assertEqual(char['created'], compare_char['created'])
@@ -360,7 +423,6 @@ class TestCharacterViews(BaseTest):
                 char['exp']
             with self.assertRaises(KeyError):
                 char['area']
-            i += 1
 
     #Test that we can get the Jilin's money via get call when owner
     #Because the noob account owns jilin
@@ -376,7 +438,7 @@ class TestCharacterViews(BaseTest):
     #Test that we cannot get the Al's money via get call when not owner
     #Because the noob account doesn't own alrunden
     def test_not_own_get_item(self):
-        with self.assertRaises(HTTPClientError):
+        with self.assertRaises(HTTPForbidden):
             self.item_get(self.characters['alrunden'], self.items['al_money'], self.accounts['noob'])
 
     #Test that we can get the Jilin's money via get call when admin
@@ -479,22 +541,28 @@ class TestCharacterViews(BaseTest):
 
     #Test that we can get Jilin's items via get all call when owner
     def test_own_get_all_item(self):
+        total = 10
+        offset = 0
         items_result = self.items_get_all(self.characters['jilin'], self.accounts['noob'])
 
-        compare_items = []
+        owned_items = []
         for key, item in self.items.items():
             if item['characterId'] == self.characters['jilin']['id']:
-                compare_items.append(item)
-        self.assertEqual(len(items_result), len(compare_items))
-        i = 0
-        for item in items_result:
-            compare_item = compare_items[i]
+                owned_items.append(item)
+
+        compare_items = owned_items[offset:offset+total]
+        self.assertEqual(len(items_result['items']), len(compare_items))
+        self.assertEqual(items_result['offset'], offset+len(compare_items))
+
+        total_items = len(owned_items)
+        self.assertEqual(items_result['total'], total_items)
+
+        for item, compare_item in zip(items_result['items'], compare_items):
             self.assertEqual(item['characterId'], compare_item['characterId'])
             self.assertEqual(item['resref'], compare_item['resref'])
             self.assertEqual(item['amount'], compare_item['amount'])
             self.assertEqual(item['created'], compare_item['created'])
             self.assertEqual(item['updated'], compare_item['updated'])
-            i += 1
 
     #Test that we can't get Al's items via get all call when not owner
     #Because you can't see other people's shit
@@ -505,23 +573,28 @@ class TestCharacterViews(BaseTest):
     #Test that we can get Jilin's items via get all call when admin
     #Because admins can see everything
     def test_admin_get_all_item(self):
+        total = 10
+        offset = 0
         items_result = self.items_get_all(self.characters['jilin'], self.accounts['aez'])
 
-        compare_items = []
+        owned_items = []
         for key, item in self.items.items():
             if item['characterId'] == self.characters['jilin']['id']:
-                compare_items.append(item)
+                owned_items.append(item)
 
-        self.assertEqual(len(items_result), len(compare_items))
-        i = 0
-        for item in items_result:
-            compare_item = compare_items[i]
+        compare_items = owned_items[offset:offset+total]
+        self.assertEqual(len(items_result['items']), len(compare_items))
+        self.assertEqual(items_result['offset'], offset+len(compare_items))
+
+        total_items = len(owned_items)
+        self.assertEqual(items_result['total'], total_items)
+
+        for item, compare_item in zip(items_result['items'], compare_items):
             self.assertEqual(item['characterId'], compare_item['characterId'])
             self.assertEqual(item['resref'], compare_item['resref'])
             self.assertEqual(item['amount'], compare_item['amount'])
             self.assertEqual(item['created'], compare_item['created'])
             self.assertEqual(item['updated'], compare_item['updated'])
-            i += 1
 
     #Test that we cannot get Meero's items via get all call when admin
     #Because she ain't created
@@ -559,14 +632,14 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(train['characterId'], self.characters['jilin']['id'])
         self.assertEqual(train['resref'], self.actions['noob_train']['resref'])
         self.assertEqual(train['amount'], self.actions['noob_train']['amount'])
-        self.assertEqual(train['recipeId'], self.actions['noob_train']['recipeId'])
+        self.assertEqual(train['blueprint'], self.actions['noob_train']['blueprint'])
         self.assertEqual(train['ingredients'], self.actions['noob_train']['ingredients'])
         self.assertEqual(train['completed'], self.actions['noob_train']['completed'])
 
     #Test that we cannot get Al's crafting via get call when not owner
     #Because the noob account doesn't own alrunden
     def test_not_own_get_action(self):
-        with self.assertRaises(HTTPClientError):
+        with self.assertRaises(HTTPForbidden):
             self.action_get(self.characters['alrunden'], self.actions['al_craft'], self.accounts['noob'])
 
     #Test that we can see the Jilin's mining via get call when admin
@@ -577,7 +650,7 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(mining['characterId'], self.characters['jilin']['id'])
         self.assertEqual(mining['resref'], self.actions['noob_mine']['resref'])
         self.assertEqual(mining['amount'], self.actions['noob_mine']['amount'])
-        self.assertEqual(mining['recipeId'], self.actions['noob_mine']['recipeId'])
+        self.assertEqual(mining['blueprint'], self.actions['noob_mine']['blueprint'])
         self.assertEqual(mining['ingredients'], self.actions['noob_mine']['ingredients'])
         self.assertEqual(mining['completed'], self.actions['noob_mine']['completed'])
 
@@ -628,23 +701,29 @@ class TestCharacterViews(BaseTest):
 
     #Test that we can get Jilin's actions via get all call when owner
     def test_own_get_all_action(self):
+        total = 10
+        offset = 0
         actions_result = self.actions_get_all(self.characters['jilin'], self.accounts['noob'])
 
-        compare_actions = []
+        owned_actions = []
         for key, action in self.actions.items():
             if action['characterId'] == self.characters['jilin']['id']:
-                compare_actions.append(action)
-        self.assertEqual(len(actions_result), len(compare_actions))
-        i = 0
-        for action in actions_result:
-            compare_action = compare_actions[i]
+                owned_actions.append(action)
+        
+        compare_actions = owned_actions[offset:offset+total]
+        self.assertEqual(len(actions_result['actions']), len(compare_actions))
+        self.assertEqual(actions_result['offset'], offset+len(compare_actions))
+
+        total_actions = len(owned_actions)
+        self.assertEqual(actions_result['total'], total_actions)
+
+        for action, compare_action in zip(actions_result['actions'], compare_actions):
             self.assertEqual(action['characterId'], compare_action['characterId'])
             self.assertEqual(action['resref'], compare_action['resref'])
             self.assertEqual(action['amount'], compare_action['amount'])
-            self.assertEqual(action['recipeId'], compare_action['recipeId'])
+            self.assertEqual(action['blueprint'], compare_action['blueprint'])
             self.assertEqual(action['ingredients'], compare_action['ingredients'])
             self.assertEqual(action['completed'], compare_action['completed'])
-            i += 1
 
     #Test that we can't get Al's actions via get all call when not owner
     #Because you can't see other people's shit
@@ -655,24 +734,29 @@ class TestCharacterViews(BaseTest):
     #Test that we can get Jilin's actions via get all call when admin
     #Because admins can see everything
     def test_admin_get_all_action(self):
+        total = 10
+        offset = 0
         actions_result = self.actions_get_all(self.characters['jilin'], self.accounts['aez'])
 
-        compare_actions = []
+        owned_actions = []
         for key, action in self.actions.items():
             if action['characterId'] == self.characters['jilin']['id']:
-                compare_actions.append(action)
+                owned_actions.append(action)
 
-        self.assertEqual(len(actions_result), len(compare_actions))
-        i = 0
-        for action in actions_result:
-            compare_action = compare_actions[i]
+        compare_actions = owned_actions[offset:offset+total]
+        self.assertEqual(len(actions_result['actions']), len(compare_actions))
+        self.assertEqual(actions_result['offset'], offset+len(compare_actions))
+
+        total_actions = len(owned_actions)
+        self.assertEqual(actions_result['total'], total_actions)
+
+        for action, compare_action in zip(actions_result['actions'], compare_actions):
             self.assertEqual(action['characterId'], compare_action['characterId'])
             self.assertEqual(action['resref'], compare_action['resref'])
             self.assertEqual(action['amount'], compare_action['amount'])
-            self.assertEqual(action['recipeId'], compare_action['recipeId'])
+            self.assertEqual(action['blueprint'], compare_action['blueprint'])
             self.assertEqual(action['ingredients'], compare_action['ingredients'])
             self.assertEqual(action['completed'], compare_action['completed'])
-            i += 1
 
     #Test that we cannot get Meero's actions via get all call when admin
     #Because she ain't created

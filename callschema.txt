@@ -18,7 +18,7 @@ response
 
 Display the overview page displaying information about the players' characters and actions available
 
-GET /account/tweek/characters
+GET /accounts/tweek/characters
 response
 {[
     {
@@ -32,7 +32,7 @@ response
 
 They can select a character to go to spend an action on them.
 
-GET /character/2/inventory
+GET /characters/2/items
 response
 {[
     {
@@ -57,10 +57,10 @@ response
 
 They can select a recipe to do an econo action on
 
-POST /character/2/action
+POST /characters/2/action
 {
     amount: 2
-    recipeId: 2
+    blueprint: 2
 }
 response
 {
@@ -75,7 +75,7 @@ response
 
 They can check if the action is done yet 6 minute later
 
-GET /character/2/actions
+GET /characters/2/actions
 {[
     {
         type: weaver
@@ -87,7 +87,7 @@ GET /character/2/actions
 
 After it's done, they go to their inventory
 
-GET /character/2/inventory
+GET /characters/2/items
 response
 {[
     {
@@ -106,7 +106,7 @@ response
 
 They can also see their character and account stats updated
 
-GET /character/2
+GET /characters/2
 response
 {[
     {
@@ -118,7 +118,7 @@ response
     }
 ]}
 
-GET /account/tweek
+GET /accounts/tweek
 {
     role: 3,
     approved: true,

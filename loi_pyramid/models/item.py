@@ -12,6 +12,7 @@ from .meta import Base
 
 class Item(Base):
     __tablename__ = 'items'
+    __primary__ = 'itemId'
     id          = Column(Integer, primary_key=True)
     characterId = Column(Integer, ForeignKey('characters.id'))
     resref      = Column(String)

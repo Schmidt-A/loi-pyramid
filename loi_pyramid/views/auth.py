@@ -21,6 +21,7 @@ class AuthViews(BaseView):
     def login(self):
         schema = LoginSchema()
         info = {}
+
         try:
             info = schema.deserialize(self.request.POST)
         except Invalid as e:

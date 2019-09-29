@@ -12,6 +12,7 @@ from .meta import Base
 
 class Character(Base):
     __tablename__ = 'characters'
+    __primary__ = 'charId'
     id          = Column(Integer, primary_key=True)
     accountId   = Column(Integer, ForeignKey('accounts.username'))
     name        = Column(String)

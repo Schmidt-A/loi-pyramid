@@ -49,10 +49,14 @@ class FixtureHelper():
                 banned      = 0)
         }
         self.session.add_all(list(accounts.values()))
+        return accounts
+
+    def account_fixture(self):
+        accounts = self.account_data()
         test_accounts = self.convert_to_json(accounts)
         return test_accounts
 
-    def fake_account_data(self):
+    def fake_account_fixture(self):
         accounts = {
             #password is dicks4ever
             'tam': Account(
@@ -99,13 +103,25 @@ class FixtureHelper():
                 exp         = 1050,
                 area        = 'Dreyen Inn',
                 created     = '29/11/2017',
-                updated     = '29/11/2017')
+                updated     = '29/11/2017'),
+            'seth': Character(
+                id          = 5,
+                accountId   = 'Tweek',
+                name        = 'Seth Nottel',
+                exp         = 7000,
+                area        = 'Dreyen Inn',
+                created     = '27/11/2017',
+                updated     = '3/12/2017'),
         }
         self.session.add_all(list(characters.values()))
+        return characters
+
+    def character_fixture(self):
+        characters = self.character_data()
         test_characters = self.convert_to_json(characters)
         return test_characters
 
-    def fake_character_data(self):
+    def fake_character_fixture(self):
         characters = {
             #non existent character, to be used for negative testing
             'meero': Character(
@@ -120,7 +136,7 @@ class FixtureHelper():
         fake_characters = self.convert_to_json(characters)
         return fake_characters
 
-    def item_data(self):
+    def item_fixture(self):
         items = {
             'al_grain': Item(
                 id          = 1,
@@ -176,7 +192,7 @@ class FixtureHelper():
         test_items = self.convert_to_json(items)
         return test_items
 
-    def fake_item_data(self):
+    def fake_item_fixture(self):
         items = {
             #not yet added, to be used for create
             'op_armor': Item(
@@ -242,10 +258,14 @@ class FixtureHelper():
                 building    = 'forest')
         }
         self.session.add_all(list(recipes.values()))
+        return recipes
+
+    def recipe_fixture(self):
+        recipes = self.recipe_data()
         test_recipes = self.convert_to_json(recipes)
         return test_recipes
 
-    def fake_recipe_data(self):
+    def fake_recipe_fixture(self):
         recipes = {
             'lyrium': Recipe(
                 blueprint   = 'lyrium',
@@ -259,7 +279,7 @@ class FixtureHelper():
         fake_recipes = self.convert_to_json(recipes)
         return fake_recipes
 
-    def ingredient_data(self):
+    def ingredient_fixture(self):
         ingredients = {
             'iron': Ingredient(
                 material            = 'iron',
@@ -284,7 +304,7 @@ class FixtureHelper():
         test_ingredients = self.convert_to_json(ingredients)
         return test_ingredients
 
-    def fake_ingredient_data(self):
+    def fake_ingredient_fixture(self):
         ingredients = {
             'uranium': Ingredient(
                 material            = 'uranium',
@@ -306,7 +326,7 @@ class FixtureHelper():
                 characterId = 2,
                 amount      = 1,
                 resref      = 'longsword_damage_2',
-                recipeId    = 'longsword',
+                blueprint    = 'longsword',
                 ingredients = 'iron:10',
                 completed   = '3000'),
             'noob_train': Action(
@@ -314,7 +334,7 @@ class FixtureHelper():
                 characterId = 4,
                 amount      = 5,
                 resref      = 'exp_10',
-                recipeId    = 'exp',
+                blueprint    = 'exp',
                 ingredients = '',
                 completed   = '1500'),
             'noob_mine': Action(
@@ -322,29 +342,33 @@ class FixtureHelper():
                 characterId = 4,
                 amount      = 3,
                 resref      = 'iron',
-                recipeId    = 'iron',
+                blueprint    = 'iron',
                 ingredients = '',
                 completed   = '900')
         }
         self.session.add_all(list(actions.values()))
+        return actions
+
+    def action_fixture(self):
+        actions = self.action_data()
         test_actions = self.convert_to_json(actions)
         return test_actions
 
-    def fake_action_data(self):
+    def fake_action_fixture(self):
         actions = {
             'noob_cheat': Action(
                 id          = 14,
                 characterId = 4,
                 amount      = 2,
                 resref      = 'longsword_of_boners',
-                recipeId    = 'longsword',
+                blueprint    = 'longsword',
                 ingredients = 'boner:10',
                 completed   = '1'),
         }
         fake_actions = self.convert_to_json(actions)
         return fake_actions
 
-    def faction_data(self):
+    def faction_fixture(self):
         factions = {
             'smugglers': Faction(
                 id          = 1,
@@ -363,7 +387,7 @@ class FixtureHelper():
         test_factions = self.convert_to_json(factions)
         return test_factions
 
-    def member_data(self):
+    def member_fixture(self):
         members = {
             'siobhan_spy': Member(
                 id          = 1,
@@ -405,7 +429,7 @@ class FixtureHelper():
         test_members = self.convert_to_json(members)
         return test_members
 
-    def reputation_data(self):
+    def reputation_fixture(self):
         reputation = {
             'rel_sio': Reputation(
                 id          = 1,

@@ -19,20 +19,7 @@ class IngredientViews(BaseView):
 
     @view_config(request_method='GET')
     def get(self):
-        try:
-            query = self.request.dbsession.query(Ingredient)
-            ingredient = query.filter(Ingredient.material == self.url['material']).one()
-            log.debug(
-                'get: material {}'.format(ingredient.material))
-
-            response = Response(json=ingredient.public_payload, content_type='application/json')
-
-        except NoResultFound:
-            log.debug(
-                'get: ingredient \'{}\' not found'.format(self.url['material']))
-            raise HTTPNotFound
-
-        return response
+        return self.get_one(Ingredient)
 
 
 #Govern calls to all ingredient objects /ingredients
@@ -41,19 +28,4 @@ class IngredientsViews(BaseView):
 
     @view_config(request_method='GET')
     def get(self):
-        try:
-            query = self.request.dbsession.query(Ingredient)
-            ingredients = query.all()
-            log.debug('get: all ingredients')
-
-            get_all_data = []
-            for ingredient in ingredients:
-                get_all_data.append(ingredient.public_payload)
-
-            response = Response(json=get_all_data, content_type='application/json')
-
-        except NoResultFound:
-            log.error('get: could not retrieve any ingredients')
-            raise HTTPNotFound
-
-        return response
+        return self.get_all(Ingredient)
