@@ -396,10 +396,13 @@ class TestCharacterViews(BaseTest):
     def test_admin_delete_char(self):
         characters_result = self.character_delete(
             self.characters['arthen'], self.accounts['tweek'])
+        
+        remaining_total = len(self.characters.keys())-1
+        return_total = remaining_total if remaining_total < 10 else 10
 
+        self.assertEqual(characters_result['total'], remaining_total)
         self.assertEqual(
-            len(characters_result), len(
-                self.characters.keys()) - 1)
+            len(characters_result['characters']), return_total)
         with self.assertRaises(HTTPNotFound):
             self.character_get(
                 self.characters['arthen'],
@@ -592,6 +595,7 @@ class TestCharacterViews(BaseTest):
     # Test that Cows and Sheeps are not accessible via get call
     # Because Al's farm got stolen from
     def test_admin_delete_item(self):
+        #not giving this a variable because we don't need to see the result twice
         self.item_delete(
             self.characters['alrunden'],
             self.items['al_cow'],
@@ -606,7 +610,12 @@ class TestCharacterViews(BaseTest):
             if item['characterId'] == self.characters['alrunden']['id']:
                 compare_items.append(item)
 
-        self.assertEqual(len(items_result), len(compare_items) - 2)
+        remaining_total = len(compare_items)-2
+        return_total = remaining_total if remaining_total < 10 else 10
+
+        self.assertEqual(items_result['total'], remaining_total)
+        self.assertEqual(
+            len(items_result['items']), return_total)
         with self.assertRaises(HTTPNotFound):
             self.item_get(
                 self.characters['alrunden'],
@@ -819,21 +828,26 @@ class TestCharacterViews(BaseTest):
                 self.fake_actions['noob_cheat'],
                 self.accounts['aez'])
 
-    # Test that we can remove Al's crafting via delete call when admin
+    # Test that we can remove Jilin's crafting via delete call when admin
     # Test that crafting is not accessible via get call
     # Because the noob doens't know what he's doing
-    def test_owner_delete_action(self):
+    def test_admin_delete_action(self):
         actions_result = self.action_delete(
             self.characters['jilin'],
             self.actions['noob_mine'],
-            self.accounts['noob'])
+            self.accounts['tweek'])
 
         compare_actions = []
         for key, action in self.actions.items():
             if action['characterId'] == self.characters['jilin']['id']:
                 compare_actions.append(action)
 
-        self.assertEqual(len(actions_result), len(compare_actions) - 1)
+        remaining_total = len(compare_actions)-1
+        return_total = remaining_total if remaining_total < 10 else 10
+
+        self.assertEqual(actions_result['total'], remaining_total)
+        self.assertEqual(
+            len(actions_result['actions']), return_total)
         with self.assertRaises(HTTPNotFound):
             self.action_get(
                 self.characters['jilin'],

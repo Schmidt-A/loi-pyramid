@@ -19,34 +19,7 @@ class CharacterViews(BaseView):
 
     @view_config(request_method='GET')
     def get(self):
-        try:
-            query = self.request.dbsession.query(Character)
-            character = query.filter(
-                Character.id == self.request.matchdict['charId']).one()
-
-            log.debug('get: character/id {}/{} by account {}'.format(
-                character.name, character.id, self.request.account.username))
-
-            # if they own it or they're an admin
-            # infuriatingly, unittest does not recognize the valid
-            # character.account relationship
-            if self.request.account.is_owner(
-                    character) or self.request.account.is_admin():
-                response = Response(
-                    json=character.owned_payload,
-                    content_type='application/json')
-
-            else:
-                response = Response(
-                    json=character.public_payload,
-                    content_type='application/json')
-
-        except NoResultFound:
-            log.debug('get: character id \'{}\' or account \'{}\' not found'.format(
-                self.request.matchdict['charId'], self.request.authenticated_userid))
-            raise HTTPNotFound
-
-        return response
+        return self.get_one(Character)
 
     # This method will be locked down since we should not allow any of this to be editable
     # Only admins or nwn (via db) should be able to create new characters or edit new characters
@@ -106,46 +79,7 @@ class CharacterViews(BaseView):
     # Only admin server or nwn (via db) should be able to delete characters
     @view_config(request_method='DELETE', permission='admin')
     def delete(self):
-        try:
-            # if they're an admin they can do everything
-            if self.request.account.is_admin():
-                query = self.request.dbsession.query(Character)
-
-                # This dumb shit is only needed because we don't throw a not
-                # found error if it's not there
-                query.filter(
-                    Character.id == self.request.matchdict['charId']).one()
-
-                query.filter(
-                    Character.id == self.request.matchdict['charId']).delete()
-                log.info(
-                    'delete: character/id {}'.format(self.request.matchdict['charId']))
-
-                # we should return the full list of characters for a delete
-                # attempt
-                characters = self.request.dbsession.query(Character).all()
-
-                get_all_data = []
-                for character in characters:
-                    get_all_data.append(character.owned_payload)
-
-                response = Response(
-                    json=get_all_data,
-                    content_type='application/json')
-
-            else:
-                log.warning(
-                    'delete: account/role {}/{} is not allowed to do this'.format(
-                        self.request.account.username,
-                        self.request.account.role))
-                raise HTTPForbidden
-
-        except NoResultFound:
-            log.error('delete: character id \'{}\' or account \'{}\' not found'.format(
-                self.request.matchdict['charId'], self.request.authenticated_userid))
-            raise HTTPNotFound
-
-        return response
+        return self.admin_delete_one(Character)
 
 # Govern calls to all character objects /characters
 @view_defaults(route_name='characters', renderer='json')
@@ -233,58 +167,7 @@ class CharacterItemViews(BaseView):
     # Only admin server or nwn (via db) should be able to delete characters
     @view_config(request_method='DELETE', permission='admin')
     def delete(self):
-        try:
-            # if they own it or they're an admin
-            if self.request.account.is_admin():
-                # Maybe remove the char lookup?
-                query = self.request.dbsession.query(Character)
-                character = query.filter(
-                    Character.id == self.request.matchdict['charId']).one()
-
-                item_query = self.request.dbsession.query(Item)
-                item = item_query.filter(
-                    Item.id == self.request.matchdict['itemId']).one()
-
-                if character.id == item.characterId:
-                    item_query.filter(
-                        Item.id == self.request.matchdict['itemId']).delete()
-                    log.info(
-                        'delete: item/amount {}/{} from character/id {}/{}'.format(
-                            item.resref, item.amount, character.name, character.id))
-
-                    # we should return the full list of characters for a delete
-                    # attempt
-                    inv_query = self.request.dbsession.query(Item)
-                    items = inv_query.filter(
-                        Item.characterId == self.request.matchdict['charId']).all()
-
-                    get_all_data = []
-                    for item in items:
-                        get_all_data.append(item.owned_payload)
-
-                    response = Response(
-                        json=get_all_data, content_type='application/json')
-
-                else:
-                    log.warning(
-                        'update: item id \'{}\' not associated with char id \'{}\''.format(
-                            self.request.matchdict['itemId'],
-                            self.request.matchdict['charId']))
-                    raise HTTPClientError
-
-            else:
-                log.warning(
-                    'delete: account/role {}/{} is not allowed to do this'.format(
-                        self.request.account.username,
-                        self.request.account.role))
-                raise HTTPForbidden
-
-        except NoResultFound:
-            log.error('get: item id \'{}\' or char id \'{}\' not found'.format(
-                self.request.matchdict['itemId'], self.request.matchdict['charId']))
-            raise HTTPNotFound
-
-        return response
+        return self.admin_delete_one_by_one(Character, Item)
 
 # Govern calls to a character's items /characters/{id}/items
 @view_defaults(route_name='character_items', renderer='json')
@@ -360,60 +243,7 @@ class CharacterActionViews(BaseView):
 
     @view_config(request_method='DELETE', permission='admin')
     def delete(self):
-        try:
-            # Maybe remove the char lookup?
-            query = self.request.dbsession.query(Character)
-            character = query.filter(
-                Character.id == self.request.matchdict['charId']).one()
-
-            # if they own it or they're an admin
-            # infuriatingly, unittest does not recognize the valid
-            # character.account relationship
-            if self.request.account.is_owner(
-                    character) or self.request.account.is_admin():
-
-                action_query = self.request.dbsession.query(Action)
-                action = action_query.filter(
-                    Action.id == self.request.matchdict['actionId']).one()
-
-                if character.id == action.characterId:
-                    action_query.filter(
-                        Action.id == self.request.matchdict['actionId']).delete()
-                    log.info(
-                        'delete: action/amount {}/{} from character/id {}/{}'.format(
-                            action.resref, action.amount, character.name, character.id))
-
-                    # we should return the full list of characters for a delete
-                    # attempt
-                    inv_query = self.request.dbsession.query(Action)
-                    actions = inv_query.filter(
-                        Action.characterId == self.request.matchdict['charId']).all()
-
-                    get_all_data = []
-                    for action in actions:
-                        get_all_data.append(action.owned_payload)
-
-                    response = Response(
-                        json=get_all_data, content_type='application/json')
-
-                else:
-                    log.error(
-                        'update: action id \'{}\' not associated with char id \'{}\''.format(
-                            self.request.matchdict['actionId'], self.request.matchdict['charId']))
-                    raise HTTPForbidden
-
-            else:
-                log.error(
-                    'delete: account/role {}/{} is not allowed to do this'.format(
-                        self.request.account.username, self.request.account.role))
-                raise HTTPForbidden
-
-        except NoResultFound:
-            log.error('get: action id \'{}\' or char id \'{}\' not found'.format(
-                self.request.matchdict['actionId'], self.request.matchdict['charId']))
-            raise HTTPNotFound
-
-        return response
+        return self.admin_delete_one_by_one(Character, Action)
 
 
 # Govern calls to a character's actions /characters/{id}/actions

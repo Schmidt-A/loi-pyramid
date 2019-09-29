@@ -49,10 +49,6 @@ Only run this from ```/loi_pyramid``` or subfolders otherwise it will go through
 pylint .
 ```
 
-To see only codestyle
-```
-```
-
 To automatically fix codestyle https://github.com/hhatto/autopep8
 ```
 autopep8 --in-place --aggressive --aggressive -r -v .
