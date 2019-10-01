@@ -116,23 +116,33 @@ class BaseTest(unittest.TestCase):
         return account
 
     #this assumes that none of the objects have null properties in the args list
-    def assert_compare_objects(self, first, second, *args):
+    # also maybe eval the whole object before asserting
+    def assert_compare_objects(self, first, compare, *args):
         for arg in args:
-            self.assertEqual(first[arg], second[arg])
+            self.assertEqual(first[arg], compare[arg])
 
-    #this asserts that the lists are of equal length
-    def assert_compare_lists(self, first_list, second_list, *args):
-        self.assertEqual(len(first_list), len(second_list))
-        for first, second in zip (first_list, second_list):
-            arg_list = list(map(lambda arg: arg, args))
+    # TODO: This method is really damn heavy with params
+    # Maybe eval the whole list before asserting
+    def assert_compare_paginated_lists(self, first_obj, total_list, model, limit, offset, *args):
+        self.assertEqual(first_obj['total'], len(total_list))
+
+        compare_list = total_list[offset:offset + limit]
+        self.assertEqual(
+            first_obj['offset'],
+            offset + len(compare_list))
+
+        first_list = first_obj[model.__tablename__]
+        self.assertEqual(len(first_list), len(compare_list))
+
+        arg_list = list(map(lambda arg: arg, args))
+        for first, second in zip (first_list, compare_list):
             self.assert_compare_objects(first, second, *arg_list)
 
-    #
+    #  maybe eval the whole object before asserting
     def assert_not_in_object(self, obj, *args):
         for arg in args:
             with self.assertRaises(KeyError):
                 obj[arg]
-
 
 # Making this because pyramid's request alteration does not translate to unittesting dummy ruquest
 # This means that unittesting just doesn't work for many views that utilize this nifty stuff

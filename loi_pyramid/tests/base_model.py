@@ -78,3 +78,5 @@ class TestBaseModels(BaseTest):
         self.assertEqual(second_foreign_key.column.name, 'blueprint')
         self.assertEqual(second_foreign_key.column.table.name, 'recipes')
         self.assertEqual(second_foreign_key.parent.name, 'blueprint')
+
+    # TODO: add tests for the new public and private stuff

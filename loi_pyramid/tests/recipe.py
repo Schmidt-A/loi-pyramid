@@ -69,7 +69,7 @@ class TestRecipeViews(BaseTest):
     # Test that we can get the recipe to mine Iron via get call
     def test_get(self):
         recipe_result = self.recipe_get(
-            self.recipes['metal'], self.accounts['tweek'])
+            self.recipes['metal'], self.accounts['noob'])
 
         self.assert_compare_objects(recipe_result, self.recipes['metal'], 
             *Recipe.__owned__(Recipe))
@@ -84,20 +84,10 @@ class TestRecipeViews(BaseTest):
 
     # Test that we can get all recipes via get all call
     def test_get_all(self):
-        total = 10
+        limit = 10
         offset = 0
-        recipes_result = self.recipes_get_all(self.accounts['tweek'])
+        recipes_result = self.recipes_get_all(self.accounts['noob'])
 
-        compare_recipes = list(self.recipes.values())[offset:offset + total]
-        self.assertEqual(len(recipes_result['recipes']), len(compare_recipes))
-        self.assertEqual(
-            recipes_result['offset'],
-            offset + len(compare_recipes))
-
-        total_recipes = len(list(self.recipes.values()))
-        self.assertEqual(recipes_result['total'], total_recipes)
-
-        for recipe, compare_recipe in zip(
-                recipes_result['recipes'], compare_recipes):
-            self.assert_compare_objects(recipe, compare_recipe, 
-                *Recipe.__owned__(Recipe))
+        self.assert_compare_paginated_lists(
+            recipes_result, list(self.recipes.values()),
+            Recipe, limit, offset, *Recipe.__public__(Recipe))

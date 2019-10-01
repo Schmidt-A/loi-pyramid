@@ -31,18 +31,27 @@ class Base(object):
     updated = Column(String, default=str(datetime.now()), info={'access': 'public'})
 
     #this still exists because we don't want to include secret columns (pw) in the others
+    # maybe rename
     def __json__(self, request):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
+    # TODO: docs
     def get_foreign_key_by(self, by_model):
         foreign_keys = list(self.__table__.foreign_keys)
         match_key = inspect(by_model).primary_key[0].key
-        for foreign_key in foreign_keys:
-            if foreign_key.column.name == match_key:
-                log.warning('foreign key found between {} {} and {} {}'.format(
-                    self.__tablename__, foreign_key.parent.name,
-                    foreign_key.column.table.name, foreign_key.column.name))
-                return foreign_key
+        matches = list(filter(lambda fk: fk.column.name == match_key, foreign_keys))
+        if len(matches) > 1:
+            log.error('multiple foreign keys found between {} and {}'.format(
+                self.__tablename__, by_model.__tablename__))
+            raise Error
+        elif len(matches) == 0:
+            log.debug('no foreign key found between {} and {}'.format(
+                self.__tablename__, by_model.__tablename__))
+        else:     
+            log.debug('foreign key found between {} {} and {} {}'.format(
+                self.__tablename__, matches[0].parent.name,
+                by_model.__tablename__, matches[0].column.name))
+            return matches[0]
 
     def get_by_access(self, access):
         return filter(lambda c: c.info['access'] == access, self.__table__.columns)

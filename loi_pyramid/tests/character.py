@@ -389,49 +389,28 @@ class TestCharacterViews(BaseTest):
     # And that we get the full info payload
     # Because only admins and owners get full payload
     def test_admin_get_all_char(self):
-        total = 10
+        limit = 10
         offset = 0
         characters_result = self.characters_get_all(self.accounts['tweek'])
 
-        compare_characters = list(self.characters.values())[
-            offset:offset + total]
-        self.assertEqual(
-            len(characters_result['characters']), len(compare_characters))
-        self.assertEqual(
-            characters_result['offset'],
-            offset + len(compare_characters))
-
-        total_characters = len(list(self.characters.values()))
-        self.assertEqual(characters_result['total'], total_characters)
-
-        for char, compare_char in zip(
-                characters_result['characters'], compare_characters):
-            self.assert_compare_objects(char, compare_char, 
-                *Character.__owned__(Character))
+        self.assert_compare_paginated_lists(
+            characters_result, list(self.characters.values()),
+            Character, limit, offset, *Character.__owned__(Character))
 
     # Test that we can get all characters via get all call when not admin
     # And that we get the partial info payload
     # Because only admins and owners get full payload
     def test_not_admin_get_all_char(self):
-        total = 10
+        limit = 10
         offset = 0
         characters_result = self.characters_get_all(self.accounts['noob'])
 
-        compare_characters = list(self.characters.values())[
-            offset:offset + total]
-        self.assertEqual(
-            len(characters_result['characters']), len(compare_characters))
-        self.assertEqual(
-            characters_result['offset'],
-            offset + len(compare_characters))
-
-        total_characters = len(list(self.characters.values()))
-        self.assertEqual(characters_result['total'], total_characters)
+        self.assert_compare_paginated_lists(
+            characters_result, list(self.characters.values()),
+            Character, limit, offset, *Character.__public__(Character))
 
         for char, compare_char in zip(
-                characters_result['characters'], compare_characters):
-            self.assert_compare_objects(char, compare_char, 
-                *Character.__public__(Character))
+                characters_result['characters'], list(self.characters.values())):
             self.assert_not_in_object(char, *Character.__private__(Character))
 
     # Test that we can get the Jilin's money via get call when owner
@@ -559,6 +538,7 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(items_result['total'], remaining_total)
         self.assertEqual(
             len(items_result['items']), return_total)
+
         with self.assertRaises(HTTPNotFound):
             self.item_get(
                 self.characters['alrunden'],
@@ -599,7 +579,7 @@ class TestCharacterViews(BaseTest):
 
     # Test that we can get Jilin's items via get all call when owner
     def test_own_get_all_item(self):
-        total = 10
+        limit = 10
         offset = 0
         items_result = self.items_get_all(
             self.characters['jilin'], self.accounts['noob'])
@@ -609,16 +589,9 @@ class TestCharacterViews(BaseTest):
             if item['characterId'] == self.characters['jilin']['id']:
                 owned_items.append(item)
 
-        compare_items = owned_items[offset:offset + total]
-        self.assertEqual(len(items_result['items']), len(compare_items))
-        self.assertEqual(items_result['offset'], offset + len(compare_items))
-
-        total_items = len(owned_items)
-        self.assertEqual(items_result['total'], total_items)
-
-        for item, compare_item in zip(items_result['items'], compare_items):
-            self.assert_compare_objects(item, compare_item, 
-                *Item.__owned__(Item))
+        self.assert_compare_paginated_lists(
+            items_result, owned_items, Item,
+            limit, offset, *Item.__owned__(Item))
 
     # Test that we can't get Al's items via get all call when not owner
     # Because you can't see other people's shit
@@ -631,7 +604,7 @@ class TestCharacterViews(BaseTest):
     # Test that we can get Jilin's items via get all call when admin
     # Because admins can see everything
     def test_admin_get_all_item(self):
-        total = 10
+        limit = 10
         offset = 0
         items_result = self.items_get_all(
             self.characters['jilin'], self.accounts['aez'])
@@ -641,16 +614,9 @@ class TestCharacterViews(BaseTest):
             if item['characterId'] == self.characters['jilin']['id']:
                 owned_items.append(item)
 
-        compare_items = owned_items[offset:offset + total]
-        self.assertEqual(len(items_result['items']), len(compare_items))
-        self.assertEqual(items_result['offset'], offset + len(compare_items))
-
-        total_items = len(owned_items)
-        self.assertEqual(items_result['total'], total_items)
-
-        for item, compare_item in zip(items_result['items'], compare_items):
-            self.assert_compare_objects(item, compare_item, 
-                *Item.__owned__(Item))
+        self.assert_compare_paginated_lists(
+            items_result, owned_items, Item,
+            limit, offset, *Item.__owned__(Item))
 
     # Test that we cannot get Meero's items via get all call when admin
     # Because she ain't created
@@ -801,7 +767,7 @@ class TestCharacterViews(BaseTest):
 
     # Test that we can get Jilin's actions via get all call when owner
     def test_own_get_all_action(self):
-        total = 10
+        limit = 10
         offset = 0
         actions_result = self.actions_get_all(
             self.characters['jilin'], self.accounts['noob'])
@@ -811,19 +777,9 @@ class TestCharacterViews(BaseTest):
             if action['characterId'] == self.characters['jilin']['id']:
                 owned_actions.append(action)
 
-        compare_actions = owned_actions[offset:offset + total]
-        self.assertEqual(len(actions_result['actions']), len(compare_actions))
-        self.assertEqual(
-            actions_result['offset'],
-            offset + len(compare_actions))
-
-        total_actions = len(owned_actions)
-        self.assertEqual(actions_result['total'], total_actions)
-
-        for action, compare_action in zip(
-                actions_result['actions'], compare_actions):
-            self.assert_compare_objects(action, compare_action, 
-                *Action.__owned__(Action))
+        self.assert_compare_paginated_lists(
+            actions_result, owned_actions, Action,
+            limit, offset, *Action.__owned__(Action))
 
     # Test that we can't get Al's actions via get all call when not owner
     # Because you can't see other people's shit
@@ -836,7 +792,7 @@ class TestCharacterViews(BaseTest):
     # Test that we can get Jilin's actions via get all call when admin
     # Because admins can see everything
     def test_admin_get_all_action(self):
-        total = 10
+        limit = 10
         offset = 0
         actions_result = self.actions_get_all(
             self.characters['jilin'], self.accounts['aez'])
@@ -846,19 +802,9 @@ class TestCharacterViews(BaseTest):
             if action['characterId'] == self.characters['jilin']['id']:
                 owned_actions.append(action)
 
-        compare_actions = owned_actions[offset:offset + total]
-        self.assertEqual(len(actions_result['actions']), len(compare_actions))
-        self.assertEqual(
-            actions_result['offset'],
-            offset + len(compare_actions))
-
-        total_actions = len(owned_actions)
-        self.assertEqual(actions_result['total'], total_actions)
-
-        for action, compare_action in zip(
-                actions_result['actions'], compare_actions):
-            self.assert_compare_objects(action, compare_action, 
-                *Action.__owned__(Action))
+        self.assert_compare_paginated_lists(
+            actions_result, owned_actions, Action,
+            limit, offset, *Action.__owned__(Action))
 
     # Test that we cannot get Meero's actions via get all call when admin
     # Because she ain't created

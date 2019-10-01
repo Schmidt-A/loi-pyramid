@@ -126,61 +126,39 @@ class TestBaseViews(BaseTest):
     # Test that we can get all accounts via get all call without limit
 
     def test_get_all(self):
-        total = 10
+        limit = 10
         offset = 0
         accounts_result = self.mock_get_all(self.accounts['tweek'])
 
-        compare_accounts = list(self.accounts.values())[offset:offset + total]
-        
-        self.assertEqual(
-            accounts_result['offset'],
-            offset + len(compare_accounts))
-
-        total_accounts = len(list(self.accounts.values()))
-        self.assertEqual(accounts_result['total'], total_accounts)
-
-        self.assert_compare_lists(accounts_result['accounts'], compare_accounts,
-             *Account.__owned__(Account))
+        self.assert_compare_paginated_lists(
+            accounts_result, list(self.accounts.values()),
+            Account, limit, offset, *Account.__owned__(Account))
 
     # Test that we can get all accounts via get all call with limit 2 offset 0
     def test_get_all_1st(self):
-        total = 1
+        limit = 1
         offset = 0
         accounts_result = self.mock_get_all(
-            self.accounts['tweek'], total, offset)
+            self.accounts['tweek'], limit, offset)
 
-        compare_accounts = list(self.accounts.values())[offset:offset + total]
-        self.assertEqual(
-            accounts_result['offset'],
-            offset + len(compare_accounts))
-
-        total_accounts = len(list(self.accounts.values()))
-        self.assertEqual(accounts_result['total'], total_accounts)
-
-        self.assert_compare_lists(accounts_result['accounts'], compare_accounts,
-             *Account.__owned__(Account))
+        self.assert_compare_paginated_lists(
+            accounts_result, list(self.accounts.values()),
+            Account, limit, offset, *Account.__owned__(Account))
 
     # Test that we can get all accounts via get all call with limit 2 offset 2
     def test_get_all_2nd(self):
-        total = 1
+        limit = 1
         offset = 1
         accounts_result = self.mock_get_all(
-            self.accounts['tweek'], total, offset)
+            self.accounts['tweek'], limit, offset)
 
-        compare_accounts = list(self.accounts.values())[offset:offset + total]
-        self.assertEqual(
-            accounts_result['offset'],
-            offset + len(compare_accounts))
-
-        total_accounts = len(list(self.accounts.values()))
-        self.assertEqual(accounts_result['total'], total_accounts)
-
-        self.assert_compare_lists(accounts_result['accounts'], compare_accounts,
-             *Account.__owned__(Account))
+        self.assert_compare_paginated_lists(
+            accounts_result, list(self.accounts.values()),
+            Account, limit, offset, *Account.__owned__(Account))
 
     # Test that we can get all characters for Tweek via get all call
     def test_get_all_by_one_admin(self):
-        total = 10
+        limit = 10
         offset = 0
         characters_result = self.mock_get_all_by(
             self.accounts['noob'], self.accounts['tweek'])
@@ -190,69 +168,45 @@ class TestBaseViews(BaseTest):
             if char['accountId'] == self.accounts['noob']['username']:
                 owned_characters.append(char)
 
-        compare_characters = owned_characters[offset:offset + total]
-
-        self.assertEqual(
-            characters_result['offset'],
-            offset + len(compare_characters))
-
-        total_characters = len(owned_characters)
-        self.assertEqual(characters_result['total'], total_characters)
-
-        self.assert_compare_lists(characters_result['characters'], compare_characters,
-             *Character.__owned__(Character))
+        self.assert_compare_paginated_lists(
+            characters_result, owned_characters,
+            Character, limit, offset, *Character.__owned__(Character))
 
     # Test that we can get all characters for Tweek via get all call
     def test_get_all_by_one_admin_1st(self):
-        total = 1
+        limit = 1
         offset = 0
         characters_result = self.mock_get_all_by(
-            self.accounts['noob'], self.accounts['tweek'], total, offset)
+            self.accounts['noob'], self.accounts['tweek'], limit, offset)
 
         owned_characters = []
         for key, char in self.characters.items():
             if char['accountId'] == self.accounts['noob']['username']:
                 owned_characters.append(char)
 
-        compare_characters = owned_characters[offset:offset + total]
-
-        self.assertEqual(
-            characters_result['offset'],
-            offset + len(compare_characters))
-
-        total_characters = len(owned_characters)
-        self.assertEqual(characters_result['total'], total_characters)
-
-        self.assert_compare_lists(characters_result['characters'], compare_characters,
-             *Character.__owned__(Character))
+        self.assert_compare_paginated_lists(
+            characters_result, owned_characters,
+            Character, limit, offset, *Character.__owned__(Character))
 
     # Test that we can get all characters for Tweek via get all call
     def test_get_all_by_one_admin_2nd(self):
-        total = 1
+        limit = 1
         offset = 1
         characters_result = self.mock_get_all_by(
-            self.accounts['noob'], self.accounts['tweek'], total, offset)
+            self.accounts['noob'], self.accounts['tweek'], limit, offset)
 
         owned_characters = []
         for key, char in self.characters.items():
             if char['accountId'] == self.accounts['noob']['username']:
                 owned_characters.append(char)
 
-        compare_characters = owned_characters[offset:offset + total]
-
-        self.assertEqual(
-            characters_result['offset'],
-            offset + len(compare_characters))
-
-        total_characters = len(owned_characters)
-        self.assertEqual(characters_result['total'], total_characters)
-
-        self.assert_compare_lists(characters_result['characters'], compare_characters,
-             *Character.__owned__(Character))
+        self.assert_compare_paginated_lists(
+            characters_result, owned_characters,
+            Character, limit, offset, *Character.__owned__(Character))
 
     # Test that we can get all characters for Tweek via get all call
     def test_get_all_by_one_owned(self):
-        total = 10
+        limit = 10
         offset = 0
         characters_result = self.mock_get_all_by(
             self.accounts['noob'], self.accounts['noob'])
@@ -262,21 +216,13 @@ class TestBaseViews(BaseTest):
             if char['accountId'] == self.accounts['noob']['username']:
                 owned_characters.append(char)
 
-        compare_characters = owned_characters[offset:offset + total]
-
-        self.assertEqual(
-            characters_result['offset'],
-            offset + len(compare_characters))
-
-        total_characters = len(owned_characters)
-        self.assertEqual(characters_result['total'], total_characters)
-
-        self.assert_compare_lists(characters_result['characters'], compare_characters,
-             *Character.__owned__(Character))
+        self.assert_compare_paginated_lists(
+            characters_result, owned_characters,
+            Character, limit, offset, *Character.__owned__(Character))
 
     # Test that we can get all characters for Tweek via get all call
     def test_get_all_by_one_public(self):
-        total = 10
+        limit = 10
         offset = 0
         characters_result = self.mock_get_all_by(
             self.accounts['tweek'], self.accounts['noob'])
@@ -286,17 +232,9 @@ class TestBaseViews(BaseTest):
             if char['accountId'] == self.accounts['tweek']['username']:
                 owned_characters.append(char)
 
-        compare_characters = owned_characters[offset:offset + total]
-
-        self.assertEqual(
-            characters_result['offset'],
-            offset + len(compare_characters))
-
-        total_characters = len(owned_characters)
-        self.assertEqual(characters_result['total'], total_characters)
-
-        self.assert_compare_lists(characters_result['characters'], compare_characters,
-             *Character.__public__(Character))
+        self.assert_compare_paginated_lists(
+            characters_result, owned_characters,
+            Character, limit, offset, *Character.__public__(Character))
 
         for character in characters_result['characters']:
             self.assert_not_in_object(character, *Character.__private__(Character))

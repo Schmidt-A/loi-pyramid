@@ -69,7 +69,7 @@ class TestIngredientViews(BaseTest):
     # Test that we can get Iron stats via get call
     def test_get(self):
         ingredient_result = self.ingredient_get(
-            self.ingredients['iron'], self.accounts['tweek'])
+            self.ingredients['iron'], self.accounts['noob'])
 
         self.assert_compare_objects(ingredient_result, self.ingredients['iron'], 
             *Ingredient.__owned__(Ingredient))
@@ -84,22 +84,10 @@ class TestIngredientViews(BaseTest):
 
     # Test that we can get all ingredients via get all call
     def test_get_all(self):
-        total = 10
+        limit = 10
         offset = 0
-        ingredients_result = self.ingredients_get_all(self.accounts['tweek'])
+        ingredients_result = self.ingredients_get_all(self.accounts['noob'])
 
-        compare_ingredients = list(self.ingredients.values())[
-            offset:offset + total]
-        self.assertEqual(
-            len(ingredients_result['ingredients']), len(compare_ingredients))
-        self.assertEqual(
-            ingredients_result['offset'],
-            offset + len(compare_ingredients))
-
-        total_ingredients = len(list(self.ingredients.values()))
-        self.assertEqual(ingredients_result['total'], total_ingredients)
-
-        for ingredient, compare_ingredient in zip(
-                ingredients_result['ingredients'], compare_ingredients):
-            self.assert_compare_objects(ingredient, compare_ingredient, 
-                *Ingredient.__owned__(Ingredient))
+        self.assert_compare_paginated_lists(
+            ingredients_result, list(self.ingredients.values()),
+            Ingredient, limit, offset, *Ingredient.__public__(Ingredient))
