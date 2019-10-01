@@ -1,15 +1,21 @@
-from ..models import Character
-from ..models import Member
-from ..models import Faction
-from ..models import Reputation
-from ..models import Item
-from ..models import Account
-from ..models import Recipe
-from ..models import Ingredient
-from ..models import Action
+import logging
+
+from ..models import (
+    Character, 
+    Member, 
+    Faction, 
+    Reputation, 
+    Item, Account, 
+    Recipe, 
+    Ingredient, 
+    Action)
 
 # TODO: Fix flask rules for indentation
+# TODO: Fix refactor this into a better pattern for handling types of data outputs
+#   vs db initialization
+# also have a required data pattern for tests 
 
+log = logging.getLogger(__name__)
 
 class FixtureHelper():
 
@@ -33,7 +39,8 @@ class FixtureHelper():
                 cdkey='efgh5678',
                 role=3,
                 approved=1,
-                banned=0),
+                banned=0,
+                actions=5),
             #password is dragon4ever
             'aez': Account(
                 username='Aez',
@@ -42,7 +49,8 @@ class FixtureHelper():
                 cdkey='asdf1234',
                 role=3,
                 approved=1,
-                banned=0),
+                banned=0,
+                actions=0),
             #password is drizzit4ever
             'noob': Account(
                 username='XxDrizzitxX',
@@ -122,11 +130,6 @@ class FixtureHelper():
         self.session.add_all(list(characters.values()))
         return characters
 
-    def character_fixture(self):
-        characters = self.character_data()
-        test_characters = self.convert_to_json(characters)
-        return test_characters
-
     def fake_character_fixture(self):
         characters = {
             # non existent character, to be used for negative testing
@@ -142,7 +145,7 @@ class FixtureHelper():
         fake_characters = self.convert_to_json(characters)
         return fake_characters
 
-    def item_fixture(self):
+    def item_data(self):
         items = {
             'al_grain': Item(
                 id=1,
@@ -195,8 +198,7 @@ class FixtureHelper():
                 updated=None)
         }
         self.session.add_all(list(items.values()))
-        test_items = self.convert_to_json(items)
-        return test_items
+        return items
 
     def fake_item_fixture(self):
         items = {
@@ -266,11 +268,6 @@ class FixtureHelper():
         self.session.add_all(list(recipes.values()))
         return recipes
 
-    def recipe_fixture(self):
-        recipes = self.recipe_data()
-        test_recipes = self.convert_to_json(recipes)
-        return test_recipes
-
     def fake_recipe_fixture(self):
         recipes = {
             'lyrium': Recipe(
@@ -285,7 +282,7 @@ class FixtureHelper():
         fake_recipes = self.convert_to_json(recipes)
         return fake_recipes
 
-    def ingredient_fixture(self):
+    def ingredient_data(self):
         ingredients = {
             'iron': Ingredient(
                 material='iron',
@@ -307,8 +304,7 @@ class FixtureHelper():
                 half_armor_stats='armor_demon:3')
         }
         self.session.add_all(list(ingredients.values()))
-        test_ingredients = self.convert_to_json(ingredients)
-        return test_ingredients
+        return ingredients
 
     def fake_ingredient_fixture(self):
         ingredients = {
@@ -355,11 +351,6 @@ class FixtureHelper():
         self.session.add_all(list(actions.values()))
         return actions
 
-    def action_fixture(self):
-        actions = self.action_data()
-        test_actions = self.convert_to_json(actions)
-        return test_actions
-
     def fake_action_fixture(self):
         actions = {
             'noob_cheat': Action(
@@ -374,7 +365,7 @@ class FixtureHelper():
         fake_actions = self.convert_to_json(actions)
         return fake_actions
 
-    def faction_fixture(self):
+    def faction_data(self):
         factions = {
             'smugglers': Faction(
                 id=1,
@@ -390,10 +381,9 @@ class FixtureHelper():
                 factionId=2)
         }
         self.session.add_all(list(factions.values()))
-        test_factions = self.convert_to_json(factions)
-        return test_factions
+        return factions
 
-    def member_fixture(self):
+    def member_data(self):
         members = {
             'siobhan_spy': Member(
                 id=1,
@@ -432,10 +422,9 @@ class FixtureHelper():
                 dateLeft=None)
         }
         self.session.add_all(list(members.values()))
-        test_members = self.convert_to_json(members)
-        return test_members
+        return members
 
-    def reputation_fixture(self):
+    def reputation_data(self):
         reputation = {
             'rel_sio': Reputation(
                 id=1,
@@ -502,5 +491,4 @@ class FixtureHelper():
                 atFactionId=1)
         }
         self.session.add_all(list(reputation.values()))
-        test_reputation = self.convert_to_json(reputation)
-        return test_reputation
+        return reputation

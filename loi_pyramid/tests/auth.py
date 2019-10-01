@@ -6,6 +6,7 @@ from pyramid import testing
 
 from .base_test import BaseTest
 from ..views.auth import AuthViews
+from ..models import Account
 
 log = logging.getLogger(__name__)
 
@@ -18,10 +19,10 @@ class TestAuthViews(BaseTest):
         super(TestAuthViews, self).setUp()
         self.init_database()
 
-        from ..models import Account
-
-        self.accounts = self.fixture_helper.account_fixture()
+        accounts_data = self.fixture_helper.account_data()
         self.session.flush()
+
+        self.accounts = self.fixture_helper.convert_to_json(accounts_data)
 
         # non existent accounts, to be used for negative testing
         self.fake_accounts = self.fixture_helper.fake_account_fixture()
@@ -68,22 +69,8 @@ class TestAuthViews(BaseTest):
         account_result = resp.json_body
 
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(
-            account_result['username'],
-            self.accounts['noob']['username'])
-        self.assertEqual(account_result['role'], self.accounts['noob']['role'])
-        self.assertEqual(
-            account_result['approved'],
-            self.accounts['noob']['approved'])
-        self.assertEqual(
-            account_result['banned'],
-            self.accounts['noob']['banned'])
-        self.assertEqual(
-            account_result['created'],
-            self.accounts['noob']['created'])
-        self.assertEqual(
-            account_result['updated'],
-            self.accounts['noob']['updated'])
+        self.assert_compare_objects(account_result, self.accounts['noob'], 
+            *Account.__owned__(Account))
 
     # Test that logging out works with a preexisting login
     # TOOD: This should assert the headers

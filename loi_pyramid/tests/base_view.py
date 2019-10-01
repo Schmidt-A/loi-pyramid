@@ -19,10 +19,14 @@ class TestBaseViews(BaseTest):
         super(TestBaseViews, self).setUp()
         self.init_database()
 
-        self.accounts = self.fixture_helper.account_fixture()
-        self.characters = self.fixture_helper.character_fixture()
-        self.actions = self.fixture_helper.action_fixture()
+        accounts_data = self.fixture_helper.account_data()
+        characters_data = self.fixture_helper.character_data()
+        actions_data = self.fixture_helper.action_data()
         self.session.flush()
+
+        self.accounts = self.fixture_helper.convert_to_json(accounts_data)
+        self.characters = self.fixture_helper.convert_to_json(characters_data)
+        self.actions = self.fixture_helper.convert_to_json(actions_data)
 
         self.fake_accounts = self.fixture_helper.fake_account_fixture()
 
@@ -100,56 +104,18 @@ class TestBaseViews(BaseTest):
             self.accounts['tweek'],
             self.accounts['tweek'])
 
-        self.assertEqual(
-            account_result['username'],
-            self.accounts['tweek']['username'])
-        self.assertEqual(
-            account_result['cdkey'],
-            self.accounts['tweek']['cdkey'])
-        self.assertEqual(
-            account_result['role'],
-            self.accounts['tweek']['role'])
-        self.assertEqual(
-            account_result['approved'],
-            self.accounts['tweek']['approved'])
-        self.assertEqual(
-            account_result['banned'],
-            self.accounts['tweek']['banned'])
-        self.assertEqual(
-            account_result['created'],
-            self.accounts['tweek']['created'])
-        self.assertEqual(
-            account_result['updated'],
-            self.accounts['tweek']['updated'])
+        self.assert_compare_objects(account_result, self.accounts['tweek'], 
+            *Account.__owned__(Account))
 
     # Test that we can only see public Tweek via get call
     def test_get_public(self):
         account_result = self.mock_get(
             self.accounts['tweek'], self.accounts['noob'])
 
-        self.assertEqual(
-            account_result['username'],
-            self.accounts['tweek']['username'])
-        self.assertEqual(
-            account_result['role'],
-            self.accounts['tweek']['role'])
-        self.assertEqual(
-            account_result['approved'],
-            self.accounts['tweek']['approved'])
-        self.assertEqual(
-            account_result['banned'],
-            self.accounts['tweek']['banned'])
-        self.assertEqual(
-            account_result['created'],
-            self.accounts['tweek']['created'])
-        self.assertEqual(
-            account_result['updated'],
-            self.accounts['tweek']['updated'])
+        self.assert_compare_objects(account_result, self.accounts['tweek'], 
+            *Account.__public__(Account))
 
-        with self.assertRaises(KeyError):
-            account_result['cdkey']
-        with self.assertRaises(KeyError):
-            account_result['ip']
+        self.assert_not_in_object(account_result, *Account.__private__(Account))
 
     # Test that we cannot get Tam via get call
     # Because he'll never nut up and log on
@@ -165,8 +131,7 @@ class TestBaseViews(BaseTest):
         accounts_result = self.mock_get_all(self.accounts['tweek'])
 
         compare_accounts = list(self.accounts.values())[offset:offset + total]
-        self.assertEqual(
-            len(accounts_result['accounts']), len(compare_accounts))
+        
         self.assertEqual(
             accounts_result['offset'],
             offset + len(compare_accounts))
@@ -174,15 +139,8 @@ class TestBaseViews(BaseTest):
         total_accounts = len(list(self.accounts.values()))
         self.assertEqual(accounts_result['total'], total_accounts)
 
-        for account, compare_account in zip(
-                accounts_result['accounts'], compare_accounts):
-            self.assertEqual(account['username'], compare_account['username'])
-            self.assertEqual(account['cdkey'], compare_account['cdkey'])
-            self.assertEqual(account['role'], compare_account['role'])
-            self.assertEqual(account['approved'], compare_account['approved'])
-            self.assertEqual(account['banned'], compare_account['banned'])
-            self.assertEqual(account['created'], compare_account['created'])
-            self.assertEqual(account['updated'], compare_account['updated'])
+        self.assert_compare_lists(accounts_result['accounts'], compare_accounts,
+             *Account.__owned__(Account))
 
     # Test that we can get all accounts via get all call with limit 2 offset 0
     def test_get_all_1st(self):
@@ -193,23 +151,14 @@ class TestBaseViews(BaseTest):
 
         compare_accounts = list(self.accounts.values())[offset:offset + total]
         self.assertEqual(
-            len(accounts_result['accounts']), len(compare_accounts))
-        self.assertEqual(
             accounts_result['offset'],
             offset + len(compare_accounts))
 
         total_accounts = len(list(self.accounts.values()))
         self.assertEqual(accounts_result['total'], total_accounts)
 
-        for account, compare_account in zip(
-                accounts_result['accounts'], compare_accounts):
-            self.assertEqual(account['username'], compare_account['username'])
-            self.assertEqual(account['cdkey'], compare_account['cdkey'])
-            self.assertEqual(account['role'], compare_account['role'])
-            self.assertEqual(account['approved'], compare_account['approved'])
-            self.assertEqual(account['banned'], compare_account['banned'])
-            self.assertEqual(account['created'], compare_account['created'])
-            self.assertEqual(account['updated'], compare_account['updated'])
+        self.assert_compare_lists(accounts_result['accounts'], compare_accounts,
+             *Account.__owned__(Account))
 
     # Test that we can get all accounts via get all call with limit 2 offset 2
     def test_get_all_2nd(self):
@@ -220,23 +169,14 @@ class TestBaseViews(BaseTest):
 
         compare_accounts = list(self.accounts.values())[offset:offset + total]
         self.assertEqual(
-            len(accounts_result['accounts']), len(compare_accounts))
-        self.assertEqual(
             accounts_result['offset'],
             offset + len(compare_accounts))
 
         total_accounts = len(list(self.accounts.values()))
         self.assertEqual(accounts_result['total'], total_accounts)
 
-        for account, compare_account in zip(
-                accounts_result['accounts'], compare_accounts):
-            self.assertEqual(account['username'], compare_account['username'])
-            self.assertEqual(account['cdkey'], compare_account['cdkey'])
-            self.assertEqual(account['role'], compare_account['role'])
-            self.assertEqual(account['approved'], compare_account['approved'])
-            self.assertEqual(account['banned'], compare_account['banned'])
-            self.assertEqual(account['created'], compare_account['created'])
-            self.assertEqual(account['updated'], compare_account['updated'])
+        self.assert_compare_lists(accounts_result['accounts'], compare_accounts,
+             *Account.__owned__(Account))
 
     # Test that we can get all characters for Tweek via get all call
     def test_get_all_by_one_admin(self):
@@ -253,28 +193,14 @@ class TestBaseViews(BaseTest):
         compare_characters = owned_characters[offset:offset + total]
 
         self.assertEqual(
-            len(characters_result['characters']), len(compare_characters))
-        self.assertEqual(
             characters_result['offset'],
             offset + len(compare_characters))
 
         total_characters = len(owned_characters)
         self.assertEqual(characters_result['total'], total_characters)
 
-        for character, compare_character in zip(
-                characters_result['characters'], compare_characters):
-            self.assertEqual(
-                character['accountId'],
-                compare_character['accountId'])
-            self.assertEqual(character['name'], compare_character['name'])
-            self.assertEqual(character['exp'], compare_character['exp'])
-            self.assertEqual(character['area'], compare_character['area'])
-            self.assertEqual(
-                character['created'],
-                compare_character['created'])
-            self.assertEqual(
-                character['updated'],
-                compare_character['updated'])
+        self.assert_compare_lists(characters_result['characters'], compare_characters,
+             *Character.__owned__(Character))
 
     # Test that we can get all characters for Tweek via get all call
     def test_get_all_by_one_admin_1st(self):
@@ -291,28 +217,14 @@ class TestBaseViews(BaseTest):
         compare_characters = owned_characters[offset:offset + total]
 
         self.assertEqual(
-            len(characters_result['characters']), len(compare_characters))
-        self.assertEqual(
             characters_result['offset'],
             offset + len(compare_characters))
 
         total_characters = len(owned_characters)
         self.assertEqual(characters_result['total'], total_characters)
 
-        for character, compare_character in zip(
-                characters_result['characters'], compare_characters):
-            self.assertEqual(
-                character['accountId'],
-                compare_character['accountId'])
-            self.assertEqual(character['name'], compare_character['name'])
-            self.assertEqual(character['exp'], compare_character['exp'])
-            self.assertEqual(character['area'], compare_character['area'])
-            self.assertEqual(
-                character['created'],
-                compare_character['created'])
-            self.assertEqual(
-                character['updated'],
-                compare_character['updated'])
+        self.assert_compare_lists(characters_result['characters'], compare_characters,
+             *Character.__owned__(Character))
 
     # Test that we can get all characters for Tweek via get all call
     def test_get_all_by_one_admin_2nd(self):
@@ -329,28 +241,14 @@ class TestBaseViews(BaseTest):
         compare_characters = owned_characters[offset:offset + total]
 
         self.assertEqual(
-            len(characters_result['characters']), len(compare_characters))
-        self.assertEqual(
             characters_result['offset'],
             offset + len(compare_characters))
 
         total_characters = len(owned_characters)
         self.assertEqual(characters_result['total'], total_characters)
 
-        for character, compare_character in zip(
-                characters_result['characters'], compare_characters):
-            self.assertEqual(
-                character['accountId'],
-                compare_character['accountId'])
-            self.assertEqual(character['name'], compare_character['name'])
-            self.assertEqual(character['exp'], compare_character['exp'])
-            self.assertEqual(character['area'], compare_character['area'])
-            self.assertEqual(
-                character['created'],
-                compare_character['created'])
-            self.assertEqual(
-                character['updated'],
-                compare_character['updated'])
+        self.assert_compare_lists(characters_result['characters'], compare_characters,
+             *Character.__owned__(Character))
 
     # Test that we can get all characters for Tweek via get all call
     def test_get_all_by_one_owned(self):
@@ -367,28 +265,14 @@ class TestBaseViews(BaseTest):
         compare_characters = owned_characters[offset:offset + total]
 
         self.assertEqual(
-            len(characters_result['characters']), len(compare_characters))
-        self.assertEqual(
             characters_result['offset'],
             offset + len(compare_characters))
 
         total_characters = len(owned_characters)
         self.assertEqual(characters_result['total'], total_characters)
 
-        for character, compare_character in zip(
-                characters_result['characters'], compare_characters):
-            self.assertEqual(
-                character['accountId'],
-                compare_character['accountId'])
-            self.assertEqual(character['name'], compare_character['name'])
-            self.assertEqual(character['exp'], compare_character['exp'])
-            self.assertEqual(character['area'], compare_character['area'])
-            self.assertEqual(
-                character['created'],
-                compare_character['created'])
-            self.assertEqual(
-                character['updated'],
-                compare_character['updated'])
+        self.assert_compare_lists(characters_result['characters'], compare_characters,
+             *Character.__owned__(Character))
 
     # Test that we can get all characters for Tweek via get all call
     def test_get_all_by_one_public(self):
@@ -405,31 +289,17 @@ class TestBaseViews(BaseTest):
         compare_characters = owned_characters[offset:offset + total]
 
         self.assertEqual(
-            len(characters_result['characters']), len(compare_characters))
-        self.assertEqual(
             characters_result['offset'],
             offset + len(compare_characters))
 
         total_characters = len(owned_characters)
         self.assertEqual(characters_result['total'], total_characters)
 
-        for character, compare_character in zip(
-                characters_result['characters'], compare_characters):
-            self.assertEqual(
-                character['accountId'],
-                compare_character['accountId'])
-            self.assertEqual(character['name'], compare_character['name'])
-            self.assertEqual(
-                character['created'],
-                compare_character['created'])
-            self.assertEqual(
-                character['updated'],
-                compare_character['updated'])
+        self.assert_compare_lists(characters_result['characters'], compare_characters,
+             *Character.__public__(Character))
 
-            with self.assertRaises(KeyError):
-                character['exp']
-            with self.assertRaises(KeyError):
-                character['area']
+        for character in characters_result['characters']:
+            self.assert_not_in_object(character, *Character.__private__(Character))
 
     # Test that we can get the Jilin's training via get call when owner
     # Because the noob account owns jilin
@@ -441,16 +311,9 @@ class TestBaseViews(BaseTest):
             self.accounts['noob'])
 
         self.assertEqual(train['characterId'], self.characters['jilin']['id'])
-        self.assertEqual(train['resref'], self.actions['noob_train']['resref'])
-        self.assertEqual(train['amount'], self.actions['noob_train']['amount'])
-        self.assertEqual(
-            train['blueprint'],
-            self.actions['noob_train']['blueprint'])
-        self.assertEqual(train['ingredients'],
-                         self.actions['noob_train']['ingredients'])
-        self.assertEqual(
-            train['completed'],
-            self.actions['noob_train']['completed'])
+
+        self.assert_compare_objects(train, self.actions['noob_train'], 
+            *Action.__public__(Action))
 
     # Test that we cannot get Al's crafting via get call when not owner
     # Because the noob account doesn't own alrunden
@@ -470,14 +333,6 @@ class TestBaseViews(BaseTest):
             self.accounts['aez'])
 
         self.assertEqual(mining['characterId'], self.characters['jilin']['id'])
-        self.assertEqual(mining['resref'], self.actions['noob_mine']['resref'])
-        self.assertEqual(mining['amount'], self.actions['noob_mine']['amount'])
-        self.assertEqual(
-            mining['blueprint'],
-            self.actions['noob_mine']['blueprint'])
-        self.assertEqual(
-            mining['ingredients'],
-            self.actions['noob_mine']['ingredients'])
-        self.assertEqual(
-            mining['completed'],
-            self.actions['noob_mine']['completed'])
+        
+        self.assert_compare_objects(mining, self.actions['noob_mine'], 
+            *Action.__public__(Action))

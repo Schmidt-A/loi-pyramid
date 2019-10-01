@@ -25,18 +25,14 @@ metadata = MetaData(naming_convention=NAMING_CONVENTION)
 # trouble with hasattr()
 @as_declarative(metadata=metadata)
 class Base(object):
+    __table_args__ = {'info':{'access': 'public'}}
 
-    created = Column(String)
-    updated = Column(String)
+    created = Column(String, default=str(datetime.now()), info={'access': 'public'})
+    updated = Column(String, default=str(datetime.now()), info={'access': 'public'})
 
+    #this still exists because we don't want to include secret columns (pw) in the others
     def __json__(self, request):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
-
-    def set_created(self):
-        created = str(datetime.now())
-
-    def set_updated(self):
-        updated = str(datetime.now())
 
     def get_foreign_key_by(self, by_model):
         foreign_keys = list(self.__table__.foreign_keys)
@@ -47,3 +43,31 @@ class Base(object):
                     self.__tablename__, foreign_key.parent.name,
                     foreign_key.column.table.name, foreign_key.column.name))
                 return foreign_key
+
+    def get_by_access(self, access):
+        return filter(lambda c: c.info['access'] == access, self.__table__.columns)
+
+    def __private__(self):
+        return list(map(lambda c: c.name, self.get_by_access(self, 'private')))
+
+    def __public__(self):
+        if self.__table__.info['access'] == 'public':
+            return list(map(lambda c: c.name, self.get_by_access(self, 'public')))
+        else:
+            return []
+
+    def __owned__(self):
+        return self.__public__(self) + self.__private__(self)
+
+    @property
+    def owned_payload(self):
+        return {c.name: getattr(self, c.name) 
+            for c in list(self.get_by_access('private')) + list(self.get_by_access('public'))}
+
+    @property
+    def public_payload(self):
+        if self.__table__.info['access'] == 'public':
+            return {c.name: getattr(self, c.name) 
+                for c in list(self.get_by_access('public'))}
+        else:
+            return None

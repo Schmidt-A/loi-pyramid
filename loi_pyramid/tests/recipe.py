@@ -6,6 +6,7 @@ from pyramid import testing
 
 from .base_test import BaseTest
 from ..views.recipe import RecipeViews, RecipesViews
+from ..models import Recipe
 
 log = logging.getLogger(__name__)
 
@@ -22,9 +23,12 @@ class TestRecipeViews(BaseTest):
 
         self.host = 'http://localhost:6543'
 
-        self.accounts = self.fixture_helper.account_fixture()
-        self.recipes = self.fixture_helper.recipe_fixture()
+        accounts_data = self.fixture_helper.account_data()
+        recipes_data = self.fixture_helper.recipe_data()
         self.session.flush()
+
+        self.accounts = self.fixture_helper.convert_to_json(accounts_data)
+        self.recipes = self.fixture_helper.convert_to_json(recipes_data)
 
         # non existent recipes, to be used for negative testing
         self.fake_recipes = self.fixture_helper.fake_recipe_fixture()
@@ -67,18 +71,8 @@ class TestRecipeViews(BaseTest):
         recipe_result = self.recipe_get(
             self.recipes['metal'], self.accounts['tweek'])
 
-        self.assertEqual(recipe_result['name'], self.recipes['metal']['name'])
-        self.assertEqual(
-            recipe_result['category'],
-            self.recipes['metal']['category'])
-        self.assertEqual(
-            recipe_result['actions'],
-            self.recipes['metal']['actions'])
-        self.assertEqual(recipe_result['time'], self.recipes['metal']['time'])
-        self.assertEqual(recipe_result['cost'], self.recipes['metal']['cost'])
-        self.assertEqual(
-            recipe_result['building'],
-            self.recipes['metal']['building'])
+        self.assert_compare_objects(recipe_result, self.recipes['metal'], 
+            *Recipe.__owned__(Recipe))
 
     # Test that we cannot get Lyrium via get call
     # Because it's not a real thing in Faerun
@@ -105,32 +99,5 @@ class TestRecipeViews(BaseTest):
 
         for recipe, compare_recipe in zip(
                 recipes_result['recipes'], compare_recipes):
-            self.assertEqual(recipe['name'], compare_recipe['name'])
-            self.assertEqual(recipe['category'], compare_recipe['category'])
-            self.assertEqual(recipe['actions'], compare_recipe['actions'])
-            self.assertEqual(recipe['cost'], compare_recipe['cost'])
-            self.assertEqual(recipe['building'], compare_recipe['building'])
-
-    # Test that we can get all recipes via get all call
-    def test_get_all_1st(self):
-        total = 1
-        offset = 0
-        recipes_result = self.recipes_get_all(
-            self.accounts['tweek'], total, offset)
-
-        compare_recipes = list(self.recipes.values())[offset:offset + total]
-        self.assertEqual(len(recipes_result['recipes']), len(compare_recipes))
-        self.assertEqual(
-            recipes_result['offset'],
-            offset + len(compare_recipes))
-
-        total_recipes = len(list(self.recipes.values()))
-        self.assertEqual(recipes_result['total'], total_recipes)
-
-        for recipe, compare_recipe in zip(
-                recipes_result['recipes'], compare_recipes):
-            self.assertEqual(recipe['name'], compare_recipe['name'])
-            self.assertEqual(recipe['category'], compare_recipe['category'])
-            self.assertEqual(recipe['actions'], compare_recipe['actions'])
-            self.assertEqual(recipe['cost'], compare_recipe['cost'])
-            self.assertEqual(recipe['building'], compare_recipe['building'])
+            self.assert_compare_objects(recipe, compare_recipe, 
+                *Recipe.__owned__(Recipe))

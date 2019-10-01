@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from pyramid.httpexceptions import HTTPNotFound, HTTPClientError, HTTPForbidden
 from pyramid.view import view_config, view_defaults
@@ -45,7 +46,7 @@ class CharacterViews(BaseView):
                     character.exp = exp
                 if area:
                     character.area = area
-                character.set_updated()
+                character.updated = str(datetime.now())
 
                 response = Response(
                     json=character.owned_payload,
@@ -131,7 +132,7 @@ class CharacterItemViews(BaseView):
                     # transferring api ownership?
                     if amount:
                         item.amount = amount
-                    item.set_updated()
+                    item.updated = str(datetime.now())
 
                     response = Response(
                         json=item.owned_payload,
@@ -202,8 +203,6 @@ class CharacterItemsViews(BaseView):
                     resref=resref,
                     amount=amount)
                 self.request.dbsession.add(newItem)
-                newItem.set_created()
-                newItem.set_updated()
 
                 log.info('create: item/amount {}/{} from character/id {}/{}'.format(
                     newItem.resref, newItem.amount, character.name, character.id))

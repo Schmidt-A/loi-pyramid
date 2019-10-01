@@ -38,6 +38,8 @@ class BaseTest(unittest.TestCase):
     def init_database(self):
         Base.metadata.create_all(self.engine)
 
+        #TODO: required data pattern for tests
+
     def tearDown(self):
         testing.tearDown()
         transaction.abort()
@@ -112,6 +114,24 @@ class BaseTest(unittest.TestCase):
             userid=account['username'], permissive=True)
         account = DummyAccount(account)
         return account
+
+    #this assumes that none of the objects have null properties in the args list
+    def assert_compare_objects(self, first, second, *args):
+        for arg in args:
+            self.assertEqual(first[arg], second[arg])
+
+    #this asserts that the lists are of equal length
+    def assert_compare_lists(self, first_list, second_list, *args):
+        self.assertEqual(len(first_list), len(second_list))
+        for first, second in zip (first_list, second_list):
+            arg_list = list(map(lambda arg: arg, args))
+            self.assert_compare_objects(first, second, *arg_list)
+
+    #
+    def assert_not_in_object(self, obj, *args):
+        for arg in args:
+            with self.assertRaises(KeyError):
+                obj[arg]
 
 
 # Making this because pyramid's request alteration does not translate to unittesting dummy ruquest

@@ -6,6 +6,7 @@ from pyramid import testing
 
 from .base_test import BaseTest
 from ..views.ingredient import IngredientViews, IngredientsViews
+from ..models import Ingredient
 
 log = logging.getLogger(__name__)
 
@@ -22,9 +23,12 @@ class TestIngredientViews(BaseTest):
 
         self.host = 'http://localhost:6543'
 
-        self.accounts = self.fixture_helper.account_fixture()
-        self.ingredients = self.fixture_helper.ingredient_fixture()
+        accounts_data = self.fixture_helper.account_data()
+        ingredients_data = self.fixture_helper.ingredient_data()
         self.session.flush()
+
+        self.accounts = self.fixture_helper.convert_to_json(accounts_data)
+        self.ingredients = self.fixture_helper.convert_to_json(ingredients_data)
 
         # non existent ingredients, to be used for negative testing
         self.fake_ingredients = self.fixture_helper.fake_ingredient_fixture()
@@ -67,15 +71,8 @@ class TestIngredientViews(BaseTest):
         ingredient_result = self.ingredient_get(
             self.ingredients['iron'], self.accounts['tweek'])
 
-        self.assertEqual(
-            ingredient_result['name'],
-            self.ingredients['iron']['name'])
-        self.assertEqual(
-            ingredient_result['category'],
-            self.ingredients['iron']['category'])
-        self.assertEqual(
-            ingredient_result['tier'],
-            self.ingredients['iron']['tier'])
+        self.assert_compare_objects(ingredient_result, self.ingredients['iron'], 
+            *Ingredient.__owned__(Ingredient))
 
     # Test that we cannot get Uranium via get call
     # Because it doesn't exist in Faerun
@@ -104,8 +101,5 @@ class TestIngredientViews(BaseTest):
 
         for ingredient, compare_ingredient in zip(
                 ingredients_result['ingredients'], compare_ingredients):
-            self.assertEqual(ingredient['name'], compare_ingredient['name'])
-            self.assertEqual(
-                ingredient['category'],
-                compare_ingredient['category'])
-            self.assertEqual(ingredient['tier'], compare_ingredient['tier'])
+            self.assert_compare_objects(ingredient, compare_ingredient, 
+                *Ingredient.__owned__(Ingredient))

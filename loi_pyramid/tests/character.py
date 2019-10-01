@@ -8,6 +8,7 @@ from pyramid import testing
 from .base_test import BaseTest
 from ..views.character import CharacterViews, CharactersViews, CharacterItemsViews, CharacterItemViews
 from ..views.character import CharacterActionViews, CharacterActionsViews
+from ..models import Character, Item, Action
 
 log = logging.getLogger(__name__)
 
@@ -20,12 +21,16 @@ class TestCharacterViews(BaseTest):
         super(TestCharacterViews, self).setUp()
         self.init_database()
 
-        self.accounts = self.fixture_helper.account_fixture()
-        self.characters = self.fixture_helper.character_fixture()
-        self.items = self.fixture_helper.item_fixture()
-        self.actions = self.fixture_helper.action_fixture()
-
+        accounts_data = self.fixture_helper.account_data()
+        characters_data = self.fixture_helper.character_data()
+        items_data = self.fixture_helper.item_data()
+        actions_data = self.fixture_helper.action_data()
         self.session.flush()
+
+        self.accounts = self.fixture_helper.convert_to_json(accounts_data)
+        self.characters = self.fixture_helper.convert_to_json(characters_data)
+        self.items = self.fixture_helper.convert_to_json(items_data)
+        self.actions = self.fixture_helper.convert_to_json(actions_data)
 
         self.fake_characters = self.fixture_helper.fake_character_fixture()
         self.fake_accounts = self.fixture_helper.fake_account_fixture()
@@ -279,24 +284,8 @@ class TestCharacterViews(BaseTest):
         character_result = self.character_get(
             self.characters['jilin'], self.accounts['noob'])
 
-        self.assertEqual(
-            character_result['accountId'],
-            self.characters['jilin']['accountId'])
-        self.assertEqual(
-            character_result['name'],
-            self.characters['jilin']['name'])
-        self.assertEqual(
-            character_result['exp'],
-            self.characters['jilin']['exp'])
-        self.assertEqual(
-            character_result['area'],
-            self.characters['jilin']['area'])
-        self.assertEqual(
-            character_result['created'],
-            self.characters['jilin']['created'])
-        self.assertEqual(
-            character_result['updated'],
-            self.characters['jilin']['updated'])
+        self.assert_compare_objects(character_result, self.characters['jilin'], 
+            *Character.__owned__(Character))
 
     # Test that we cannot get Siobhan via get call when not owner
     # Because noob doesnt own Siobhan
@@ -304,23 +293,9 @@ class TestCharacterViews(BaseTest):
         character_result = self.character_get(
             self.characters.get('siobhan'), self.accounts['noob'])
 
-        self.assertEqual(
-            character_result['accountId'],
-            self.characters.get('siobhan')['accountId'])
-        self.assertEqual(
-            character_result['name'],
-            self.characters.get('siobhan')['name'])
-        self.assertEqual(
-            character_result['created'],
-            self.characters.get('siobhan')['created'])
-        self.assertEqual(
-            character_result['updated'],
-            self.characters.get('siobhan')['updated'])
-
-        with self.assertRaises(KeyError):
-            character_result['exp']
-        with self.assertRaises(KeyError):
-            character_result['area']
+        self.assert_compare_objects(character_result, self.characters['siobhan'], 
+            *Character.__public__(Character))
+        self.assert_not_in_object(character_result, *Character.__private__(Character))
 
     # Test that we can get Ji'Lin via get call when admin
     # Because admins can look at other peoples' chars
@@ -328,24 +303,8 @@ class TestCharacterViews(BaseTest):
         character_result = self.character_get(
             self.characters['jilin'], self.accounts['tweek'])
 
-        self.assertEqual(
-            character_result['accountId'],
-            self.characters['jilin']['accountId'])
-        self.assertEqual(
-            character_result['name'],
-            self.characters['jilin']['name'])
-        self.assertEqual(
-            character_result['exp'],
-            self.characters['jilin']['exp'])
-        self.assertEqual(
-            character_result['area'],
-            self.characters['jilin']['area'])
-        self.assertEqual(
-            character_result['created'],
-            self.characters['jilin']['created'])
-        self.assertEqual(
-            character_result['updated'],
-            self.characters['jilin']['updated'])
+        self.assert_compare_objects(character_result, self.characters['jilin'], 
+            *Character.__owned__(Character))
 
     # Test that we cannot get Meero via get call when admin
     # Because she ain't created
@@ -447,12 +406,8 @@ class TestCharacterViews(BaseTest):
 
         for char, compare_char in zip(
                 characters_result['characters'], compare_characters):
-            self.assertEqual(char['accountId'], compare_char['accountId'])
-            self.assertEqual(char['name'], compare_char['name'])
-            self.assertEqual(char['exp'], compare_char['exp'])
-            self.assertEqual(char['area'], compare_char['area'])
-            self.assertEqual(char['created'], compare_char['created'])
-            self.assertEqual(char['updated'], compare_char['updated'])
+            self.assert_compare_objects(char, compare_char, 
+                *Character.__owned__(Character))
 
     # Test that we can get all characters via get all call when not admin
     # And that we get the partial info payload
@@ -475,29 +430,20 @@ class TestCharacterViews(BaseTest):
 
         for char, compare_char in zip(
                 characters_result['characters'], compare_characters):
-            self.assertEqual(char['accountId'], compare_char['accountId'])
-            self.assertEqual(char['name'], compare_char['name'])
-            self.assertEqual(char['created'], compare_char['created'])
-            self.assertEqual(char['updated'], compare_char['updated'])
-
-            with self.assertRaises(KeyError):
-                char['exp']
-            with self.assertRaises(KeyError):
-                char['area']
+            self.assert_compare_objects(char, compare_char, 
+                *Character.__public__(Character))
+            self.assert_not_in_object(char, *Character.__private__(Character))
 
     # Test that we can get the Jilin's money via get call when owner
     # Because the noob account owns jilin
     def test_own_get_item(self):
-        money = self.item_get(
+        item_result = self.item_get(
             self.characters['jilin'],
             self.items['noob_money'],
             self.accounts['noob'])
 
-        self.assertEqual(money['characterId'], self.characters['jilin']['id'])
-        self.assertEqual(money['resref'], self.items['noob_money']['resref'])
-        self.assertEqual(money['amount'], self.items['noob_money']['amount'])
-        self.assertEqual(money['created'], self.items['noob_money']['created'])
-        self.assertEqual(money['updated'], self.items['noob_money']['updated'])
+        self.assert_compare_objects(item_result, self.items['noob_money'], 
+            *Item.__owned__(Item))
 
     # Test that we cannot get the Al's money via get call when not owner
     # Because the noob account doesn't own alrunden
@@ -511,16 +457,13 @@ class TestCharacterViews(BaseTest):
     # Test that we can get the Jilin's money via get call when admin
     # Because admins can access any character
     def test_admin_get_item(self):
-        money = self.item_get(
+        item_result = self.item_get(
             self.characters['jilin'],
             self.items['noob_money'],
             self.accounts['aez'])
 
-        self.assertEqual(money['characterId'], self.characters['jilin']['id'])
-        self.assertEqual(money['resref'], self.items['noob_money']['resref'])
-        self.assertEqual(money['amount'], self.items['noob_money']['amount'])
-        self.assertEqual(money['created'], self.items['noob_money']['created'])
-        self.assertEqual(money['updated'], self.items['noob_money']['updated'])
+        self.assert_compare_objects(item_result, self.items['noob_money'], 
+            *Item.__owned__(Item))
 
     # Test that we cannot get Al's cows with Siobhan's id via get call when admin
     # Because those are owned by Al's character, not Siobhan's
@@ -553,7 +496,7 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(item_result['resref'], test_money['resref'])
         self.assertEqual(item_result['amount'], test_money['amount'])
         self.assertEqual(item_result['created'], test_money['created'])
-        self.assertEqual(item_result['updated'], test_money['updated'])
+        self.assertGreater(item_result['updated'], test_money['updated'])
 
     # Test that we cannot update Al's cows with Siobhan's id via put call when admin
     # Because those are owned by Al's character, not Siobhan's
@@ -674,11 +617,8 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(items_result['total'], total_items)
 
         for item, compare_item in zip(items_result['items'], compare_items):
-            self.assertEqual(item['characterId'], compare_item['characterId'])
-            self.assertEqual(item['resref'], compare_item['resref'])
-            self.assertEqual(item['amount'], compare_item['amount'])
-            self.assertEqual(item['created'], compare_item['created'])
-            self.assertEqual(item['updated'], compare_item['updated'])
+            self.assert_compare_objects(item, compare_item, 
+                *Item.__owned__(Item))
 
     # Test that we can't get Al's items via get all call when not owner
     # Because you can't see other people's shit
@@ -709,11 +649,8 @@ class TestCharacterViews(BaseTest):
         self.assertEqual(items_result['total'], total_items)
 
         for item, compare_item in zip(items_result['items'], compare_items):
-            self.assertEqual(item['characterId'], compare_item['characterId'])
-            self.assertEqual(item['resref'], compare_item['resref'])
-            self.assertEqual(item['amount'], compare_item['amount'])
-            self.assertEqual(item['created'], compare_item['created'])
-            self.assertEqual(item['updated'], compare_item['updated'])
+            self.assert_compare_objects(item, compare_item, 
+                *Item.__owned__(Item))
 
     # Test that we cannot get Meero's items via get all call when admin
     # Because she ain't created
@@ -763,22 +700,13 @@ class TestCharacterViews(BaseTest):
     # Test that we can get the Jilin's training via get call when owner
     # Because the noob account owns jilin
     def test_own_get_action(self):
-        train = self.action_get(
+        action_result = self.action_get(
             self.characters['jilin'],
             self.actions['noob_train'],
             self.accounts['noob'])
 
-        self.assertEqual(train['characterId'], self.characters['jilin']['id'])
-        self.assertEqual(train['resref'], self.actions['noob_train']['resref'])
-        self.assertEqual(train['amount'], self.actions['noob_train']['amount'])
-        self.assertEqual(
-            train['blueprint'],
-            self.actions['noob_train']['blueprint'])
-        self.assertEqual(train['ingredients'],
-                         self.actions['noob_train']['ingredients'])
-        self.assertEqual(
-            train['completed'],
-            self.actions['noob_train']['completed'])
+        self.assert_compare_objects(action_result, self.actions['noob_train'], 
+            *Action.__owned__(Action))
 
     # Test that we cannot get Al's crafting via get call when not owner
     # Because the noob account doesn't own alrunden
@@ -792,23 +720,13 @@ class TestCharacterViews(BaseTest):
     # Test that we can see the Jilin's mining via get call when admin
     # Because admins can access any character
     def test_admin_get_action(self):
-        mining = self.action_get(
+        action_result = self.action_get(
             self.characters['jilin'],
             self.actions['noob_mine'],
             self.accounts['aez'])
 
-        self.assertEqual(mining['characterId'], self.characters['jilin']['id'])
-        self.assertEqual(mining['resref'], self.actions['noob_mine']['resref'])
-        self.assertEqual(mining['amount'], self.actions['noob_mine']['amount'])
-        self.assertEqual(
-            mining['blueprint'],
-            self.actions['noob_mine']['blueprint'])
-        self.assertEqual(
-            mining['ingredients'],
-            self.actions['noob_mine']['ingredients'])
-        self.assertEqual(
-            mining['completed'],
-            self.actions['noob_mine']['completed'])
+        self.assert_compare_objects(action_result, self.actions['noob_mine'], 
+            *Action.__owned__(Action))
 
     # Test that we cannot get Al's crafting with Siobhan's id via get call when admin
     # Because those are owned by Al's character, not Siobhan's
@@ -904,16 +822,8 @@ class TestCharacterViews(BaseTest):
 
         for action, compare_action in zip(
                 actions_result['actions'], compare_actions):
-            self.assertEqual(
-                action['characterId'],
-                compare_action['characterId'])
-            self.assertEqual(action['resref'], compare_action['resref'])
-            self.assertEqual(action['amount'], compare_action['amount'])
-            self.assertEqual(action['blueprint'], compare_action['blueprint'])
-            self.assertEqual(
-                action['ingredients'],
-                compare_action['ingredients'])
-            self.assertEqual(action['completed'], compare_action['completed'])
+            self.assert_compare_objects(action, compare_action, 
+                *Action.__owned__(Action))
 
     # Test that we can't get Al's actions via get all call when not owner
     # Because you can't see other people's shit
@@ -947,16 +857,8 @@ class TestCharacterViews(BaseTest):
 
         for action, compare_action in zip(
                 actions_result['actions'], compare_actions):
-            self.assertEqual(
-                action['characterId'],
-                compare_action['characterId'])
-            self.assertEqual(action['resref'], compare_action['resref'])
-            self.assertEqual(action['amount'], compare_action['amount'])
-            self.assertEqual(action['blueprint'], compare_action['blueprint'])
-            self.assertEqual(
-                action['ingredients'],
-                compare_action['ingredients'])
-            self.assertEqual(action['completed'], compare_action['completed'])
+            self.assert_compare_objects(action, compare_action, 
+                *Action.__owned__(Action))
 
     # Test that we cannot get Meero's actions via get all call when admin
     # Because she ain't created

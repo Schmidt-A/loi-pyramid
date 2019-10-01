@@ -6,6 +6,7 @@ from pyramid import testing
 
 from .base_test import BaseTest
 from ..views.account import AccountViews, AccountsViews, AccountCharactersView
+from ..models import Account, Character
 
 log = logging.getLogger(__name__)
 
@@ -18,11 +19,12 @@ class TestAccountViews(BaseTest):
         super(TestAccountViews, self).setUp()
         self.init_database()
 
-        from ..models import Account
-
-        self.accounts = self.fixture_helper.account_fixture()
-        self.characters = self.fixture_helper.character_fixture()
+        accounts_data = self.fixture_helper.account_data()
+        characters_data = self.fixture_helper.character_data()
         self.session.flush()
+
+        self.accounts = self.fixture_helper.convert_to_json(accounts_data)
+        self.characters = self.fixture_helper.convert_to_json(characters_data)
 
         # non existent accounts, to be used for negative testing
         self.fake_accounts = self.fixture_helper.fake_account_fixture()
@@ -92,27 +94,8 @@ class TestAccountViews(BaseTest):
         account_result = self.account_get(
             self.accounts['tweek'], self.accounts['tweek'])
 
-        self.assertEqual(
-            account_result['username'],
-            self.accounts['tweek']['username'])
-        self.assertEqual(
-            account_result['cdkey'],
-            self.accounts['tweek']['cdkey'])
-        self.assertEqual(
-            account_result['role'],
-            self.accounts['tweek']['role'])
-        self.assertEqual(
-            account_result['approved'],
-            self.accounts['tweek']['approved'])
-        self.assertEqual(
-            account_result['banned'],
-            self.accounts['tweek']['banned'])
-        self.assertEqual(
-            account_result['created'],
-            self.accounts['tweek']['created'])
-        self.assertEqual(
-            account_result['updated'],
-            self.accounts['tweek']['updated'])
+        self.assert_compare_objects(account_result, self.accounts['tweek'], 
+            *Account.__owned__(Account))
 
     # Test that we cannot get Tam via get call
     # Because he'll never nut up and log on
@@ -138,13 +121,8 @@ class TestAccountViews(BaseTest):
 
         for account, compare_account in zip(
                 accounts_result['accounts'], compare_accounts):
-            self.assertEqual(account['username'], compare_account['username'])
-            self.assertEqual(account['cdkey'], compare_account['cdkey'])
-            self.assertEqual(account['role'], compare_account['role'])
-            self.assertEqual(account['approved'], compare_account['approved'])
-            self.assertEqual(account['banned'], compare_account['banned'])
-            self.assertEqual(account['created'], compare_account['created'])
-            self.assertEqual(account['updated'], compare_account['updated'])
+            self.assert_compare_objects(account, compare_account, 
+                *Account.__owned__(Account))
 
     # Test that we can get all characters for Tweek via get all call
     def test_get_all_chars(self):
@@ -171,18 +149,8 @@ class TestAccountViews(BaseTest):
 
         for character, compare_character in zip(
                 characters_result['characters'], compare_characters):
-            self.assertEqual(
-                character['accountId'],
-                compare_character['accountId'])
-            self.assertEqual(character['name'], compare_character['name'])
-            self.assertEqual(character['exp'], compare_character['exp'])
-            self.assertEqual(character['area'], compare_character['area'])
-            self.assertEqual(
-                character['created'],
-                compare_character['created'])
-            self.assertEqual(
-                character['updated'],
-                compare_character['updated'])
+            self.assert_compare_objects(character, compare_character, 
+                *Character.__owned__(Character))
 
     # Test that we cannot get Tam's characters via get all call
     # Because he never nutted up and logged on

@@ -31,7 +31,7 @@ class BaseView(object):
             result = result_query.filter(
                 getattr(model, primary_key) == path_value).one()
 
-            log.debug(
+            log.warning(
                 'get: {} {}'.format(model.__tablename__, path_value))
 
             owned = False
@@ -45,19 +45,16 @@ class BaseView(object):
 
             get_data = {}
             if owned or self.request.account.is_admin():
-                if hasattr(result, 'owned_payload'):
-                    get_data = result.owned_payload
-                else:
-                    get_data = result.public_payload
+                get_data = result.owned_payload
             else:
-                if hasattr(result, 'public_payload'):
-                    get_data = result.public_payload
+                #TODO: handle the forbidden properly
+                get_data = result.public_payload
 
-            log.debug('get: returned {}'.format(get_data))
+            log.warning('get: returned {}'.format(get_data))
             response = Response(json=get_data, content_type='application/json')
 
         except NoResultFound:
-            log.debug(
+            log.warning(
                 'get: {} \'{}\' not found'.format(
                     model.__tablename__,
                     path_value))
@@ -77,7 +74,7 @@ class BaseView(object):
                 if self.request.GET.getone('offset') > -1:
                     offset = self.request.GET.getone('offset')
             except BaseException:
-                log.debug(
+                log.warning(
                     'get: defaults used for limit and/or offset {}'.format(self.request.GET))
                 pass
 
@@ -87,7 +84,7 @@ class BaseView(object):
             total_query = self.request.dbsession.query(model)
             total = total_query.count()
 
-            log.debug(
+            log.warning(
                 'get_all: {} queried by limit {} and offset {}'.format(
                     model.__tablename__, limit, offset))
 
@@ -105,18 +102,13 @@ class BaseView(object):
                 # if they're an admin they can see everything
                 # need to add if owned
                 if self.request.account.is_admin():
-                    if hasattr(result, 'owned_payload'):
-                        get_all_data[model.__tablename__].append(
-                            result.owned_payload)
-                    else:
-                        get_all_data[model.__tablename__].append(
-                            result.public_payload)
+                    get_all_data[model.__tablename__].append(
+                        result.owned_payload)
                 else:
-                    if hasattr(result, 'public_payload'):
-                        get_all_data[model.__tablename__].append(
-                            result.public_payload)
+                    if model.__public__(model):
+                        get_all_data[model.__tablename__].append(result.public_payload)
 
-            log.debug('get_all: returned {}'.format(get_all_data))
+            log.warning('get_all: returned {}'.format(get_all_data))
             response = Response(
                 json=get_all_data,
                 content_type='application/json')
@@ -160,7 +152,7 @@ class BaseView(object):
                 if self.request.GET.getone('offset') > -1:
                     offset = self.request.GET.getone('offset')
             except BaseException:
-                log.debug(
+                log.warning(
                     'get_all_by_one: defaults used for limit and/or offset {}'.format(self.request.GET))
                 pass
 
@@ -173,7 +165,7 @@ class BaseView(object):
                     getattr(model_by, by_primary_key) == by_path_value).one()
 
             except NoResultFound:
-                log.debug(
+                log.warning(
                     'get_all_by_one: {} \'{}\' not found'.format(
                         model_by.__tablename__, by_path_value))
                 raise HTTPNotFound
@@ -188,7 +180,7 @@ class BaseView(object):
             total = total_query.filter(
                 getattr(model_get, get_foreign_key.parent.name) == by_path_value).count()
 
-            log.debug('get_all_by_one: {} of {}: {} by limit {} and offset {}'.format(
+            log.warning('get_all_by_one: {} of {}: {} by limit {} and offset {}'.format(
                 model_get.__tablename__, model_by.__tablename__, by_path_value, limit, offset))
 
             if offset + limit > total:
@@ -206,8 +198,8 @@ class BaseView(object):
             elif getattr(filter_result, 'username', None) == self.request.account.username:
                 owned = True
 
-            if not (owned or self.request.account.is_admin()) and not hasattr(model_get, 'public_payload'):
-                log.debug(
+            if not (owned or self.request.account.is_admin()) and not model_get.__public__(model_get):
+                log.warning(
                     'get_all_by_one: {} by {} is not allowed to be accesed by account {}'.format(
                         model_get.__tablename__,
                         by_path_value,
@@ -225,18 +217,13 @@ class BaseView(object):
                     owned = True
 
                 if owned or self.request.account.is_admin():
-                    if hasattr(result, 'owned_payload'):
-                        get_all_data[model_get.__tablename__].append(
-                            result.owned_payload)
-                    else:
-                        get_all_data[model_get.__tablename__].append(
-                            result.public_payload)
+                    get_all_data[model_get.__tablename__].append(
+                        result.owned_payload)
                 else:
-                    if hasattr(result, 'public_payload'):
-                        get_all_data[model_get.__tablename__].append(
-                            result.public_payload)
+                    if model_get.__public__(model_get):
+                        get_all_data[model_get.__tablename__].append(result.public_payload)
 
-            log.debug(
+            log.warning(
                 'get_all_by_one: returned {} from {}'.format(
                     get_all_data, by_path_value))
             response = Response(
@@ -244,7 +231,7 @@ class BaseView(object):
                 content_type='application/json')
 
         except NoResultFound:
-            log.debug(
+            log.warning(
                 'get_all_by_one: no {} found with {} {}'.format(
                     model_get.__tablename__,
                     model_by.__tablename__,
@@ -292,7 +279,7 @@ class BaseView(object):
             result = result_query.filter(
                 getattr(model_get, get_primary_key) == get_path_value).one()
 
-            log.debug(
+            log.warning(
                 'get_one_by_one: {}: {} of {}: {}'.format(
                     model_get.__tablename__,
                     get_path_value,
@@ -303,7 +290,7 @@ class BaseView(object):
             by_primary_value = getattr(filter_result, by_primary_key, None)
 
             if get_foreign_value != by_primary_value:
-                log.debug(
+                log.warning(
                     'get_one_by_one: {} {} is not associated with {} {}'.format(
                         model_get.__tablename__,
                         get_path_value,
@@ -324,28 +311,24 @@ class BaseView(object):
 
             get_data = {}
             if owned or self.request.account.is_admin():
-                if hasattr(result, 'owned_payload'):
-                    get_data = result.owned_payload
-                else:
-                    get_data = result.public_payload
+                get_data = result.owned_payload
             else:
-                if hasattr(result, 'public_payload'):
-                    get_data = result.public_payload
-                else:
-                    log.debug(
+                get_data = result.public_payload
+                if not get_data:
+                    log.warning(
                         'get_one_by_one: {} {} is not allowed to be accesed by account {}'.format(
                             model_get.__tablename__,
                             get_path_value,
                             self.request.account.username))
                     raise HTTPForbidden
 
-            log.debug(
+            log.warning(
                 'get_one_by_one: returned {} from {}'.format(
                     get_data, by_path_value))
             response = Response(json=get_data, content_type='application/json')
 
         except NoResultFound:
-            log.debug(
+            log.warning(
                 'get_one_by_one: no {} {} with {} {} found'.format(
                     model_get.__tablename__,
                     get_path_value,
@@ -365,7 +348,7 @@ class BaseView(object):
                 path_value = self.request.matchdict[model.__primary__]
 
             if not self.request.account.is_admin():
-                log.debug(
+                log.warning(
                     'admin_delete_one: {} {} is not allowed to be accesed by account {}'.format(
                         model.__tablename__,
                         path_value,
@@ -376,7 +359,7 @@ class BaseView(object):
             delete_result = delete_query.filter(
                 getattr(model, primary_key) == path_value).one()
 
-            log.debug(
+            log.warning(
                 'admin_delete_one: {} {}'.format(model.__tablename__, path_value))
 
             delete_query.filter(
@@ -398,17 +381,14 @@ class BaseView(object):
                 'offset': offset,
                 model.__tablename__: []}
             for result in results:
-                if hasattr(result, 'owned_payload'):
-                    get_all_data[model.__tablename__].append(result.owned_payload)
-                else:
-                    get_all_data[model.__tablename__].append(result.public_payload)
+                get_all_data[model.__tablename__].append(result.owned_payload)
 
-            log.debug('admin_delete_one: deleted {} {}'.format(
+            log.warning('admin_delete_one: deleted {} {}'.format(
                     model.__tablename__, path_value))
             response = Response(json=get_all_data, content_type='application/json')
 
         except NoResultFound:
-            log.debug(
+            log.warning(
                 'admin_delete_one: {} \'{}\' not found'.format(
                     model.__tablename__,
                     path_value))
@@ -432,7 +412,7 @@ class BaseView(object):
                 get_path_value = self.request.matchdict[model_get.__primary__]
 
             if not self.request.account.is_admin():
-                log.debug(
+                log.warning(
                     'admin_delete_one_by_one: {} {} is not allowed to be accesed by account {}'.format(
                         model_get.__tablename__,
                         get_path_value,
@@ -459,7 +439,7 @@ class BaseView(object):
             delete_result = delete_query.filter(
                 getattr(model_get, get_primary_key) == get_path_value).one()
 
-            log.debug(
+            log.warning(
                 'admin_delete_one_by_one: {}: {} of {}: {}'.format(
                     model_get.__tablename__,
                     get_path_value,
@@ -470,7 +450,7 @@ class BaseView(object):
             by_primary_value = getattr(filter_result, by_primary_key, None)
 
             if get_foreign_value != by_primary_value:
-                log.debug(
+                log.warning(
                     'admin_delete_one_by_one: {} {} is not associated with {} {}'.format(
                         model_get.__tablename__,
                         get_path_value,
@@ -500,18 +480,15 @@ class BaseView(object):
                 'offset': offset,
                 model_get.__tablename__: []}
             for result in results:
-                if hasattr(result, 'owned_payload'):
-                    get_all_data[model_get.__tablename__].append(result.owned_payload)
-                else:
-                    get_all_data[model_get.__tablename__].append(result.public_payload)
+                get_all_data[model_get.__tablename__].append(result.owned_payload)
 
-            log.debug(
+            log.warning(
                 'admin_delete_one_by_one: deleted {} {}'.format(
                     model_get.__tablename__, get_path_value))
             response = Response(json=get_all_data, content_type='application/json')
 
         except NoResultFound:
-            log.debug(
+            log.warning(
                 'admin_delete_one_by_one: no {} {} with {} {} found'.format(
                     model_get.__tablename__,
                     get_path_value,

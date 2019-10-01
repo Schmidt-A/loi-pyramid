@@ -45,6 +45,7 @@ def main(argv=sys.argv):
     with transaction.manager:
         dbsession = get_tm_session(session_factory, transaction.manager)
 
+        #TODO: Write tests for this
         fixture_helper = FixtureHelper(dbsession)
         fixture_helper.character_data()
         fixture_helper.account_data()
