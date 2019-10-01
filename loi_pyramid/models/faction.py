@@ -2,7 +2,8 @@
 from sqlalchemy import (
     Column,
     Integer,
-    String
+    String,
+    ForeignKey
 )
 
 from .meta import Base
@@ -10,6 +11,8 @@ from .meta import Base
 
 class Faction(Base):
     __tablename__ = 'factions'
-    id          = Column(Integer, primary_key=True)
-    name        = Column(String)
-    factionId   = Column(String)
+    __primary__ = 'factionId'
+    
+    id = Column(Integer, primary_key=True, info={'access': 'public'})
+    name = Column(String, info={'access': 'public'})
+    factionId = Column(String, info={'access': 'public'})

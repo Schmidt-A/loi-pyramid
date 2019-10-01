@@ -1,82 +1,91 @@
 # flake8: noqa
+import logging
+
 from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized, HTTPForbidden
 from pyramid import testing
-import copy
 
 from .base_test import BaseTest
 from ..views.auth import AuthViews
+from ..models import Account
+
+log = logging.getLogger(__name__)
 
 
 class TestAuthViews(BaseTest):
 
-    #Initial setup for these tests
-    #Needs to be broken up
+    # Initial setup for these tests
+    # Needs to be broken up
     def setUp(self):
         super(TestAuthViews, self).setUp()
         self.init_database()
 
-        from ..models import Account
-
-        self.host = 'http://localhost:6543'
-
-        self.accounts = self.fixture_helper.account_data()
+        accounts_data = self.fixture_helper.account_data()
         self.session.flush()
 
-        #non existent accounts, to be used for negative testing
-        self.fake_accounts = self.fixture_helper.fake_account_data()
+        self.accounts = self.fixture_helper.convert_to_json(accounts_data)
 
-    #helper method for login attempts to /login using username and password
+        # non existent accounts, to be used for negative testing
+        self.fake_accounts = self.fixture_helper.fake_account_fixture()
+
+    # helper method for login attempts to /login using username and password
     def login(self, account, password):
-        resource = '/login'
+        resources = [('login', ('username', ''))]
         postdata = {
-            'user'  : account['username'],
-            'pw'    : password
+            'user': account['username'],
+            'pw': password
         }
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
-        request = self.dummy_post_request(self.session, (self.host+resource), postdata, account)
+        request = self.dummy_request(
+            dbsession=self.session,
+            headers=headers,
+            resources=resources,
+            method='POST',
+            body=postdata)
 
-        av = AuthViews(testing.DummyResource(), request)
-        resp = av.login()
+        auth_view = AuthViews(testing.DummyResource(), request)
+        resp = auth_view.login()
 
         return resp
 
-    #helper method for logout attempts to /logout using session headers
+    # helper method for logout attempts to /logout using session headers
     def logout(self, account):
-        resource = '/logout'
+        resources = [('logout', ('username', ''))]
 
-        request = self.dummy_request(self.session, (self.host+resource), account)
+        request = self.dummy_request(
+            dbsession=self.session,
+            resources=resources,
+            account=account)
 
-        av = AuthViews(testing.DummyResource(), request)
-        resp = av.logout()
+        auth_view = AuthViews(testing.DummyResource(), request)
+        resp = auth_view.logout()
 
         return resp
 
-    #Test that logging in with the correct username and password works
+    # Test that logging in with the correct username and password works
+    # TODO: This should assert headers
     def test_login_success(self):
         resp = self.login(self.accounts['noob'], 'drizzit4ever')
         account_result = resp.json_body
 
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(account_result['username'], self.accounts['noob']['username'])
-        self.assertEqual(account_result['role'], self.accounts['noob']['role'])
-        self.assertEqual(account_result['approved'], self.accounts['noob']['approved'])
-        self.assertEqual(account_result['banned'], self.accounts['noob']['banned'])
-        self.assertEqual(account_result['created'], self.accounts['noob']['created'])
-        self.assertEqual(account_result['updated'], self.accounts['noob']['updated'])
+        self.assert_compare_objects(account_result, self.accounts['noob'], 
+            *Account.__owned__(Account))
 
-    #Test that logging out works with a preexisting login
+    # Test that logging out works with a preexisting login
+    # TOOD: This should assert the headers
     def test_logout_success(self):
         resp = self.logout(self.accounts['tweek'])
 
         self.assertEqual(resp.status_code, 200)
 
-    #Testing that logging in with a bad password does not work
+    # Testing that logging in with a bad password does not work
     def test_login_bad_password(self):
         with self.assertRaises(HTTPUnauthorized):
             resp = self.login(self.accounts['tweek'], 'edor')
 
-    #Test that logging into an uncreated account doesn't work
-    #Because Tam hasn't created his account yet
+    # Test that logging into an uncreated account doesn't work
+    # Because Tam hasn't created his account yet
     def test_login_no_account(self):
         with self.assertRaises(HTTPUnauthorized):
             resp = self.login(self.fake_accounts['tam'], 'dicks4ever')

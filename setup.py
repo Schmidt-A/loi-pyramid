@@ -29,6 +29,11 @@ tests_require = [
     'pytest-cov',
 ]
 
+lint_require = [
+    'pylint',
+    'autopep8'
+]
+
 setup(
     name='loi_pyramid',
     version='0.0',
@@ -49,6 +54,7 @@ setup(
     zip_safe=False,
     extras_require={
         'testing': tests_require,
+        'linting': lint_require
     },
     install_requires=requires,
     entry_points={

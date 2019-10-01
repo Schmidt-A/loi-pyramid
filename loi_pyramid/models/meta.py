@@ -1,7 +1,12 @@
+import logging
+
 from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.schema import MetaData
 from sqlalchemy import Column, String
 from datetime import datetime
+from sqlalchemy.inspection import inspect
+
+log = logging.getLogger(__name__)
 
 # Recommended naming convention used by Alembic, as various different database
 # providers will autogenerate vastly different names making migrations more
@@ -16,24 +21,62 @@ NAMING_CONVENTION = {
 
 metadata = MetaData(naming_convention=NAMING_CONVENTION)
 
-
+# TOOD: figure out why putting NotImplemented Interface methods causes
+# trouble with hasattr()
 @as_declarative(metadata=metadata)
 class Base(object):
+    __table_args__ = {'info':{'access': 'public'}}
 
-    created = Column(String)
-    updated = Column(String)
+    created = Column(String, default=str(datetime.now()), info={'access': 'public'})
+    updated = Column(String, default=str(datetime.now()), info={'access': 'public'})
 
+    #this still exists because we don't want to include secret columns (pw) in the others
+    # maybe rename
     def __json__(self, request):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
+    # TODO: docs
+    def get_foreign_key_by(self, by_model):
+        foreign_keys = list(self.__table__.foreign_keys)
+        match_key = inspect(by_model).primary_key[0].key
+        matches = list(filter(lambda fk: fk.column.name == match_key, foreign_keys))
+        if len(matches) > 1:
+            log.error('multiple foreign keys found between {} and {}'.format(
+                self.__tablename__, by_model.__tablename__))
+            raise Error
+        elif len(matches) == 0:
+            log.debug('no foreign key found between {} and {}'.format(
+                self.__tablename__, by_model.__tablename__))
+        else:     
+            log.debug('foreign key found between {} {} and {} {}'.format(
+                self.__tablename__, matches[0].parent.name,
+                by_model.__tablename__, matches[0].column.name))
+            return matches[0]
+
+    def get_by_access(self, access):
+        return filter(lambda c: c.info['access'] == access, self.__table__.columns)
+
+    def __private__(self):
+        return list(map(lambda c: c.name, self.get_by_access(self, 'private')))
+
+    def __public__(self):
+        if self.__table__.info['access'] == 'public':
+            return list(map(lambda c: c.name, self.get_by_access(self, 'public')))
+        else:
+            return []
+
+    def __owned__(self):
+        return self.__public__(self) + self.__private__(self)
+
+    @property
     def owned_payload(self):
-        raise NotImplementedError
+        return {c.name: getattr(self, c.name) 
+            for c in list(self.get_by_access('private')) + list(self.get_by_access('public'))}
 
+    @property
     def public_payload(self):
-        raise NotImplementedError
-
-    def set_created(self):
-        created = str(datetime.now())
-
-    def set_updated(self):
-        updated = str(datetime.now())
+        if self.__table__.info['access'] == 'public':
+            return {c.name: getattr(self, c.name) 
+                for c in list(self.get_by_access('public'))}
+        else:
+            return None

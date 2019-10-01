@@ -1,20 +1,24 @@
-[
-	{
-		"id": "1",
-		"accountId": "XxDrizzitxX",
-		"name": "Ji'Lin Thri'quen",
-		"exp": 1050,
-		"area": "Dreyen Inn",
-		"created": "29/11/2017",
-		"updated": "29/11/2017"
-	},
-	{
-		"id": "9",
-		"accountId": "XxDrizzitxX",
-		"name": "Kick Me",
-		"exp": 1000,
-		"area": "Dreyen Inn",
-		"created": "29/12/2017",
-		"updated": "29/12/2017"
-	}
-]
+{
+	"characters": [
+		{
+			"id": "1",
+			"accountId": "XxDrizzitxX",
+			"name": "Ji'Lin Thri'quen",
+			"exp": 1050,
+			"area": "Dreyen Inn",
+			"created": "29/11/2017",
+			"updated": "29/11/2017"
+		},
+		{
+			"id": "9",
+			"accountId": "XxDrizzitxX",
+			"name": "Kick Me",
+			"exp": 1000,
+			"area": "Dreyen Inn",
+			"created": "29/12/2017",
+			"updated": "29/12/2017"
+		}
+	],
+	"total": 2,
+	"offset": 2
+}

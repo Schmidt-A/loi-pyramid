@@ -40,7 +40,7 @@ test('Page render()', async () => {
     for (let j = 0; j < row.children.length; j++) {
       const cell = row.children[j]
       const headerCell = headerRow.children[j]
-      expect(cell.textContent).toEqual(noobCharacters[i][headerCell.dataset.key].toString())
+      expect(cell.textContent).toEqual(noobCharacters.characters[i][headerCell.dataset.key].toString())
     }
   }
 })

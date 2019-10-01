@@ -5,7 +5,7 @@ import transaction
 from pyramid.paster import (
     get_appsettings,
     setup_logging,
-    )
+)
 
 from pyramid.scripts.common import parse_vars
 
@@ -14,8 +14,9 @@ from ..models import (
     get_engine,
     get_session_factory,
     get_tm_session,
-    )
+)
 from ..tests.fixture_helper import FixtureHelper
+
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
@@ -34,7 +35,8 @@ def main(argv=sys.argv):
 
     engine = get_engine(settings)
 
-    #dropping all tables then creating all of them for a migration for fixture test data
+    # dropping all tables then creating all of them for a migration for
+    # fixture test data
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
@@ -43,6 +45,7 @@ def main(argv=sys.argv):
     with transaction.manager:
         dbsession = get_tm_session(session_factory, transaction.manager)
 
+        #TODO: Write tests for this
         fixture_helper = FixtureHelper(dbsession)
         fixture_helper.character_data()
         fixture_helper.account_data()
