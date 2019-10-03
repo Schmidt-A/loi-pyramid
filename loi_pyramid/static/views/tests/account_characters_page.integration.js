@@ -6,23 +6,22 @@ import noobCharacters from '../../models/tests/__mocks__/noob_characters.json'
 const pageContainer = document.createElement('div')
 pageContainer.id = 'pageContainer'
 document.body.appendChild(pageContainer)
-accountCharactersPage.container = document.querySelector('#pageContainer')
 
 beforeEach(() => {
   sessionStorage.clear()
   sessionStorage.setItem('account', JSON.stringify(noobAccount))
-  accountCharactersPage.container.innerHTML = ''
-  expect(accountCharactersPage.container.children.length).toBe(0)
+  accountCharactersPage.clear()
+  expect(accountCharactersPage.attrs().container).toBeFalsy()
 })
 
 test('Page render()', async () => {
   jest.spyOn(window, 'fetch').mockImplementation(() => { return mockFetch(true, 200, noobCharacters) })
 
-  await accountCharactersPage.render()
+  await accountCharactersPage.render(pageContainer)
 
   expect(window.location.pathname).toBe('/app/account_characters')
 
-  const accountTable = accountCharactersPage.contentMap.accountInfo.container.children[0]
+  const accountTable = accountCharactersPage.attrs().contentMap.accountInfo.attrs().container.children[0]
   expect(accountTable).toBeInstanceOf(HTMLTableElement)
   expect(accountTable.rows.length).toBe(1)
 
@@ -30,7 +29,7 @@ test('Page render()', async () => {
     expect(cell.textContent).toEqual(noobAccount[cell.dataset.key].toString())
   })
 
-  const characterTable = accountCharactersPage.contentMap.accountCharacters.container.children[0]
+  const characterTable = accountCharactersPage.attrs().contentMap.accountCharacters.attrs().container.children[0]
   expect(characterTable).toBeInstanceOf(HTMLTableElement)
   expect(characterTable.rows.length).toBe(3)
 

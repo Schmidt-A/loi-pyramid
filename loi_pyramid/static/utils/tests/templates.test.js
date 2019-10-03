@@ -1,110 +1,116 @@
-import Templates from '../templates.js'
-import { mockListener, mockTemplate, mockContent, mockPage } from './__mocks__/templates.js'
+import templates from '../templates.js'
+import { mockListener, mockTemplate, mockPage, mockEventFunction } from './__mocks__/templates.js'
 
-const mockEvent = new Event('focus', { bubbles: false, cancelable: true })
-
+// the practice of using the dom for these unit mocks is possibly problematic
+const mockPageContainer = document.createElement('div')
+mockPageContainer.id = 'pageContainer'
+document.body.appendChild(mockPageContainer)
 const newContainer = document.createElement('div')
 newContainer.id = 'newContent'
 document.body.appendChild(newContainer)
 
 beforeEach(() => {
-  mockPage.container.innerHTML = ''
-  mockContent.container.innerHTML = ''
+  mockPageContainer.innerHTML = ''
   newContainer.innerHTML = ''
-  expect(mockContent.container.children.length).toBe(0)
-  expect(mockPage.container.children.length).toBe(0)
+  expect(mockPageContainer.children.length).toBe(0)
   expect(newContainer.children.length).toBe(0)
 })
 
 // This probably tests too many implementation details
 
-test('new Listener()', () => {
+test('new listener()', () => {
   expect(mockListener).toBeTruthy()
-  mockListener.eventFunction(mockEvent)
 
-  expect(mockListener.elementPath).toBe('div')
-  expect(mockListener.eventType).toBe('focus')
-  expect(mockListener.eventFunction).toHaveBeenCalled()
-})
+  // test that we don't have access to the internals
+  expect(mockListener.elementPath).toBeFalsy()
+  expect(mockListener.eventType).toBeFalsy()
+  expect(mockListener.eventFunction).toBeFalsy()
 
-test('new Template()', () => {
-  expect(mockTemplate).toBeTruthy()
-  mockTemplate.renderData()
-
-  expect(mockTemplate.dataset).toBeTruthy()
-  expect(mockTemplate.markup).toBe('<div class="mock"></div>')
-  expect(mockTemplate.renderData).toHaveBeenCalled()
-  expect(mockTemplate.listeners[0]).toBe(mockListener)
+  expect(mockListener.attrs().elementPath).toBe('div')
+  expect(mockListener.attrs().eventType).toBe('focus')
+  expect(mockListener.attrs().eventFunction).toBe(mockEventFunction)
+  expect(mockListener.attrs().container).toBeFalsy()
+  expect(mockListener.attrs().element).toBeFalsy()
 })
 
 // Could this be a candidate for an integration test?
 // Or at least to replace container with a non dom object
-test('Template createContent()', () => {
-  const newContent = mockTemplate.createContent(newContainer)
-
+test('assign content()', () => {
+  const newContent = templates.content(mockTemplate, newContainer)
   expect(newContent).toBeTruthy()
-  newContent.renderData()
 
-  expect(newContent.dataset).toBeTruthy()
-  expect(newContent.markup).toBe('<div class="mock"></div>')
-  expect(newContent.renderData).toHaveBeenCalled()
-  expect(newContent.listeners[0]).toBe(mockListener)
-  expect(newContent.container.id).toBe('newContent')
+  // test we don't have access to the internals
+  expect(newContent.markup).toBeFalsy()
+  expect(newContent.listeners).toBeFalsy()
+  expect(newContent.dataset).toBeFalsy()
+  expect(newContent.renderData).toBeFalsy()
+
+  newContent.attrs().renderData()
+
+  expect(newContent.attrs().markup).toBe('<div class="mock"></div>')
+  expect(newContent.attrs().listeners[0]).toBe(mockListener)
+  expect(newContent.attrs().dataset).toBeTruthy()
+  expect(newContent.attrs().renderData).toHaveBeenCalled()
 })
 
-test('new Content()', () => {
-  expect(mockContent).toBeTruthy()
-  mockContent.renderData()
+test('content render()', () => {
+  const newContent = templates.content(mockTemplate, newContainer)
+  expect(newContent).toBeTruthy()
 
-  expect(mockContent.dataset).toBeTruthy()
-  expect(mockContent.markup).toBe('<div class="mock"></div>')
-  expect(mockContent.renderData).toHaveBeenCalled()
-  expect(mockContent.listeners[0]).toBe(mockListener)
-  expect(mockContent.container.id).toBe('contentContainer')
-})
+  newContent.render()
 
-test('Content renderMarkup()', () => {
-  mockContent.renderMarkup()
-  expect(mockContent.container.children[0].className).toBe('mock')
-})
-
-test('Content renderContent()', () => {
-  mockContent.renderContent()
-
-  expect(mockContent.container.children[0].className).toBe('mock')
-  expect(mockContent.renderData).toHaveBeenCalled()
+  expect(newContent.attrs().container.children[0].className).toBe('mock')
+  expect(newContent.attrs().renderData).toHaveBeenCalled()
 
   // purposely not testing the listeners here, those need to be integration
 })
 
-test('new Page()', () => {
+test('page()', () => {
   expect(mockPage).toBeTruthy()
 
-  expect(mockPage.container.id).toBe('pageContainer')
-  expect(mockPage.path).toBe('mock')
-  expect(mockPage.markup).toBe('<div id="sampleContent"></div>')
-  expect(mockPage.templateMap.sampleContent).toBe(mockTemplate)
-  expect(mockPage.contentMap).toEqual({})
+  // test that we don't have access to the internals
+  expect(mockPage.container).toBeFalsy()
+  expect(mockPage.path).toBeFalsy()
+  expect(mockPage.markup).toBeFalsy()
+  expect(mockPage.templateMap).toBeFalsy()
+  expect(mockPage.contentMap).toBeFalsy()
+
+  expect(mockPage.attrs().container).toBeFalsy()
+  expect(mockPage.attrs().path).toBe('mock')
+  expect(mockPage.attrs().markup).toBe('<div id="sampleContent"></div>')
+  expect(mockPage.attrs().templateMap.sampleContent).toBe(mockTemplate)
+  expect(mockPage.attrs().contentMap).toEqual({})
 })
 
 // Using window pathname expectations here might be better for integration tests
-test('Page render()', () => {
-  mockPage.render()
+test('page render()', () => {
+  mockPage.render(mockPageContainer)
 
-  expect(mockPage.container.children[0].id).toBe('sampleContent')
-  expect(mockPage.container.children[0].children[0].className).toBe('mock')
-  expect(mockPage.contentMap.sampleContent).toBeInstanceOf(Templates.Content)
-  expect(mockPage.contentMap.sampleContent.container).toBeInstanceOf(HTMLDivElement)
+  expect(mockPage.attrs().container.id).toBe('pageContainer')
+  expect(mockPage.attrs().container.children[0].id).toBe('sampleContent')
+  expect(mockPage.attrs().container.children[0].children[0].className).toBe('mock')
+  expect(mockPage.attrs().contentMap.sampleContent.attrs().container).toBeInstanceOf(HTMLDivElement)
 
   expect(window.location.pathname).toBe('/app/mock')
 })
 
 // Using window pathname expectations here might be better for integration tests
-test('Page render() over existing page', () => {
-  mockPage.container.appendChild(newContainer)
-  expect(mockPage.container.children[0]).toBe(newContainer)
+test('page render() over existing page', () => {
+  mockPageContainer.appendChild(newContainer)
 
-  mockPage.render()
+  mockPage.render(mockPageContainer)
 
-  expect(mockPage.container.children[0]).not.toBe(newContainer)
+  expect(mockPage.attrs().container.children[0].id).toBe('sampleContent')
+  expect(mockPage.attrs().container.children[0].children[0].className).toBe('mock')
+  expect(mockPage.attrs().contentMap.sampleContent.attrs().container).toBeInstanceOf(HTMLDivElement)
+})
+
+// Using window pathname expectations here might be better for integration tests
+test('page clear() over existing page', () => {
+  mockPageContainer.appendChild(newContainer)
+
+  mockPage.clear()
+
+  expect(mockPage.attrs().container).toBeFalsy()
+  expect(mockPage.attrs().contentMap).toEqual({})
 })

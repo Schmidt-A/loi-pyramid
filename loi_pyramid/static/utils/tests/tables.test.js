@@ -1,4 +1,4 @@
-import Tables from '../tables.js'
+import tables from '../tables.js'
 
 const mockOneRow = {
   mock: 1,
@@ -45,7 +45,7 @@ beforeEach(() => {
 
 // maybe these should be integration tests
 test('fillTableFromHeader()', () => {
-  Tables.fillTableFromHeader(headerTable, mockMultiRows)
+  tables.fillTableFromHeader(headerTable, mockMultiRows)
 
   expect(headerTable.tBodies[0].rows.length).toBe(2)
 
@@ -62,7 +62,7 @@ test('fillTableFromHeader()', () => {
 
 // maybe these should be integration tests
 test('fillOneRowFromHeader()', () => {
-  Tables.fillOneRowTable(oneRowTable, mockOneRow)
+  tables.fillOneRowTable(oneRowTable, mockOneRow)
 
   expect(oneRowTable.rows.length).toBe(1)
 

@@ -8,7 +8,7 @@ import { BASE_URL } from '../../environments/dev.js'
 test('accountCharacters retrieve()', async () => {
   jest.spyOn(window, 'fetch').mockImplementation(() => { return mockFetch(true, 200, noobCharacters) })
 
-  const characters = await accountCharactersData.retrieve(noobAccount)
+  const characters = await accountCharactersData.attrs().retrieve(noobAccount)
 
   expect(characters).toBeTruthy()
   expect(characters).toBe(noobCharacters)

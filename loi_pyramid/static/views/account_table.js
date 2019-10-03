@@ -1,5 +1,4 @@
-import Templates from '../utils/templates.js'
-import Tables from '../utils/tables.js'
+import tables from '../utils/tables.js'
 import accountData from '../models/account.js'
 
 const markup =
@@ -16,16 +15,22 @@ const markup =
     </tbody>
   </table>`
 
-const accountTable = new Templates.Template(
-  accountData,
-  markup,
-  function () {
-    return this.dataset.getData()
-      .then(data => {
-        Tables.fillOneRowTable(document.querySelector(`#${this.container.id} table`), data)
-      })
-  },
-  []
-)
+const renderAccountTable = (container) => {
+  //use of session here is problematic
+  return accountData.getData(JSON.parse(sessionStorage.getItem('account')).username)
+    .then(data => {
+      tables.fillOneRowTable(document.querySelector(`#${container.id} table`), data)
+    })
+    .catch(error => {
+      throw new Error(error.message)
+    })
+}
+
+const accountTable = {
+  markup: markup,
+  listeners: [],
+  dataset: accountData,
+  renderData: renderAccountTable
+}
 
 export default accountTable

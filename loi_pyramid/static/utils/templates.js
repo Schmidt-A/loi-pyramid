@@ -1,78 +1,133 @@
-class Template {
-  constructor (dataset, markup, renderData, listeners) {
-    this.dataset = dataset
-    this.markup = markup
-    this.renderData = renderData
-    this.listeners = listeners
-  }
 
-  createContent (container) {
-    return new Content(this.dataset, this.markup, this.renderData, this.listeners, container)
-  }
-}
+const content = ({ markup, listeners, dataset, renderData }, container) => {
+  const render = () => {
+    clear()
+    container.innerHTML = markup
 
-class Content extends Template {
-  constructor (dataset, markup, renderData, listeners, container) {
-    super(dataset, markup, renderData, listeners)
-    this.container = container
-  }
-
-  renderMarkup () {
-    this.container.innerHTML = this.markup
-  }
-
-  addListeners () {
-    this.listeners.forEach(listener => {
-      const element = document.querySelector(`#${this.container.id} ${listener.elementPath}`)
-      element.addEventListener(listener.eventType, listener.eventFunction)
-    })
-  }
-
-  renderContent () {
-    this.renderMarkup()
     // need to handle this better async
-    return this.renderData().then(this.addListeners())
+    return renderData(container)
+      .then(result => {
+        if (listeners.length) {
+          listeners.forEach(listener => {
+            listener.render(container)
+          })  
+        }
+      })
+      .catch(error => {
+        console.log(error.message)
+      })
+  }
+
+  const clear = () => {
+    if (container && container.children && container.children.length > 0) {
+      Array.from(container.children).forEach(child => container.removeChild(child))
+    }
+    // delete the content??
+  }
+
+  const attrs = () => {
+    return {
+      markup: markup,
+      listeners: listeners,
+      dataset: dataset,
+      renderData: renderData,
+      container: container
+    }
+  }
+
+  return {
+    render: render,
+    clear: clear,
+    attrs: attrs
   }
 }
 
-class Page {
-  constructor (path, markup, templateMap, container) {
-    this.path = path
-    this.markup = markup
-    this.templateMap = templateMap
-    this.container = container
-    this.contentMap = {}
-  }
+const page = (path, markup, templateMap) => {
+  let contentMap = {}
+  let container
 
-  render () {
-    this.contentMap = {}
-
-    if (this.container && this.container.children.length > 0) {
-      Array.from(this.container.children).forEach(child => this.container.removeChild(child))
-    }
-
-    this.container.innerHTML = this.markup
+  const render = (newContainer) => {
+    clear()
+    container = newContainer
+    container.innerHTML = markup
 
     const contentPromises = []
-    for (const template in this.templateMap) {
-      const content = this.templateMap[template].createContent(document.querySelector(`#${template}`))
-      this.contentMap[template] = content
+    for (const template in templateMap) {
+      const newContent = content(templateMap[template], document.querySelector(`#${template}`))
+      contentMap[template] = newContent
 
-      contentPromises.push(content.renderContent())
+      contentPromises.push(newContent.render())
     }
 
-    history.pushState(null, '', `/app/${this.path}`)
+    history.pushState(null, '', `/app/${path}`)
 
     return Promise.all(contentPromises)
   }
-}
 
-class Listener {
-  constructor (elementPath, eventType, eventFunction) {
-    this.elementPath = elementPath
-    this.eventType = eventType
-    this.eventFunction = eventFunction
+  const clear = () => {
+    if (container && container.children && container.children.length > 0) {
+      Array.from(container.children).forEach(child => container.removeChild(child))
+    }
+    container = null
+    // delete the page??
+
+    for (const pageContent in contentMap) {
+      contentMap[pageContent].clear()
+    }
+    contentMap = {}
+    // delete the content??
+  }
+
+  const attrs = () => {
+    return {
+      path: path,
+      markup: markup,
+      templateMap: templateMap,
+      contentMap: contentMap,
+      container: container
+    }
+  }
+
+  return {
+    render: render,
+    clear: clear,
+    attrs: attrs
   }
 }
 
-export default { Content, Page, Template, Listener }
+const listener = (elementPath, eventType, eventFunction) => {
+  // maybe remove elementPath and just send in element
+  let container
+  let element
+
+  const render = (newContainer) => {
+    container = newContainer
+    element = document.querySelector(`#${container.id} ${elementPath}`)
+    element.addEventListener(eventType, eventFunction)
+  }
+
+  const clear = () => {
+    container = null
+    if (element) {
+      element.removeEventListener(eventType, eventFunction)
+    }
+  }
+
+  const attrs = () => {
+    return {
+      elementPath: elementPath,
+      eventType: eventType,
+      eventFunction: eventFunction,
+      container: container,
+      element: element
+    }
+  }
+
+  return {
+    render: render,
+    clear: clear,
+    attrs: attrs
+  }
+}
+
+export default { content, page, listener }

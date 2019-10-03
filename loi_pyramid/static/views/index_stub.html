@@ -16,18 +16,16 @@
   	<div id="pageContainer"></div>
 
   	<script type="module">
-  		import loginPage from './login_page.js';
-  		import accountCharacterPage from './account_characters_page.js';
+  		import loginPage from './login_page.js'
+  		import accountCharacterPage from './account_characters_page.js'
 
   		window.addEventListener('load', event => {
-        loginPage.container = document.querySelector('#pageContainer');
         
   			window.addEventListener('triggerPage', event => {
-          accountCharacterPage.container = document.querySelector('#pageContainer');
-  				accountCharacterPage.render();
-  			});
+  				accountCharacterPage.render(document.querySelector('#pageContainer'))
+  			})
         
-  			loginPage.render();
+  			loginPage.render(document.querySelector('#pageContainer'))
   		});
   	</script>
 

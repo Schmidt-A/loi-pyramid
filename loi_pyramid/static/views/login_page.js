@@ -1,4 +1,4 @@
-import Template from '../utils/templates.js'
+import templates from '../utils/templates.js'
 import loginForm from './login_form.js'
 
 const markup =
@@ -8,7 +8,7 @@ const templateMap = {
   login: loginForm
 }
 
-const loginPage = new Template.Page(
+const loginPage = templates.page(
   'login',
   markup,
   templateMap

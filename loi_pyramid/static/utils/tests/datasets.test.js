@@ -1,4 +1,4 @@
-import mockDataset from './__mocks__/datasets.js'
+import { mockDataset, mockRetrieve } from './__mocks__/datasets.js'
 
 const mockData1 = { mockKey: 1 }
 const mockData2 = { mockKey: 2 }
@@ -7,28 +7,36 @@ beforeEach(() => {
   sessionStorage.clear()
 })
 
-test('new Dataset()', async () => {
+test('dataset()', async () => {
   expect(mockDataset).toBeTruthy()
-  expect(mockDataset.name).toBe('mock')
 
-  const mockRetrieve = await mockDataset.retrieve(mockData1)
-  expect(mockRetrieve.mockKey).toBe(mockData1.mockKey)
-})
+  // verify that we don't have access to these private methods
+  expect(mockDataset.name).toBeFalsy()
+  expect(mockDataset.retrieve).toBeFalsy()
 
-test('getData() retrieve()', async () => {
-  const mockRetrieve = await mockDataset.retrieve(mockData1)
-  expect(mockRetrieve.mockKey).toBe(mockData1.mockKey)
-
-  const mockGetData = await mockDataset.getData(mockData1)
-  expect(mockGetData.mockKey).toBe(mockData1.mockKey)
-
-  expect(mockDataset.retrieve).toHaveBeenCalledTimes(2)
+  expect(mockDataset.attrs().name).toBe('mock')
+  expect(mockDataset.attrs().retrieve).toBe(mockRetrieve)
 })
 
 test('getData() sessionData', async () => {
-  sessionStorage.setItem('mock', JSON.stringify(mockData2))
+  const getData = await mockDataset.getData(mockData2)
+  expect(getData.mockKey).toBe(mockData2.mockKey)
 
-  const mockGetData = await mockDataset.getData(mockData2)
-  expect(mockGetData.mockKey).toBe(mockData2.mockKey)
-  expect(mockDataset.retrieve).toHaveBeenCalledTimes(0)
+  const getDataAgain = await mockDataset.getData(mockData2)
+  expect(getDataAgain.mockKey).toBe(mockData2.mockKey)
+
+  // it was cached in session after first
+  expect(mockRetrieve).toHaveBeenCalledTimes(1)
+})
+
+test('getData() clear()', async () => {
+  const getData = await mockDataset.getData(mockData1)
+  expect(getData.mockKey).toBe(mockData1.mockKey)
+
+  mockDataset.clear()
+
+  const getDataAgain = await mockDataset.getData(mockData1)
+  expect(getDataAgain.mockKey).toBe(mockData1.mockKey)
+
+  expect(mockRetrieve).toHaveBeenCalledTimes(2)
 })

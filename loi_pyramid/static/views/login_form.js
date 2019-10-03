@@ -1,4 +1,4 @@
-import Templates from '../utils/templates.js'
+import templates from '../utils/templates.js'
 import accountData from '../models/account.js'
 import { BASE_URL } from '../environments/dev.js'
 
@@ -11,39 +11,49 @@ const markup =
     <input type="submit"></input>
   </form>`
 
-const loginForm = new Templates.Template(
-  accountData,
-  markup,
-  function () {
-    if (sessionStorage.getItem('account')) {
-      sessionStorage.clear()
-      return fetch(`${BASE_URL}/logout`)
-    } else {
-      return Promise.resolve()
-    }
-  },
-  [new Templates.Listener(
-    'form',
-    'submit',
-    function (event) {
-      event.preventDefault()
-      const formData = new FormData(event.srcElement)
-      fetch(`${BASE_URL}/login`, {
-        method: 'POST',
-        body: formData
+const loginListener = templates.listener(
+  'form',
+  'submit',
+  function (event) {
+    event.preventDefault()
+    const formData = new FormData(event.srcElement)
+    fetch(`${BASE_URL}/login`, {
+      method: 'POST',
+      body: formData
+    })
+      .then(response => {
+        if (response.ok) {
+          return response.json()
+        } else {
+          throw new Error(JSON.stringify(response))
+        }
       })
-        .then(response => {
-          if (response.ok) {
-            return response.json()
-          } else {
-            throw new Error(JSON.stringify(response))
-          }
-        })
-        .then(account => {
-          sessionStorage.setItem('account', JSON.stringify(account))
-          window.dispatchEvent(new Event('triggerPage'))
-        })
-    }
-  )]
+      .then(account => {
+        sessionStorage.setItem('account', JSON.stringify(account))
+        window.dispatchEvent(new Event('triggerPage'))
+      })
+      .catch(error => {
+        throw new Error(error.message)
+      })
+  }
 )
+
+const logoutFunction = () => {
+  if (sessionStorage.getItem('account')) {
+    sessionStorage.clear()
+    return fetch(`${BASE_URL}/logout`)
+      .catch(error => {
+        console.log(`logout: ${error.message}`)
+      })
+  } else {
+    return Promise.resolve()
+  }
+}
+
+const loginForm = {
+  markup: markup,
+  listeners: [loginListener],
+  dataset: accountData,
+  renderData: logoutFunction
+}
 export default loginForm

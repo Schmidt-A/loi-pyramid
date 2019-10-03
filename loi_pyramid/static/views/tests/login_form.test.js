@@ -7,7 +7,8 @@ beforeEach(() => {
   sessionStorage.clear()
 })
 
-// this is really about testing that forming of the POST
+// this is a test of the listener eventFunction
+// it's really about the forming of the POST
 test('loginForm Listener eventFunction() success', () => {
   jest.spyOn(window, 'fetch').mockImplementation(() => { return mockFetch(true, 200, {}) })
 
@@ -23,7 +24,7 @@ test('loginForm Listener eventFunction() success', () => {
     preventDefault: () => {}
   }
 
-  loginForm.listeners[0].eventFunction(mockEvent)
+  loginForm.listeners[0].attrs().eventFunction(mockEvent)
 
   expect(window.fetch.mock.calls[0][0]).toBe(`${BASE_URL}/login`)
   expect(window.fetch.mock.calls[0][1].method).toBe('POST')
@@ -33,7 +34,7 @@ test('loginForm Listener eventFunction() success', () => {
   expect(data.get('pw')).toBe('mockPassword')
 })
 
-// this is really about testing that forming of the POST
+// this is really about testing that forming of the logout
 test('loginForm renderData() logout', () => {
   jest.spyOn(window, 'fetch').mockImplementation(() => { return mockFetch(true, 200, {}) })
 

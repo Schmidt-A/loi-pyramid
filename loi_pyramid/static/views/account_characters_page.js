@@ -1,4 +1,4 @@
-import Template from '../utils/templates.js'
+import templates from '../utils/templates.js'
 import characterTable from './character_table.js'
 import accountTable from './account_table.js'
 
@@ -11,7 +11,7 @@ const templateMap = {
   accountCharacters: characterTable
 }
 
-const accountCharacterPage = new Template.Page(
+const accountCharacterPage = templates.page(
   'account_characters',
   markup,
   templateMap

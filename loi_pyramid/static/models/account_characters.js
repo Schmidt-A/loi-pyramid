@@ -1,9 +1,10 @@
-import { Dataset } from '../utils/datasets.js'
+import { dataset } from '../utils/datasets.js'
 import { BASE_URL } from '../environments/dev.js'
 
-const accountCharactersData = new Dataset(
+const accountCharactersData = dataset(
   'accountCharacters',
   function (account) {
+    //this username is problematic
     if (account && account.username) {
       return fetch(`${BASE_URL}/accounts/${account.username}/characters`)
         .then(response => {
@@ -12,6 +13,9 @@ const accountCharactersData = new Dataset(
           } else {
             throw new Error(JSON.stringify(response))
           }
+        })
+        .catch(error => {
+          throw new Error(error.message)
         })
     } else {
       throw new TypeError('Account must be an object containing a username')
