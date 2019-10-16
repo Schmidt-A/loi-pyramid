@@ -33,3 +33,5 @@ def includeme(config):
 
     config.add_route('ingredient', '/ingredients/{material}')
     config.add_route('ingredients', '/ingredients')
+
+    config.add_route('areas', '/areas')

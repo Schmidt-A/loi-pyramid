@@ -8,7 +8,8 @@ from ..models import (
     Item, Account, 
     Recipe, 
     Ingredient, 
-    Action)
+    Action,
+    Area)
 
 # TODO: Fix flask rules for indentation
 # TODO: Fix refactor this into a better pattern for handling types of data outputs
@@ -91,7 +92,7 @@ class FixtureHelper():
                 accountId='Tweek',
                 name='Siobhan Faulkner',
                 exp=10000,
-                area='Hlammach Docks',
+                area='hlammach_docks',
                 created='23/11/2017',
                 updated='29/11/2017'),
             'alrunden': Character(
@@ -99,7 +100,7 @@ class FixtureHelper():
                 accountId='Aez',
                 name='Alrunden Peralt',
                 exp=12000,
-                area='Dreyen Inn',
+                area='dreyen_north',
                 created='26/6/2017',
                 updated='29/11/2017'),
             'arthen': Character(
@@ -107,7 +108,7 @@ class FixtureHelper():
                 accountId=None,
                 name='Arthen Relindar',
                 exp=20000,
-                area='Relindar Green',
+                area='relindar_green',
                 created=None,
                 updated=None),
             'jilin': Character(
@@ -115,7 +116,7 @@ class FixtureHelper():
                 accountId='XxDrizzitxX',
                 name='Ji\'Lin Thri\'quen',
                 exp=1050,
-                area='Dreyen Inn',
+                area='dreyen_north',
                 created='29/11/2017',
                 updated='29/11/2017'),
             'seth': Character(
@@ -123,7 +124,7 @@ class FixtureHelper():
                 accountId='Tweek',
                 name='Seth Nottel',
                 exp=7000,
-                area='Dreyen Inn',
+                area='dreyen_south',
                 created='27/11/2017',
                 updated='3/12/2017'),
         }
@@ -245,7 +246,7 @@ class FixtureHelper():
                 name='Craft {material} Longsword',
                 category='melee',
                 actions=5,
-                time=3000,
+                time=0,
                 cost='metal:10',
                 building='smith'),
             'metal': Recipe(
@@ -253,7 +254,7 @@ class FixtureHelper():
                 name='Mine for {material} Ore',
                 category='ingredient',
                 actions=1,
-                time=300,
+                time=0,
                 cost='',
                 building='mine'),
             'wood': Recipe(
@@ -261,9 +262,35 @@ class FixtureHelper():
                 name='Chop {material} Wood',
                 category='ingredient',
                 actions=1,
-                time=300,
+                time=0,
                 cost='',
-                building='forest')
+                building='forest'),
+            'city_move': Recipe(
+                blueprint='city_move',
+                name='Move through city area',
+                category='movement',
+                actions=1),
+            'road_move': Recipe(
+                blueprint='road_move',
+                name='Move through road area',
+                category='movement',
+                actions=3),
+            'field_move': Recipe(
+                blueprint='field_move',
+                name='Move through field area',
+                category='movement',
+                actions=5),
+            'forest_move': Recipe(
+                blueprint='forest_move',
+                name='Move through forest area',
+                category='movement',
+                actions=8),
+            'boat_move': Recipe(
+                blueprint='boat_move',
+                name='Move through water area',
+                category='movement',
+                actions=1,
+                cost='boat')
         }
         self.session.add_all(list(recipes.values()))
         return recipes
@@ -301,7 +328,12 @@ class FixtureHelper():
                 melee_stats='damage_demon:2d6',
                 half_melee_stats='damage_demon:1d6',
                 armor_stats='armor_demon:4',
-                half_armor_stats='armor_demon:3')
+                half_armor_stats='armor_demon:3'),
+            'boat': Ingredient(
+                material='boat',
+                name='Boat',
+                category='travel',
+                tier=2)
         }
         self.session.add_all(list(ingredients.values()))
         return ingredients
@@ -492,3 +524,164 @@ class FixtureHelper():
         }
         self.session.add_all(list(reputation.values()))
         return reputation
+
+
+    def area_data(self):
+        areas = {
+            'dreyen_north': Area(
+                code='dreyen_north',
+                name='Dreyen North',
+                position='5,5',
+                movement='city_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'dreyen_south': Area(
+                code='dreyen_south',
+                name='Dreyen South',
+                position='4,4',
+                movement='road_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'dreyen_runoff': Area(
+                code='dreyen_runoff',
+                name='Dreyen Runoff',
+                position='5,4',
+                movement='boat_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'dreyen_fields': Area(
+                code='dreyen_fields',
+                name='Dreyen Fields',
+                position='4,5',
+                movement='field_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'orbest_blackharp': Area(
+                code='orbest_blackharp',
+                name='Dreyen South',
+                position='2,3',
+                movement='road_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'road_bend': Area(
+                code='road_bend',
+                name='Dreyen South',
+                position='2,4',
+                movement='road_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'abbey_fields': Area(
+                code='abbey_fields',
+                name='Abbey Fields',
+                position='1,3',
+                movement='road_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'wood_cut': Area(
+                code='wood_cut',
+                name='Wood Cut',
+                position='3,4',
+                movement='road_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'hlammach_towers': Area(
+                code='hlammach_towers',
+                name='Hlammach Towers',
+                position='2,0',
+                movement='city_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'hlammach_way': Area(
+                code='hlammach_way',
+                name='Hlammach Way',
+                position='2,1',
+                movement='road_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'tide_flats': Area(
+                code='tide_flats',
+                name='Tide Flats',
+                position='3,1',
+                movement='field_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'hin_town': Area(
+                code='hin_town',
+                name='Hin Town',
+                position='3,2',
+                movement='field_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'fish_hook': Area(
+                code='fish_hook',
+                name='Fish Hook',
+                position='3,3',
+                movement='field_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'hlammach_docks': Area(
+                code='hlammach_docks',
+                name='Hlammach Docks',
+                position='3,0',
+                movement='road_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'hlammach_sound': Area(
+                code='hlammach_sound',
+                name='Hlammach Sound',
+                position='4,0',
+                movement='boat_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'hlammach_shoals': Area(
+                code='hlammach_shoals',
+                name='Hlammach Shoals',
+                position='4,1',
+                movement='boat_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'wave_right': Area(
+                code='wave_right',
+                name='Wave Right',
+                position='4,2',
+                movement='boat_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'flat_shoals': Area(
+                code='flat_shoals',
+                name='Flat Shoals',
+                position='4,1',
+                movement='boat_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'hook_shoals': Area(
+                code='hook_shoals',
+                name='Hook Bend',
+                position='4,3',
+                movement='boat_move',
+                created='1/11/2017',
+                updated='1/11/2017'),
+            'relindar_green': Area(
+                code='relindar_green',
+                name='Relindar Green',
+                position='3,7',
+                movement='boat_move',
+                created='1/11/2017',
+                updated='1/11/2017')
+        }
+        self.session.add_all(list(areas.values()))
+        return areas
+
+    def fake_area_fixture(self):
+        areas = {
+            # non existent character, to be used for negative testing
+            'sundured_desolation': Area(
+                code='sundured_desolation',
+                name='Sundured Desolation',
+                position='-100,100',
+                movement='city_move',
+                created='1/11/2017',
+                updated='1/11/2017')
+        }
+        fake_areas = self.convert_to_json(areas)
+        return fake_areas

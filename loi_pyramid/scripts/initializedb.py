@@ -47,9 +47,11 @@ def main(argv=sys.argv):
 
         #TODO: Write tests for this
         fixture_helper = FixtureHelper(dbsession)
-        fixture_helper.character_data()
+        fixture_helper.area_data()
         fixture_helper.account_data()
+        fixture_helper.character_data()
         fixture_helper.item_data()
         fixture_helper.recipe_data()
         fixture_helper.ingredient_data()
         fixture_helper.action_data()
+

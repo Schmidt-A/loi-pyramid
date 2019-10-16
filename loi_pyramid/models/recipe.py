@@ -15,6 +15,6 @@ class Recipe(Base):
     name = Column(String, info={'access': 'public'})
     category = Column(String, info={'access': 'public'})
     actions = Column(Integer, info={'access': 'public'})
-    time = Column(Integer, info={'access': 'public'})
+    time = Column(Integer, default = 0, info={'access': 'public'})
     cost = Column(String, info={'access': 'public'})
     building = Column(String, info={'access': 'public'})

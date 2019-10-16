@@ -14,6 +14,7 @@ from .recipe import Recipe  # flake8: noqa
 from .item import Item  # flake8: noqa
 from .account import Account  # flake8: noqa
 from .ingredient import Ingredient
+from .area import Area
 
 # run configure_mappers after defining all of the models to ensure
 # all relationships can be setup

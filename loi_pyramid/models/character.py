@@ -18,7 +18,7 @@ class Character(Base):
     accountId = Column(Integer, ForeignKey('accounts.username'), info={'access': 'public'})
     name = Column(String, info={'access': 'public'})
     exp = Column(Integer, default=0, info={'access': 'private'})
-    area = Column(String, default='Dreyen Inn', info={'access': 'private'})
+    area = Column(String, ForeignKey('areas.code'), default='dreyen_north', info={'access': 'private'})
 
     # Is it worth doing backpopulation? It's only useful for chained deletes
     account = relationship('Account', back_populates='characters')
