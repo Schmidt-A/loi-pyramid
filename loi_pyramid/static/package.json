@@ -19,6 +19,7 @@
     "eslint-plugin-standard": "^4.0.1",
     "jest": "^24.9.0",
     "regenerator-runtime": "^0.13.3",
+    "wait-for-expect": "^3.0.0",
     "whatwg-fetch": "^3.0.0"
   },
   "scripts": {

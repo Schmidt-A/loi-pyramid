@@ -15,7 +15,7 @@ const markup =
     </tbody> 
   </table>`
 
-const renderCharTable = container => {
+const renderMapTable = container => {
   // use of session here is problematic
   return accountCharactersData.getData(JSON.parse(sessionStorage.getItem('account')))
     .then(data => {
@@ -26,11 +26,11 @@ const renderCharTable = container => {
     })
 }
 
-const characterTable = {
+const mapTable = {
   markup: markup,
   listeners: [],
   dataset: accountCharactersData,
-  renderData: renderCharTable
+  renderData: renderMapTable
 }
 
-export default characterTable
+export default mapTable

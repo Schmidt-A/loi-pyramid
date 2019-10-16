@@ -33,6 +33,8 @@ test('new listener()', () => {
   expect(mockListener.attrs().element).toBeFalsy()
 })
 
+// TODO: add listener render
+
 // Could this be a candidate for an integration test?
 // Or at least to replace container with a non dom object
 test('assign content()', () => {

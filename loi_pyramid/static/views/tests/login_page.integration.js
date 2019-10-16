@@ -7,7 +7,6 @@ import { BASE_URL } from '../../environments/dev.js'
 const pageContainer = document.createElement('div')
 pageContainer.id = 'pageContainer'
 document.body.appendChild(pageContainer)
-loginPage.container = document.querySelector('#pageContainer')
 
 beforeEach(() => {
   accountData.clear()
@@ -45,4 +44,5 @@ test('Page render()', async () => {
   expect(postData.get('pw')).toBe('drizzit4ever')
 
   expect(await accountData.getData(noobAccount.username)).toEqual(noobAccount)
+  expect(sessionStorage.getItem('account')).toBe(JSON.stringify(noobAccount))
 })

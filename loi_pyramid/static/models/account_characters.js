@@ -4,7 +4,7 @@ import { BASE_URL } from '../environments/dev.js'
 const accountCharactersData = dataset(
   'accountCharacters',
   function (account) {
-    //this username is problematic
+    // this username is problematic
     if (account && account.username) {
       return fetch(`${BASE_URL}/accounts/${account.username}/characters`)
         .then(response => {

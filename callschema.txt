@@ -45,6 +45,27 @@ response
     }
 ]}
 
+search items
+
+GET /characters/2/items:search
+
+query
+?blueprintId= (LIKE match)
+amount (operater, could be >, <, =, etc.)
+&limit=
+&offset=
+
+response
+{[
+    {
+        blueprintId: 'money',
+        amount: 20
+    }
+], total, offset
+}
+
+---
+
 //Do we want a data driven way of displaying the available econo actions (recipes?)
 {
     id: 2

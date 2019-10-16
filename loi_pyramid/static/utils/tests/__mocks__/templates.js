@@ -1,10 +1,5 @@
 import templates from '../../templates.js'
 
-// the practice of using the dom for these unit mocks is possibly problematic
-const mockContentContainer = document.createElement('div')
-mockContentContainer.id = 'contentContainer'
-document.body.appendChild(mockContentContainer)
-
 export const mockEventFunction = jest.fn(event => {
   event.preventDefault()
 })

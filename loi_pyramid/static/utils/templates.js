@@ -10,7 +10,7 @@ const content = ({ markup, listeners, dataset, renderData }, container) => {
         if (listeners.length) {
           listeners.forEach(listener => {
             listener.render(container)
-          })  
+          })
         }
       })
       .catch(error => {
@@ -111,6 +111,7 @@ const listener = (elementPath, eventType, eventFunction) => {
     if (element) {
       element.removeEventListener(eventType, eventFunction)
     }
+    element = null
   }
 
   const attrs = () => {
