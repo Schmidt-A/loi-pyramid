@@ -9,7 +9,7 @@ pageContainer.id = 'pageContainer'
 document.body.appendChild(pageContainer)
 
 const mockParse = url => {
-  const list = url.split('/')
+  const list = url.pathname.split('/')
   const username = list[list.length - 1]
   if (username === noobAccount.username) {
     return mockFetch(true, 200, noobAccount)
@@ -43,11 +43,11 @@ test('Page render()', async () => {
     expect(accountTable).toBeInstanceOf(HTMLTableElement)
     expect(accountTable.rows.length).toBe(1)
 
-    const printlist = []
+    //const printlist = []
     Array.from(accountTable.rows[0].children).forEach(cell => {
-      printlist.push(cell.textContent)
+      //printlist.push(cell.textContent)
       expect(cell.textContent).toEqual(noobAccount[cell.dataset.key].toString())
     })
-    console.table(printlist)
+    //console.table(printlist)
   })
 })

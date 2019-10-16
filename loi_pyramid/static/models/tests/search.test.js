@@ -4,7 +4,7 @@ import noobAccount from './__mocks__/noob_account.json'
 import { BASE_URL } from '../../environments/dev.js'
 
 const mockParse = url => {
-  const list = url.split('/')
+  const list = url.pathname.split('/')
   const username = list[list.length - 1]
   if (username === noobAccount.username) {
     return mockFetch(true, 200, noobAccount)

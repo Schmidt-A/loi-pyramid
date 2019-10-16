@@ -1,14 +1,5 @@
 <html>
   <head>
-    <script type="module" src="../utils/tables.js"></script>
-    <script type="module" src="../utils/templates.js"></script>
-
-    <script type="module" src="account_table.js"></script>
-    <script type="module" src="character_table.js"></script>
-    <script type="module" src="login_form.js"></script>
-
-		<script type="module" src="login_page.js"></script>    
-		<script type="module" src="account_characters_page.js"></script>    
 
   </head>
   <body>
@@ -18,11 +9,12 @@
   	<script type="module">
   		import loginPage from './login_page.js'
   		import accountCharacterPage from './account_characters_page.js'
+      import charactersMapPage from './characters_map_page.js'
 
   		window.addEventListener('load', event => {
         
   			window.addEventListener('triggerPage', event => {
-  				accountCharacterPage.render(document.querySelector('#pageContainer'))
+  				charactersMapPage.render(document.querySelector('#pageContainer'))
   			})
         
   			loginPage.render(document.querySelector('#pageContainer'))

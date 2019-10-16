@@ -42,7 +42,7 @@ test('loginForm renderData() logout', () => {
 
   loginForm.renderData()
 
-  expect(window.fetch.mock.calls[0][0]).toBe(`${BASE_URL}/logout`)
+  expect(window.fetch.mock.calls[0][0].toString()).toBe(`${BASE_URL}/logout`)
 
   expect(sessionStorage.getItem('account')).toBeNull()
 })

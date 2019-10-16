@@ -22,11 +22,11 @@ const accountListener = templates.listener(
   'change',
   function (event) {
     event.preventDefault()
-    console.log(event.srcElement.value)
+    //console.log(event.srcElement.value)
     searchData.getData(event.srcElement.value)
       .then(data => {
-        console.log(`fill table in ${event.srcElement.parentElement.id} from ${event.srcElement.value} with ${data.username}`)
-        console.log(data)
+        //console.log(`fill table in ${event.srcElement.parentElement.id} from ${event.srcElement.value} with ${data.username}`)
+        //console.log(data)
         tables.fillOneRowTable(document.querySelector(`#${event.srcElement.parentElement.id} table`), data)
       })
       .catch(error => {

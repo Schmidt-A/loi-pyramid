@@ -6,7 +6,7 @@ from pyramid import testing
 
 from .base_test import BaseTest
 from ..views import BaseView
-from ..models import Account, Character, Action
+from ..models import Account, Character, Action, Area
 
 log = logging.getLogger(__name__)
 
@@ -22,11 +22,13 @@ class TestBaseViews(BaseTest):
         accounts_data = self.fixture_helper.account_data()
         characters_data = self.fixture_helper.character_data()
         actions_data = self.fixture_helper.action_data()
+        areas_data = self.fixture_helper.area_data()
         self.session.flush()
 
         self.accounts = self.fixture_helper.convert_to_json(accounts_data)
         self.characters = self.fixture_helper.convert_to_json(characters_data)
         self.actions = self.fixture_helper.convert_to_json(actions_data)
+        self.areas = self.fixture_helper.convert_to_json(areas_data)
 
         self.fake_accounts = self.fixture_helper.fake_account_fixture()
 
@@ -43,7 +45,7 @@ class TestBaseViews(BaseTest):
         return mock_view.get_one(Account).json_body
 
     def mock_get_all(self, user_account, limit=None, offset=None):
-        resources = [('accounts', ('username', ''))]
+        resources = [('areas', ('code', ''))]
 
         query = {}
         if limit is not None:
@@ -59,7 +61,7 @@ class TestBaseViews(BaseTest):
 
         mock_view = BaseView(testing.DummyResource(), request)
 
-        return mock_view.get_all(Account).json_body
+        return mock_view.get_all(Area).json_body
 
     def mock_get_all_by(self, first, user_account, limit=None, offset=None):
         resources = [
@@ -128,33 +130,42 @@ class TestBaseViews(BaseTest):
     def test_get_all(self):
         limit = 10
         offset = 0
-        accounts_result = self.mock_get_all(self.accounts['tweek'])
+        areas_result = self.mock_get_all(self.accounts['tweek'])
 
         self.assert_compare_paginated_lists(
-            accounts_result, list(self.accounts.values()),
-            Account, limit, offset, *Account.__owned__(Account))
+            areas_result, list(self.areas.values()),
+            Area, limit, offset, *Area.__owned__(Area))
 
     # Test that we can get all accounts via get all call with limit 2 offset 0
     def test_get_all_1st(self):
         limit = 1
         offset = 0
-        accounts_result = self.mock_get_all(
+        areas_result = self.mock_get_all(
             self.accounts['tweek'], limit, offset)
 
         self.assert_compare_paginated_lists(
-            accounts_result, list(self.accounts.values()),
-            Account, limit, offset, *Account.__owned__(Account))
+            areas_result, list(self.areas.values()),
+            Area, limit, offset, *Area.__owned__(Area))
 
     # Test that we can get all accounts via get all call with limit 2 offset 2
     def test_get_all_2nd(self):
         limit = 1
         offset = 1
-        accounts_result = self.mock_get_all(
+        areas_result = self.mock_get_all(
             self.accounts['tweek'], limit, offset)
 
         self.assert_compare_paginated_lists(
-            accounts_result, list(self.accounts.values()),
-            Account, limit, offset, *Account.__owned__(Account))
+            areas_result, list(self.areas.values()),
+            Area, limit, offset, *Area.__owned__(Area))
+
+    def test_get_all_100(self):
+        limit = 100
+        offset = 0
+        areas_result = self.mock_get_all(self.accounts['tweek'], limit, offset)
+
+        self.assert_compare_paginated_lists(
+            areas_result, list(self.areas.values()),
+            Area, limit, offset, *Area.__owned__(Area))
 
     # Test that we can get all characters for Tweek via get all call
     def test_get_all_by_one_admin(self):

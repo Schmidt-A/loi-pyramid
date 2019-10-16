@@ -1,3 +1,4 @@
+import logging
 import bcrypt
 from pyramid.security import (
     ALL_PERMISSIONS,
@@ -8,6 +9,7 @@ from pyramid.security import (
 )
 from ..models import Account
 
+log = logging.getLogger(__name__)
 
 def hash_password(pw):
     pwhash = bcrypt.hashpw(pw.encode('utf8'), bcrypt.gensalt())
@@ -29,6 +31,8 @@ def role_lookup(username, request):
     if account.role > 1:
         role.append('g:admin')
 
+    log.info(role) 
+
     return role
 
 
@@ -36,6 +40,8 @@ def get_account(request):
     query = request.dbsession.query(Account)
     account = query.filter(
         Account.username == request.authenticated_userid).one()
+
+    log.info(account) 
 
     return account
 

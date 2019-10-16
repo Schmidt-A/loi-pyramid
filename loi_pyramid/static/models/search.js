@@ -64,7 +64,8 @@ export const searchData = newDataset(
   function (username) {
     // this username is problematic
     if (username) {
-      return fetch(`${BASE_URL}/accounts/${username}`)
+      let url = new URL(`${BASE_URL}/accounts/${username}`)
+      return fetch(url)
         .then(response => {
           if (response.ok) {
             return response.json()

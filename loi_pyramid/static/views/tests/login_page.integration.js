@@ -36,7 +36,7 @@ test('Page render()', async () => {
   pw.value = 'drizzit4ever'
   form.dispatchEvent(new Event('submit', { bubbles: true }))
 
-  expect(window.fetch.mock.calls[1][0]).toBe(`${BASE_URL}/login`)
+  expect(window.fetch.mock.calls[1][0].toString()).toBe(`${BASE_URL}/login`)
   expect(window.fetch.mock.calls[1][1].method).toBe('POST')
 
   const postData = window.fetch.mock.calls[1][1].body

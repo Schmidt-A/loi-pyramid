@@ -11,7 +11,7 @@ test('account retrieve()', async () => {
 
   expect(account).toBeTruthy()
   expect(account).toBe(noobAccount)
-  expect(window.fetch.mock.calls[0][0]).toBe(`${BASE_URL}/accounts/${noobAccount.username}`)
+  expect(window.fetch.mock.calls[0][0].toString()).toBe(`${BASE_URL}/accounts/${noobAccount.username}`)
 })
 
 test('account retrieve() bad input', () => {

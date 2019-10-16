@@ -1,29 +1,23 @@
 import tables from '../utils/tables.js'
 import accountCharactersData from '../models/account_characters.js'
+import areaData from '../models/area.js'
 
 const markup =
   `<table>
-    <thead>
-      <tr>
-        <th data-key="name">Name</th>
-        <th data-key="exp">Exp</th>
-        <th data-key="area">Area</th>
-        <th data-key="created">Created</th>
-        <th data-key="updated">Updated</th>
-      </tr>
-    </thead>
     </tbody> 
   </table>`
 
 const renderMapTable = container => {
   // use of session here is problematic
-  return accountCharactersData.getData(JSON.parse(sessionStorage.getItem('account')))
-    .then(data => {
-      tables.fillTableFromHeader(document.querySelector(`#${container.id} table`), data.characters)
-    })
-    .catch(error => {
-      throw new Error(error.message)
-    })
+  let areas = areaData.getData()
+  let characters = accountCharactersData.getData(JSON.parse(sessionStorage.getItem('account')))
+
+  return Promise.all([areas, characters]).then( ([areas, characters] = responses) => {
+    tables.drawMap(document.querySelector(`#${container.id} table`), areas.areas, {endx: 6, endy: 11})
+  })
+  .catch( error => {
+    throw new Error(error.message)
+  })
 }
 
 const mapTable = {

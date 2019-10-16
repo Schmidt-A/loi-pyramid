@@ -80,7 +80,7 @@ class BaseTest(unittest.TestCase):
             query_string = '?'
 
             for key, value in query.items():
-                query_dict.add(key, value)
+                query_dict.add(key, str(value))
                 query_string += '{}={}&'.format(key, value)
             query_string = query_string[:-1]
         req.GET = query_dict

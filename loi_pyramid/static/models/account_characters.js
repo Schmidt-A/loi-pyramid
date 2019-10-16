@@ -6,7 +6,8 @@ const accountCharactersData = dataset(
   function (account) {
     // this username is problematic
     if (account && account.username) {
-      return fetch(`${BASE_URL}/accounts/${account.username}/characters`)
+      let url = new URL(`${BASE_URL}/accounts/${account.username}/characters`)
+      return fetch(url)
         .then(response => {
           if (response.ok) {
             return response.json()

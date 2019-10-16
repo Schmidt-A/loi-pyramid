@@ -1,0 +1,28 @@
+{
+  "areas": [{
+    "code": "dreyen_north",
+    "name": "Dreyen North",
+    "position": "5,5",
+    "movement": "city_move",
+    "created": "1/11/2017",
+    "updated": "1/11/2017"
+  },
+  {
+    "code": "dreyen_south",
+    "name": "Dreyen South",
+    "position": "4,6",
+    "movement": "road_move",
+    "created": "1/11/2017",
+    "updated": "1/11/2017"
+  },
+  {
+    "code": "relindar_green",
+    "name": "Relindar Green",
+    "position": "3,2",
+    "movement": "city_move",
+    "created": "1/11/2017",
+    "updated": "1/1/2017"
+  }],
+  "total": 3,
+  "offset": 3
+}

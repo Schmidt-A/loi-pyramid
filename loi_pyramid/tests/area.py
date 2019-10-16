@@ -31,10 +31,10 @@ class TestAreaViews(BaseTest):
         self.accounts = self.fixture_helper.convert_to_json(accounts_data)
         self.areas = self.fixture_helper.convert_to_json(areas_data)
 
-        # non existent Areas, to be used for negative testing
+        # non existent areas, to be used for negative testing
         self.fake_areas = self.fixture_helper.fake_area_fixture()
 
-    # Helper method for get all calls to /Areas
+    # Helper method for get all calls to /areas
     def areas_get_all(self, account, limit=None, offset=None):
         resources = [('areas', ('code', ''))]
 
@@ -54,7 +54,7 @@ class TestAreaViews(BaseTest):
 
         return area_view.get().json_body
 
-    # Test that we can get all Areas via get all call
+    # Test that we can get all areas via get all call
     def test_get_all(self):
         limit = 10
         offset = 0

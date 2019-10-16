@@ -1,4 +1,5 @@
 import logging
+import sys
 
 from pyramid.httpexceptions import HTTPNotFound, HTTPClientError, HTTPForbidden, HTTPUnauthorized, HTTPInternalServerError
 from pyramid.response import Response
@@ -69,11 +70,11 @@ class BaseView(object):
             offset = 0
 
             try:
-                if self.request.GET.getone('limit') > 0 and self.request.GET.getone('limit') < 101:
-                    limit = self.request.GET.getone('limit')
-                if self.request.GET.getone('offset') > -1:
-                    offset = self.request.GET.getone('offset')
-            except BaseException:
+                if int(self.request.GET.getone('limit')) > 0 and int(self.request.GET.getone('limit')) < 101:
+                    limit = int(self.request.GET.getone('limit'))
+                if int(self.request.GET.getone('offset')) > -1:
+                    offset = int(self.request.GET.getone('offset'))
+            except KeyError:
                 log.warning(
                     'get: defaults used for limit and/or offset {}'.format(self.request.GET))
                 pass
@@ -147,11 +148,11 @@ class BaseView(object):
                 raise HTTPInternalServerError
 
             try:
-                if self.request.GET.getone('limit') > 0 and self.request.GET.getone('limit') < 101:
-                    limit = self.request.GET.getone('limit')
-                if self.request.GET.getone('offset') > -1:
-                    offset = self.request.GET.getone('offset')
-            except BaseException:
+                if int(self.request.GET.getone('limit')) > 0 and int(self.request.GET.getone('limit')) < 101:
+                    limit = int(self.request.GET.getone('limit'))
+                if int(self.request.GET.getone('offset')) > -1:
+                    offset = int(self.request.GET.getone('offset'))
+            except KeyError:
                 log.warning(
                     'get_all_by_one: defaults used for limit and/or offset {}'.format(self.request.GET))
                 pass
